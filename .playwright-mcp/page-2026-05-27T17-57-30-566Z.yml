@@ -1,0 +1,36 @@
+- generic [active] [ref=e1]:
+  - alert [ref=e2]:
+    - strong [ref=e3]: "Uwaga:"
+    - text: Supabase nie jest skonfigurowany — funkcje uwierzytelniania są wyłączone.
+    - link "Zobacz instrukcję konfiguracji" [ref=e4] [cursor=pointer]:
+      - /url: https://github.com/przeprogramowani/10x-astro-starter#supabase-configuration
+    - text: .
+  - generic [ref=e6]:
+    - generic [ref=e7]:
+      - generic [ref=e8]: Not signed in
+      - generic [ref=e9]:
+        - link "Sign in" [ref=e10] [cursor=pointer]:
+          - /url: /auth/signin
+        - link "Sign up" [ref=e11] [cursor=pointer]:
+          - /url: /auth/signup
+    - generic [ref=e12]:
+      - heading "10x Astro Starter" [level=1] [ref=e13]
+      - paragraph [ref=e14]: A production-ready starter with authentication, modern tooling, and a cosmic developer experience.
+      - generic [ref=e15]:
+        - link "Sign In" [ref=e16] [cursor=pointer]:
+          - /url: /auth/signin
+        - link "Sign Up" [ref=e17] [cursor=pointer]:
+          - /url: /auth/signup
+    - generic [ref=e18]:
+      - generic [ref=e19]:
+        - img [ref=e20]
+        - heading "Authentication Ready" [level=3] [ref=e23]
+        - paragraph [ref=e24]: Built-in Supabase auth with sign in, sign up, and protected routes out of the box.
+      - generic [ref=e25]:
+        - img [ref=e26]
+        - heading "Modern Stack" [level=3] [ref=e30]
+        - paragraph [ref=e31]: Astro 5, React 19, Tailwind 4, and TypeScript — the latest tools, ready to go.
+      - generic [ref=e32]:
+        - img [ref=e33]
+        - heading "Developer Experience" [level=3] [ref=e36]
+        - paragraph [ref=e37]: ESLint, Prettier, and pre-commit hooks keep your codebase clean from day one.
