@@ -1,0 +1,84 @@
+{
+  "schemaVersion": 1,
+  "language": "en",
+  "source": {
+    "questionnaireVersion": "mvp-v1",
+    "generatedAt": "2026-06-02T10:00:00.000Z",
+    "modelProvider": "fixture",
+    "modelName": "contract-example"
+  },
+  "sections": {
+    "summary": {
+      "headline": "Entry-level customer support candidate",
+      "body": "Motivated and reliable candidate with hands-on experience helping customers, organizing daily tasks, and learning new tools quickly. Comfortable communicating clearly, solving practical problems, and contributing to a team environment."
+    },
+    "experience": [
+      {
+        "role": "Volunteer event assistant",
+        "organization": "Community career fair",
+        "location": "Warsaw",
+        "startDate": "2025",
+        "endDate": "2025",
+        "isCurrent": false,
+        "description": "Helped visitors find information, answered basic questions, and supported organizers during a local career event.",
+        "highlights": [
+          "Guided attendees to the correct registration and information points",
+          "Kept shared materials organized during a busy public event",
+          "Communicated politely with people from different backgrounds"
+        ]
+      },
+      {
+        "description": "Provided informal help to classmates and neighbors with basic computer tasks and online forms.",
+        "highlights": ["Explained steps in simple language", "Stayed patient when people needed repeated guidance"]
+      }
+    ],
+    "education": [
+      {
+        "institution": "Local secondary school",
+        "program": "General education",
+        "endDate": "2024",
+        "description": "Completed general coursework with an interest in communication, technology, and practical problem solving."
+      }
+    ],
+    "skills": [
+      {
+        "label": "Core skills",
+        "items": ["Customer communication", "Task organization", "Problem solving", "Teamwork"]
+      },
+      {
+        "label": "Tools",
+        "items": ["Email", "Online forms", "Basic spreadsheets"]
+      }
+    ],
+    "languages": [
+      {
+        "name": "Polish",
+        "proficiency": "Native"
+      },
+      {
+        "name": "English",
+        "proficiency": "Intermediate"
+      }
+    ]
+  },
+  "assumptions": [
+    {
+      "field": "sections.summary.body",
+      "reason": "Combined customer-facing volunteer work and informal computer help into a concise entry-level positioning statement."
+    },
+    {
+      "field": "sections.skills",
+      "reason": "Grouped user-provided abilities into simple categories suitable for the single MVP CV template."
+    }
+  ],
+  "warnings": [
+    {
+      "code": "minimal_input",
+      "message": "Some experience details are informal or incomplete, so the draft avoids adding employers, dates, or metrics that were not provided."
+    },
+    {
+      "code": "low_confidence",
+      "message": "The user should review the summary and experience wording before exporting the final CV."
+    }
+  ]
+}
