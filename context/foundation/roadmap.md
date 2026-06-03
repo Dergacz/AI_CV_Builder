@@ -3,7 +3,7 @@ project: AI CV Builder
 version: 1
 status: draft
 created: 2026-06-01
-updated: 2026-06-01
+updated: 2026-06-03
 prd_version: 1
 main_goal: speed
 top_blocker: decisions
@@ -29,7 +29,7 @@ Here, north star means the smallest end-to-end slice whose successful delivery p
 
 | ID   | Change ID                           | Outcome (user can ...)                                                             | Prerequisites          | PRD refs                                 | Status   |
 | ---- | ----------------------------------- | ---------------------------------------------------------------------------------- | ---------------------- | ---------------------------------------- | -------- |
-| F-01 | generation-export-decision-contract | (foundation) generation and PDF export decisions are captured as minimal contracts | -                      | NFR: Export reliability, Response timing | ready    |
+| F-01 | generation-export-decision-contract | (foundation) generation and PDF export decisions are captured as minimal contracts | -                      | NFR: Export reliability, Response timing | done     |
 | F-02 | cv-persistence-privacy-contract     | (foundation) owner-only saved-CV persistence is defined enough to plan save/reopen | -                      | Access Control, NFR: Privacy, Retention  | ready    |
 | S-01 | product-landing-start               | user can understand the value proposition and start CV creation                    | -                      | FR-001, FR-002                           | ready    |
 | S-02 | account-access-for-cv-work          | user can sign up, log in, and reach the CV workspace                               | -                      | FR-003                                   | ready    |
@@ -73,11 +73,10 @@ Foundations below assume these are present and do NOT re-scaffold them.
 - **Prerequisites:** -
 - **Parallel with:** F-02, S-01, S-02
 - **Blockers:** -
-- **Unknowns:**
-  - Which generation output contract is sufficient for Summary, Experience, Education, Skills, and Languages? - Owner: team. Block: no.
-  - Which PDF export approach can meet readable formatting without delaying launch? - Owner: team. Block: no.
+- **Decision artifact:** `context/changes/generation-export-decision-contract/decision-contract.md`
+- **Spike artifact:** `context/changes/generation-export-decision-contract/pdf-runtime-spike.md`
 - **Risk:** If these decisions wait until implementation, S-04 and S-07 can drift into incompatible generation and export assumptions.
-- **Status:** ready
+- **Status:** done
 
 ### F-02: CV persistence and privacy contract
 
@@ -141,7 +140,7 @@ Foundations below assume these are present and do NOT re-scaffold them.
 - **Parallel with:** S-06
 - **Blockers:** -
 - **Unknowns:**
-  - F-01 must decide the generation output contract and timeout/error boundaries before this can be planned. - Owner: team. Block: yes.
+  - F-01 is resolved; S-03 must provide questionnaire answers before draft generation can be planned against the completed contract. - Owner: team. Block: yes.
 - **Risk:** This slice proves whether everyday-language answers can become a professional draft; it should not wait behind editing or dashboard work.
 - **Status:** blocked
 
@@ -180,7 +179,7 @@ Foundations below assume these are present and do NOT re-scaffold them.
 - **Parallel with:** S-06
 - **Blockers:** -
 - **Unknowns:**
-  - F-01 must decide the PDF export approach and verification criteria before this can be planned. - Owner: team. Block: yes.
+  - F-01 is resolved; S-05 must provide the reviewed CV template before final PDF export can be planned against the completed contract. - Owner: team. Block: yes.
 - **Risk:** PDF quality is a guardrail; a late export surprise would threaten the whole launch path.
 - **Status:** blocked
 
@@ -199,18 +198,18 @@ Foundations below assume these are present and do NOT re-scaffold them.
 
 ## Backlog Handoff
 
-| Roadmap ID | Change ID                           | Suggested issue title                                       | Ready for `/10x-plan` | Notes                                                        |
-| ---------- | ----------------------------------- | ----------------------------------------------------------- | --------------------- | ------------------------------------------------------------ |
-| F-01       | generation-export-decision-contract | Define generation and PDF export contracts                  | yes                   | Run `/10x-plan generation-export-decision-contract`          |
-| F-02       | cv-persistence-privacy-contract     | Define saved-CV persistence and owner privacy contract      | yes                   | Can run in parallel with F-01                                |
-| S-01       | product-landing-start               | Replace starter landing with product landing and start path | yes                   | Run `/10x-plan product-landing-start`                        |
-| S-02       | account-access-for-cv-work          | Connect account access to the CV workspace                  | yes                   | Auth baseline exists                                         |
-| S-03       | guided-questionnaire-capture        | Build guided questionnaire capture                          | no                    | Requires S-01 and S-02                                       |
-| S-04       | generated-cv-draft                  | Generate usable CV draft from questionnaire answers         | no                    | Blocked until F-01 resolves generation decisions             |
-| S-05       | cv-template-section-editing         | Add CV template review and section editing                  | no                    | Requires S-04                                                |
-| S-06       | saved-cv-library                    | Save and reopen CVs from account                            | no                    | Blocked until F-02 resolves persistence decisions            |
-| S-07       | pdf-export                          | Export reviewed CV as PDF                                   | no                    | Blocked until F-01 resolves export decisions and S-05 exists |
-| S-08       | full-saved-pdf-flow                 | Complete saved PDF flow with language support               | no                    | Requires F-01, F-02, S-06, and S-07                          |
+| Roadmap ID | Change ID                           | Suggested issue title                                       | Ready for `/10x-plan` | Notes                                                 |
+| ---------- | ----------------------------------- | ----------------------------------------------------------- | --------------------- | ----------------------------------------------------- |
+| F-01       | generation-export-decision-contract | Define generation and PDF export contracts                  | no                    | Implemented; use completed contract for S-04 and S-07 |
+| F-02       | cv-persistence-privacy-contract     | Define saved-CV persistence and owner privacy contract      | yes                   | Can run in parallel with F-01                         |
+| S-01       | product-landing-start               | Replace starter landing with product landing and start path | yes                   | Run `/10x-plan product-landing-start`                 |
+| S-02       | account-access-for-cv-work          | Connect account access to the CV workspace                  | yes                   | Auth baseline exists                                  |
+| S-03       | guided-questionnaire-capture        | Build guided questionnaire capture                          | no                    | Requires S-01 and S-02                                |
+| S-04       | generated-cv-draft                  | Generate usable CV draft from questionnaire answers         | no                    | F-01 resolved; requires S-03                          |
+| S-05       | cv-template-section-editing         | Add CV template review and section editing                  | no                    | Requires S-04                                         |
+| S-06       | saved-cv-library                    | Save and reopen CVs from account                            | no                    | Blocked until F-02 resolves persistence decisions     |
+| S-07       | pdf-export                          | Export reviewed CV as PDF                                   | no                    | F-01 resolved; requires S-05                          |
+| S-08       | full-saved-pdf-flow                 | Complete saved PDF flow with language support               | no                    | Requires F-01, F-02, S-06, and S-07                   |
 
 ## Open Roadmap Questions
 
@@ -232,4 +231,4 @@ Foundations below assume these are present and do NOT re-scaffold them.
 
 ## Done
 
-<!-- Empty on first generation. `/10x-archive` appends entries here when matching changes are archived. -->
+- **F-01 `generation-export-decision-contract`** - Implemented on 2026-06-03. Decision contract and PDF runtime spike are in `context/changes/generation-export-decision-contract/`; unlocks S-04/S-07 planning once their remaining prerequisites are ready.
