@@ -292,29 +292,29 @@ No production migration is part of this change. S-06 should turn the representat
 
 #### Automated
 
-- [x] 1.1 Contract artifact exists
-- [x] 1.2 Contract artifact passes Prettier check
-- [x] 1.3 Contract artifact contains required headings
+- [x] 1.1 Contract artifact exists — f18d171
+- [x] 1.2 Contract artifact passes Prettier check — f18d171
+- [x] 1.3 Contract artifact contains required headings — f18d171
 
 #### Manual
 
-- [x] 1.4 Contract answers the F-02 roadmap unknown
-- [x] 1.5 Contract stays inside PRD scope
+- [x] 1.4 Contract answers the F-02 roadmap unknown — f18d171
+- [x] 1.5 Contract stays inside PRD scope — f18d171
 
 ### Phase 2: RLS And SQL Sketch
 
 #### Automated
 
-- [ ] 2.1 Contract includes public.cvs SQL sketch
-- [ ] 2.2 Contract includes owner-only RLS policy sketches
-- [ ] 2.3 Contract includes S-06 API handoff rules
-- [ ] 2.4 Changed markdown passes Prettier check
+- [x] 2.1 Contract includes public.cvs SQL sketch
+- [x] 2.2 Contract includes owner-only RLS policy sketches
+- [x] 2.3 Contract includes S-06 API handoff rules
+- [x] 2.4 Changed markdown passes Prettier check
 
 #### Manual
 
-- [ ] 2.5 SQL sketch is specific enough for S-06 migration planning
-- [ ] 2.6 RLS rules make owner-only access the database privacy boundary
-- [ ] 2.7 SQL remains marked as representative
+- [x] 2.5 SQL sketch is specific enough for S-06 migration planning
+- [x] 2.6 RLS rules make owner-only access the database privacy boundary
+- [x] 2.7 SQL remains marked as representative
 
 ### Phase 3: Verification And Handoff
 

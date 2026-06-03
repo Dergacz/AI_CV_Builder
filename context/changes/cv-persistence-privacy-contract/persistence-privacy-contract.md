@@ -137,6 +137,54 @@ Future S-06 API routes should still verify the authenticated user through the ex
 
 There is no MVP sharing, workspace ownership, team account model, public CV link, admin role, or collaborator role.
 
+## Representative SQL Sketch
+
+The future S-06 migration should convert this sketch into production SQL. This sketch is intentionally representative: it fixes the contract shape and privacy policy, but it is not a migration file and has not been applied to any Supabase project.
+
+```sql
+create table public.cvs (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null references auth.users(id) on delete cascade,
+  title text not null,
+  language text not null check (language in ('en', 'pl', 'ru')),
+  draft jsonb not null,
+  source_snapshot jsonb not null,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+
+alter table public.cvs enable row level security;
+
+create policy "Users can view their own CVs"
+  on public.cvs
+  for select
+  using (auth.uid() is not null and auth.uid() = user_id);
+
+create policy "Users can create their own CVs"
+  on public.cvs
+  for insert
+  with check (auth.uid() is not null and auth.uid() = user_id);
+
+create policy "Users can update their own CVs"
+  on public.cvs
+  for update
+  using (auth.uid() is not null and auth.uid() = user_id)
+  with check (auth.uid() is not null and auth.uid() = user_id);
+
+create policy "Users can delete their own CVs"
+  on public.cvs
+  for delete
+  using (auth.uid() is not null and auth.uid() = user_id);
+```
+
+Production migration notes for S-06:
+
+- Keep `user_id` non-null and owner-controlled; never accept a client-provided owner that differs from the authenticated user.
+- Keep `draft` and `source_snapshot` as `jsonb` for the MVP, with runtime validation in the application layer when S-06 writes rows.
+- Keep listable fields outside JSON so the library query can select `id`, `title`, `language`, `created_at`, and `updated_at` without loading CV content.
+- Consider an `updated_at` trigger in the production migration if S-06 does not set it explicitly on every save.
+- Do not add soft-delete columns unless the retention decision changes.
+
 ## Logging And Diagnostics Rules
 
 CV content and questionnaire answers are sensitive user data. They must not be logged as raw payloads.
@@ -165,6 +213,23 @@ Forbidden diagnostics:
 - stack traces in user-facing messages.
 
 Future implementation can add structured server logs, but they must preserve these boundaries.
+
+## S-06 API Handoff Rules
+
+Future S-06 API routes should use the existing Astro/Supabase conventions rather than introducing a separate data layer.
+
+Required route behavior:
+
+- Create a Supabase client per request through `createClient(context.request.headers, context.cookies)`.
+- Treat a missing Supabase client as `service_unavailable` or an equivalent plain user-facing failure.
+- Verify the authenticated user with `supabase.auth.getUser()` before authorization-sensitive saved-CV work.
+- Use the verified `user.id` as the saved CV `user_id`; do not trust a submitted owner id.
+- Let RLS remain enabled and active for all saved-CV reads and writes.
+- Return only owner-visible rows for list and reopen behavior.
+- Use explicit save semantics for creates and updates.
+- Use hard delete for delete behavior.
+
+User-facing failures must not expose raw CV payloads, raw questionnaire answers, provider internals, Supabase secret names, stack traces, or SQL details. If an implementation failure needs diagnostics, log only the safe diagnostic fields listed above.
 
 ## Out Of Scope
 
