@@ -292,14 +292,14 @@ No production migration is part of this change. S-06 should turn the representat
 
 #### Automated
 
-- [ ] 1.1 Contract artifact exists
-- [ ] 1.2 Contract artifact passes Prettier check
-- [ ] 1.3 Contract artifact contains required headings
+- [x] 1.1 Contract artifact exists
+- [x] 1.2 Contract artifact passes Prettier check
+- [x] 1.3 Contract artifact contains required headings
 
 #### Manual
 
-- [ ] 1.4 Contract answers the F-02 roadmap unknown
-- [ ] 1.5 Contract stays inside PRD scope
+- [x] 1.4 Contract answers the F-02 roadmap unknown
+- [x] 1.5 Contract stays inside PRD scope
 
 ### Phase 2: RLS And SQL Sketch
 
