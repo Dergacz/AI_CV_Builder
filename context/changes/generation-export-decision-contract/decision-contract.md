@@ -281,3 +281,20 @@ S-08 must verify that:
 ## Handoff
 
 Future planning should reuse this file instead of re-asking the F-01 roadmap questions. If a future implementation needs to change this contract, it should update this artifact intentionally and call out which downstream slices are affected.
+
+### Downstream Reuse Map
+
+| Slice                                | Reuse these sections                                                                                                                          | Planning note                                                                                                       |
+| ------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------- |
+| S-04 generated CV draft              | `GeneratedCvDraft Top-Level Shape`, `Editable Sections`, `Supporting Metadata`, `Minimal-Input Behavior`, `Error Buckets`, `Timeout Boundary` | Plan the generation route, loading state, retry behavior, and draft validation against this shape.                  |
+| S-05 CV template and section editing | `Editable Sections`, `Supporting Metadata`, `Verification Criteria For Downstream Slices`                                                     | Keep editing section-based and preserve the same draft object; do not add layout editing or section reordering.     |
+| S-07 PDF export                      | `PDF Export Path`, `Error Buckets`, `Verification Criteria For Downstream Slices` plus `pdf-runtime-spike.md`                                 | Choose the final PDF dependency from the spike recommendation and export structured draft data, not AI HTML.        |
+| S-08 full saved PDF flow             | `GeneratedCvDraft Top-Level Shape`, `PDF Export Path`, `Verification Criteria For Downstream Slices`                                          | Preserve selected output language through generation, editing, saving, and export without adding deep localization. |
+
+### Files To Load First
+
+Future agents planning S-04, S-05, S-07, or S-08 should read these files before asking product questions:
+
+- `context/changes/generation-export-decision-contract/decision-contract.md`
+- `context/changes/generation-export-decision-contract/cv-contract.fixture.json`
+- `context/changes/generation-export-decision-contract/pdf-runtime-spike.md`

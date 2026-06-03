@@ -272,28 +272,28 @@ No database migration is part of this change. If future slices persist generated
 
 #### Automated
 
-- [x] 2.1 Fixture file exists
-- [x] 2.2 Fixture parses as JSON
-- [x] 2.3 Spike record exists
-- [x] 2.4 Changed artifacts pass Prettier check
+- [x] 2.1 Fixture file exists — cd98286
+- [x] 2.2 Fixture parses as JSON — cd98286
+- [x] 2.3 Spike record exists — cd98286
+- [x] 2.4 Changed artifacts pass Prettier check — cd98286
 
 #### Manual
 
-- [x] 2.5 Fixture is realistic and exercises every editable section
-- [x] 2.6 Spike record makes a clear PDF recommendation and fallback trigger
-- [x] 2.7 Spike avoids premature S-07 implementation
+- [x] 2.5 Fixture is realistic and exercises every editable section — cd98286
+- [x] 2.6 Spike record makes a clear PDF recommendation and fallback trigger — cd98286
+- [x] 2.7 Spike avoids premature S-07 implementation — cd98286
 
 ### Phase 3: Verification And Handoff
 
 #### Automated
 
-- [ ] 3.1 Astro sync completes
-- [ ] 3.2 Lint completes
-- [ ] 3.3 Build completes
-- [ ] 3.4 Change-folder Prettier check completes
+- [x] 3.1 Astro sync completes
+- [x] 3.2 Lint completes
+- [x] 3.3 Build completes
+- [x] 3.4 Change-folder Prettier check completes
 
 #### Manual
 
-- [ ] 3.5 S-04 planning can reuse the generation contract
-- [ ] 3.6 S-07 planning can reuse the PDF recommendation
-- [ ] 3.7 Contract remains a decision artifact
+- [x] 3.5 S-04 planning can reuse the generation contract
+- [x] 3.6 S-07 planning can reuse the PDF recommendation
+- [x] 3.7 Contract remains a decision artifact

@@ -3,7 +3,7 @@ change_id: generation-export-decision-contract
 title: Generation export decision contract
 status: implementing
 created: 2026-06-02
-updated: 2026-06-02
+updated: 2026-06-03
 archived_at: null
 ---
 
