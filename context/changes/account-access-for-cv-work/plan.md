@@ -366,17 +366,17 @@ No database migration is required. No Supabase Auth architecture migration is re
 
 #### Automated
 
-- [x] 1.1 Signin endpoint keeps the existing Supabase SSR helper path and redirects successful signin to `/dashboard` — 3892c45
-- [x] 1.2 Signup endpoint branches to `/dashboard` when the signup response includes an active session and to `/auth/confirm-email` otherwise — 3892c45
-- [x] 1.3 Auth endpoints do not redirect raw `error.message` values into user-facing query strings — 3892c45
-- [x] 1.4 Lint passes: `npm run lint` — 3892c45
+- [x] 1.1 Signin endpoint keeps the existing Supabase SSR helper path and redirects successful signin to `/dashboard` — 9db08ed
+- [x] 1.2 Signup endpoint branches to `/dashboard` when the signup response includes an active session and to `/auth/confirm-email` otherwise — 9db08ed
+- [x] 1.3 Auth endpoints do not redirect raw `error.message` values into user-facing query strings — 9db08ed
+- [x] 1.4 Lint passes: `npm run lint` — 9db08ed
 
 #### Manual
 
-- [x] 1.5 Signing in with valid credentials lands on `/dashboard` — 3892c45
-- [x] 1.6 Signing in with invalid credentials shows a friendly error message on `/auth/signin` — 3892c45
-- [x] 1.7 Signing up in a local auto-confirm environment lands on `/dashboard` — 3892c45
-- [x] 1.8 Signing up in an email-confirmation environment still lands on `/auth/confirm-email` — 3892c45
+- [x] 1.5 Signing in with valid credentials lands on `/dashboard` — 9db08ed
+- [x] 1.6 Signing in with invalid credentials shows a friendly error message on `/auth/signin` — 9db08ed
+- [x] 1.7 Signing up in a local auto-confirm environment lands on `/dashboard` — 9db08ed
+- [x] 1.8 Signing up in an email-confirmation environment still lands on `/auth/confirm-email` — 9db08ed
 
 ### Phase 2: Product Auth Pages
 
