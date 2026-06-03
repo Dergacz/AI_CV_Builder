@@ -1,7 +1,7 @@
 ---
 change_id: cv-persistence-privacy-contract
 title: CV persistence privacy contract
-status: implementing
+status: implemented
 created: 2026-06-03
 updated: 2026-06-03
 archived_at: null

@@ -320,13 +320,13 @@ No production migration is part of this change. S-06 should turn the representat
 
 #### Automated
 
-- [x] 3.1 Astro sync completes
-- [x] 3.2 Lint completes
-- [x] 3.3 Build completes
-- [x] 3.4 Change-folder and roadmap Prettier check completes
+- [x] 3.1 Astro sync completes — 558dd69
+- [x] 3.2 Lint completes — 558dd69
+- [x] 3.3 Build completes — 558dd69
+- [x] 3.4 Change-folder and roadmap Prettier check completes — 558dd69
 
 #### Manual
 
-- [x] 3.5 S-06 planning can reuse the persistence contract
-- [x] 3.6 S-08 planning can reuse language preservation rules
-- [x] 3.7 Contract remains a decision artifact
+- [x] 3.5 S-06 planning can reuse the persistence contract — 558dd69
+- [x] 3.6 S-08 planning can reuse language preservation rules — 558dd69
+- [x] 3.7 Contract remains a decision artifact — 558dd69
