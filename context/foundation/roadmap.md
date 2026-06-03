@@ -31,7 +31,7 @@ Here, north star means the smallest end-to-end slice whose successful delivery p
 | ---- | ----------------------------------- | ---------------------------------------------------------------------------------- | ---------------------- | ---------------------------------------- | -------- |
 | F-01 | generation-export-decision-contract | (foundation) generation and PDF export decisions are captured as minimal contracts | -                      | NFR: Export reliability, Response timing | done     |
 | F-02 | cv-persistence-privacy-contract     | (foundation) owner-only saved-CV persistence is defined enough to plan save/reopen | -                      | Access Control, NFR: Privacy, Retention  | done     |
-| S-01 | product-landing-start               | user can understand the value proposition and start CV creation                    | -                      | FR-001, FR-002                           | ready    |
+| S-01 | product-landing-start               | user can understand the value proposition and start CV creation                    | -                      | FR-001, FR-002                           | done     |
 | S-02 | account-access-for-cv-work          | user can sign up, log in, and reach the CV workspace                               | -                      | FR-003                                   | ready    |
 | S-03 | guided-questionnaire-capture        | user can create a new CV by answering a simple guided questionnaire                | S-01, S-02             | US-01, FR-004, FR-005                    | proposed |
 | S-04 | generated-cv-draft                  | user can receive a usable structured CV draft from questionnaire answers           | F-01, S-03             | US-01, FR-006, FR-012, FR-013, FR-014    | blocked  |
@@ -103,7 +103,7 @@ Foundations below assume these are present and do NOT re-scaffold them.
 - **Blockers:** -
 - **Unknowns:** -
 - **Risk:** If the landing page promises "magic AI" instead of guided input, the first users may enter the flow with the wrong expectations.
-- **Status:** ready
+- **Status:** done
 
 ### S-02: Account access for CV work
 
@@ -201,9 +201,9 @@ Foundations below assume these are present and do NOT re-scaffold them.
 | ---------- | ----------------------------------- | ----------------------------------------------------------- | --------------------- | ----------------------------------------------------- |
 | F-01       | generation-export-decision-contract | Define generation and PDF export contracts                  | no                    | Implemented; use completed contract for S-04 and S-07 |
 | F-02       | cv-persistence-privacy-contract     | Define saved-CV persistence and owner privacy contract      | no                    | Implemented; use completed contract for S-06 and S-08 |
-| S-01       | product-landing-start               | Replace starter landing with product landing and start path | yes                   | Run `/10x-plan product-landing-start`                 |
+| S-01       | product-landing-start               | Replace starter landing with product landing and start path | no                    | Implemented; landing start path is complete           |
 | S-02       | account-access-for-cv-work          | Connect account access to the CV workspace                  | yes                   | Auth baseline exists                                  |
-| S-03       | guided-questionnaire-capture        | Build guided questionnaire capture                          | no                    | Requires S-01 and S-02                                |
+| S-03       | guided-questionnaire-capture        | Build guided questionnaire capture                          | no                    | S-01 resolved; requires S-02                          |
 | S-04       | generated-cv-draft                  | Generate usable CV draft from questionnaire answers         | no                    | F-01 resolved; requires S-03                          |
 | S-05       | cv-template-section-editing         | Add CV template review and section editing                  | no                    | Requires S-04                                         |
 | S-06       | saved-cv-library                    | Save and reopen CVs from account                            | no                    | F-02 resolved; requires S-02                          |
@@ -231,3 +231,4 @@ Foundations below assume these are present and do NOT re-scaffold them.
 
 - **F-01 `generation-export-decision-contract`** - Implemented on 2026-06-03. Decision contract and PDF runtime spike are in `context/changes/generation-export-decision-contract/`; unlocks S-04/S-07 planning once their remaining prerequisites are ready.
 - **F-02 `cv-persistence-privacy-contract`** - Implemented on 2026-06-03. Persistence/privacy contract is in `context/changes/cv-persistence-privacy-contract/persistence-privacy-contract.md`; unlocks S-06/S-08 planning once their remaining prerequisites are ready.
+- **S-01 `product-landing-start`** - Implemented on 2026-06-03. Product landing now replaces the starter homepage and sends signed-out users to `/auth/signup` and signed-in users to `/dashboard`; unlocks S-03 planning once S-02 is ready.

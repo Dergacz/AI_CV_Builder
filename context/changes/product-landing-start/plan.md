@@ -183,8 +183,8 @@ No data migration, auth migration, or route-protection migration is required. `/
 
 #### Manual
 
-- [ ] 1.5 Visiting `/` as a signed-out user shows AI CV Builder product copy, not starter copy
-- [ ] 1.6 The primary start CTA on `/` points to `/auth/signup` when signed out
-- [ ] 1.7 The page explains "answer questions -> AI draft -> edit/export" without implying the AI invents career facts
-- [ ] 1.8 The landing layout is readable and non-overlapping on mobile and desktop widths
-- [ ] 1.9 If signed in, the primary start CTA points to `/dashboard`
+- [x] 1.5 Visiting `/` as a signed-out user shows AI CV Builder product copy, not starter copy
+- [x] 1.6 The primary start CTA on `/` points to `/auth/signup` when signed out
+- [x] 1.7 The page explains "answer questions -> AI draft -> edit/export" without implying the AI invents career facts
+- [x] 1.8 The landing layout is readable and non-overlapping on mobile and desktop widths
+- [x] 1.9 If signed in, the primary start CTA points to `/dashboard`
