@@ -259,29 +259,29 @@ No database migration is part of this change. If future slices persist generated
 
 #### Automated
 
-- [x] 1.1 Contract artifact exists
-- [x] 1.2 Contract artifact passes Prettier check
-- [x] 1.3 Contract artifact contains required decision headings
+- [x] 1.1 Contract artifact exists — cc83daa
+- [x] 1.2 Contract artifact passes Prettier check — cc83daa
+- [x] 1.3 Contract artifact contains required decision headings — cc83daa
 
 #### Manual
 
-- [x] 1.4 Contract answers both F-01 roadmap unknowns
-- [x] 1.5 Contract stays inside PRD scope
+- [x] 1.4 Contract answers both F-01 roadmap unknowns — cc83daa
+- [x] 1.5 Contract stays inside PRD scope — cc83daa
 
 ### Phase 2: Fixture And Runtime Spike
 
 #### Automated
 
-- [ ] 2.1 Fixture file exists
-- [ ] 2.2 Fixture parses as JSON
-- [ ] 2.3 Spike record exists
-- [ ] 2.4 Changed artifacts pass Prettier check
+- [x] 2.1 Fixture file exists
+- [x] 2.2 Fixture parses as JSON
+- [x] 2.3 Spike record exists
+- [x] 2.4 Changed artifacts pass Prettier check
 
 #### Manual
 
-- [ ] 2.5 Fixture is realistic and exercises every editable section
-- [ ] 2.6 Spike record makes a clear PDF recommendation and fallback trigger
-- [ ] 2.7 Spike avoids premature S-07 implementation
+- [x] 2.5 Fixture is realistic and exercises every editable section
+- [x] 2.6 Spike record makes a clear PDF recommendation and fallback trigger
+- [x] 2.7 Spike avoids premature S-07 implementation
 
 ### Phase 3: Verification And Handoff
 
