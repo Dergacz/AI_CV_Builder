@@ -287,13 +287,13 @@ No database migration is part of this change. If future slices persist generated
 
 #### Automated
 
-- [x] 3.1 Astro sync completes
-- [x] 3.2 Lint completes
-- [x] 3.3 Build completes
-- [x] 3.4 Change-folder Prettier check completes
+- [x] 3.1 Astro sync completes — e706bbe
+- [x] 3.2 Lint completes — e706bbe
+- [x] 3.3 Build completes — e706bbe
+- [x] 3.4 Change-folder Prettier check completes — e706bbe
 
 #### Manual
 
-- [x] 3.5 S-04 planning can reuse the generation contract
-- [x] 3.6 S-07 planning can reuse the PDF recommendation
-- [x] 3.7 Contract remains a decision artifact
+- [x] 3.5 S-04 planning can reuse the generation contract — e706bbe
+- [x] 3.6 S-07 planning can reuse the PDF recommendation — e706bbe
+- [x] 3.7 Contract remains a decision artifact — e706bbe
