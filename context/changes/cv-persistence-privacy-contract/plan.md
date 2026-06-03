@@ -305,28 +305,28 @@ No production migration is part of this change. S-06 should turn the representat
 
 #### Automated
 
-- [x] 2.1 Contract includes public.cvs SQL sketch
-- [x] 2.2 Contract includes owner-only RLS policy sketches
-- [x] 2.3 Contract includes S-06 API handoff rules
-- [x] 2.4 Changed markdown passes Prettier check
+- [x] 2.1 Contract includes public.cvs SQL sketch — c2d38b4
+- [x] 2.2 Contract includes owner-only RLS policy sketches — c2d38b4
+- [x] 2.3 Contract includes S-06 API handoff rules — c2d38b4
+- [x] 2.4 Changed markdown passes Prettier check — c2d38b4
 
 #### Manual
 
-- [x] 2.5 SQL sketch is specific enough for S-06 migration planning
-- [x] 2.6 RLS rules make owner-only access the database privacy boundary
-- [x] 2.7 SQL remains marked as representative
+- [x] 2.5 SQL sketch is specific enough for S-06 migration planning — c2d38b4
+- [x] 2.6 RLS rules make owner-only access the database privacy boundary — c2d38b4
+- [x] 2.7 SQL remains marked as representative — c2d38b4
 
 ### Phase 3: Verification And Handoff
 
 #### Automated
 
-- [ ] 3.1 Astro sync completes
-- [ ] 3.2 Lint completes
-- [ ] 3.3 Build completes
-- [ ] 3.4 Change-folder and roadmap Prettier check completes
+- [x] 3.1 Astro sync completes
+- [x] 3.2 Lint completes
+- [x] 3.3 Build completes
+- [x] 3.4 Change-folder and roadmap Prettier check completes
 
 #### Manual
 
-- [ ] 3.5 S-06 planning can reuse the persistence contract
-- [ ] 3.6 S-08 planning can reuse language preservation rules
-- [ ] 3.7 Contract remains a decision artifact
+- [x] 3.5 S-06 planning can reuse the persistence contract
+- [x] 3.6 S-08 planning can reuse language preservation rules
+- [x] 3.7 Contract remains a decision artifact

@@ -30,7 +30,7 @@ Here, north star means the smallest end-to-end slice whose successful delivery p
 | ID   | Change ID                           | Outcome (user can ...)                                                             | Prerequisites          | PRD refs                                 | Status   |
 | ---- | ----------------------------------- | ---------------------------------------------------------------------------------- | ---------------------- | ---------------------------------------- | -------- |
 | F-01 | generation-export-decision-contract | (foundation) generation and PDF export decisions are captured as minimal contracts | -                      | NFR: Export reliability, Response timing | done     |
-| F-02 | cv-persistence-privacy-contract     | (foundation) owner-only saved-CV persistence is defined enough to plan save/reopen | -                      | Access Control, NFR: Privacy, Retention  | ready    |
+| F-02 | cv-persistence-privacy-contract     | (foundation) owner-only saved-CV persistence is defined enough to plan save/reopen | -                      | Access Control, NFR: Privacy, Retention  | done     |
 | S-01 | product-landing-start               | user can understand the value proposition and start CV creation                    | -                      | FR-001, FR-002                           | ready    |
 | S-02 | account-access-for-cv-work          | user can sign up, log in, and reach the CV workspace                               | -                      | FR-003                                   | ready    |
 | S-03 | guided-questionnaire-capture        | user can create a new CV by answering a simple guided questionnaire                | S-01, S-02             | US-01, FR-004, FR-005                    | proposed |
@@ -87,10 +87,9 @@ Foundations below assume these are present and do NOT re-scaffold them.
 - **Prerequisites:** -
 - **Parallel with:** F-01, S-01, S-02
 - **Blockers:** -
-- **Unknowns:**
-  - What is the smallest persisted CV shape that supports edit, save, reopen, and export? - Owner: team. Block: no.
+- **Decision artifact:** `context/changes/cv-persistence-privacy-contract/persistence-privacy-contract.md`
 - **Risk:** Overbuilding persistence would slow the launch path; under-defining ownership would risk privacy and saved-CV reliability.
-- **Status:** ready
+- **Status:** done
 
 ## Slices
 
@@ -166,7 +165,7 @@ Foundations below assume these are present and do NOT re-scaffold them.
 - **Parallel with:** S-04, S-05, S-07
 - **Blockers:** -
 - **Unknowns:**
-  - F-02 must settle the minimum persisted CV shape before save/reopen behavior can be planned. - Owner: team. Block: yes.
+  - F-02 is resolved; S-02 must provide the authenticated CV workspace before saved-library behavior can be planned. - Owner: team. Block: yes.
 - **Risk:** Saving and reopening are required for real usefulness, but the dashboard should stay minimal and not distract from finishing the first CV.
 - **Status:** blocked
 
@@ -201,13 +200,13 @@ Foundations below assume these are present and do NOT re-scaffold them.
 | Roadmap ID | Change ID                           | Suggested issue title                                       | Ready for `/10x-plan` | Notes                                                 |
 | ---------- | ----------------------------------- | ----------------------------------------------------------- | --------------------- | ----------------------------------------------------- |
 | F-01       | generation-export-decision-contract | Define generation and PDF export contracts                  | no                    | Implemented; use completed contract for S-04 and S-07 |
-| F-02       | cv-persistence-privacy-contract     | Define saved-CV persistence and owner privacy contract      | yes                   | Can run in parallel with F-01                         |
+| F-02       | cv-persistence-privacy-contract     | Define saved-CV persistence and owner privacy contract      | no                    | Implemented; use completed contract for S-06 and S-08 |
 | S-01       | product-landing-start               | Replace starter landing with product landing and start path | yes                   | Run `/10x-plan product-landing-start`                 |
 | S-02       | account-access-for-cv-work          | Connect account access to the CV workspace                  | yes                   | Auth baseline exists                                  |
 | S-03       | guided-questionnaire-capture        | Build guided questionnaire capture                          | no                    | Requires S-01 and S-02                                |
 | S-04       | generated-cv-draft                  | Generate usable CV draft from questionnaire answers         | no                    | F-01 resolved; requires S-03                          |
 | S-05       | cv-template-section-editing         | Add CV template review and section editing                  | no                    | Requires S-04                                         |
-| S-06       | saved-cv-library                    | Save and reopen CVs from account                            | no                    | Blocked until F-02 resolves persistence decisions     |
+| S-06       | saved-cv-library                    | Save and reopen CVs from account                            | no                    | F-02 resolved; requires S-02                          |
 | S-07       | pdf-export                          | Export reviewed CV as PDF                                   | no                    | F-01 resolved; requires S-05                          |
 | S-08       | full-saved-pdf-flow                 | Complete saved PDF flow with language support               | no                    | Requires F-01, F-02, S-06, and S-07                   |
 
@@ -215,8 +214,7 @@ Foundations below assume these are present and do NOT re-scaffold them.
 
 1. **Which generation output contract is sufficient for the editable CV sections?** - Owner: team. Block: S-04.
 2. **Which PDF export approach can reliably produce a clean CV without delaying launch?** - Owner: team. Block: S-07.
-3. **What is the smallest persisted CV shape that supports edit, save, reopen, and export?** - Owner: team. Block: S-06.
-4. **How should English, Polish, and Russian be selected for UI text and CV output without deep localization?** - Owner: team. Block: S-08.
+3. **How should English, Polish, and Russian be selected for UI text and CV output without deep localization?** - Owner: team. Block: S-08.
 
 ## Parked
 
@@ -232,3 +230,4 @@ Foundations below assume these are present and do NOT re-scaffold them.
 ## Done
 
 - **F-01 `generation-export-decision-contract`** - Implemented on 2026-06-03. Decision contract and PDF runtime spike are in `context/changes/generation-export-decision-contract/`; unlocks S-04/S-07 planning once their remaining prerequisites are ready.
+- **F-02 `cv-persistence-privacy-contract`** - Implemented on 2026-06-03. Persistence/privacy contract is in `context/changes/cv-persistence-privacy-contract/persistence-privacy-contract.md`; unlocks S-06/S-08 planning once their remaining prerequisites are ready.
