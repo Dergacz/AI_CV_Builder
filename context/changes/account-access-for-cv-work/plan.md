@@ -382,9 +382,9 @@ No database migration is required. No Supabase Auth architecture migration is re
 
 #### Automated
 
-- [ ] 2.1 Auth pages still render the existing React form components with `client:load`
-- [ ] 2.2 No new auth provider, password reset, OAuth, or account-management route is added
-- [ ] 2.3 Lint passes: `npm run lint`
+- [x] 2.1 Auth pages still render the existing React form components with `client:load`
+- [x] 2.2 No new auth provider, password reset, OAuth, or account-management route is added
+- [x] 2.3 Lint passes: `npm run lint`
 
 #### Manual
 
