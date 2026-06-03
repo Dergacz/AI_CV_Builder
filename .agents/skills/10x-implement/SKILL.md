@@ -32,23 +32,6 @@ Tip: Make sure the plan has been reviewed and approved before implementation.
 
 When given a plan path:
 
-- **Branch Guard**: before reading or editing implementation files, derive `<change-id>` from `context/changes/<change-id>/plan.md` and ensure the current Git branch is exactly `<change-id>`.
-  - Run `git branch --show-current`.
-  - If the current branch is `<change-id>`, continue.
-  - If the current branch is `master` or `main`, check whether `<change-id>` already exists with `git branch --list <change-id>`.
-    - If it exists, run `git switch <change-id>`.
-    - If it does not exist, run `git switch -c <change-id>`.
-  - If the current branch is anything else, STOP and print:
-
-    ```
-    Branch mismatch for <change-id>.
-    Current branch: <current-branch>
-    Required branch: <change-id>
-
-    Switch to the required branch or start a fresh implementation run from master/main.
-    ```
-
-  - If `git switch` fails, STOP and surface the command output. Do not continue on `master`, `main`, or an unrelated feature branch.
 - Read the plan completely. The `## Progress` section at the bottom is authoritative for execution state — checkmarks (`- [x]`) live ONLY there. Phase blocks contain plain `- ` bullets (no checkboxes).
 - Read `context/foundation/lessons.md` if present and internalize each entry before starting any phase — these are the team's accepted recurring rules and must shape every implementation choice you make in this run.
 - Read all files mentioned in the plan (referenced research, frame, source files in the same change folder)

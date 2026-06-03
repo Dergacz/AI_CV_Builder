@@ -1,0 +1,169 @@
+---
+import { landingContent as content } from "@/lib/landing-content";
+
+const { user } = Astro.locals;
+const isSignedIn = Boolean(user);
+const primaryHref = isSignedIn ? "/dashboard" : "/auth/signup";
+const primaryLabel = isSignedIn ? content.hero.primaryCta.signedIn : content.hero.primaryCta.signedOut;
+const secondaryHref = isSignedIn ? "/dashboard" : "/auth/signin";
+const secondaryLabel = isSignedIn ? content.hero.secondaryCta.signedIn : content.hero.secondaryCta.signedOut;
+---
+
+<main class="min-h-screen bg-slate-50 text-slate-950">
+  <section class="relative overflow-hidden border-b border-slate-200 lg:min-h-[92vh]">
+    <div
+      class="pointer-events-none absolute inset-x-0 top-0 h-64 bg-[linear-gradient(180deg,#dbeafe_0%,rgba(219,234,254,0)_100%)]"
+      aria-hidden="true"
+    >
+    </div>
+    <div
+      class="pointer-events-none absolute right-0 bottom-0 hidden w-[56rem] max-w-[62vw] translate-x-24 translate-y-14 rotate-[-3deg] opacity-80 lg:block"
+      aria-hidden="true"
+    >
+      <div class="border border-slate-200 bg-white p-8 shadow-2xl">
+        <div class="mb-8 flex items-start justify-between gap-8 border-b border-slate-200 pb-6">
+          <div>
+            <div class="h-4 w-40 bg-slate-900"></div>
+            <div class="mt-3 h-3 w-56 bg-teal-700"></div>
+          </div>
+          <div class="space-y-2">
+            <div class="h-2 w-28 bg-slate-300"></div>
+            <div class="h-2 w-24 bg-slate-300"></div>
+          </div>
+        </div>
+        <div class="grid grid-cols-[1.4fr_0.8fr] gap-8">
+          <div class="space-y-6">
+            <div class="space-y-3">
+              <div class="h-3 w-24 bg-emerald-700"></div>
+              <div class="h-2 w-full bg-slate-300"></div>
+              <div class="h-2 w-11/12 bg-slate-300"></div>
+              <div class="h-2 w-4/5 bg-slate-300"></div>
+            </div>
+            <div class="space-y-3">
+              <div class="h-3 w-28 bg-emerald-700"></div>
+              <div class="h-2 w-full bg-slate-300"></div>
+              <div class="h-2 w-10/12 bg-slate-300"></div>
+            </div>
+          </div>
+          <div class="space-y-5">
+            <div class="space-y-3">
+              <div class="h-3 w-20 bg-teal-700"></div>
+              <div class="h-2 w-full bg-slate-300"></div>
+              <div class="h-2 w-5/6 bg-slate-300"></div>
+            </div>
+            <div class="space-y-3">
+              <div class="h-3 w-24 bg-teal-700"></div>
+              <div class="h-2 w-full bg-slate-300"></div>
+              <div class="h-2 w-2/3 bg-slate-300"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="relative mx-auto flex max-w-6xl flex-col px-5 py-5 sm:px-8 lg:min-h-[92vh]">
+      <header class="flex items-center justify-between gap-4 py-2">
+        <a href="/" class="text-base font-semibold text-slate-950">{content.nav.productName}</a>
+        <nav class="flex items-center gap-3 text-sm" aria-label="Primary navigation">
+          {
+            isSignedIn ? (
+              <a
+                class="font-medium text-slate-700 underline-offset-4 hover:text-slate-950 hover:underline"
+                href="/dashboard"
+              >
+                {content.nav.dashboard}
+              </a>
+            ) : (
+              <a
+                class="font-medium text-slate-700 underline-offset-4 hover:text-slate-950 hover:underline"
+                href="/auth/signin"
+              >
+                {content.nav.signIn}
+              </a>
+            )
+          }
+        </nav>
+      </header>
+
+      <div
+        class="grid flex-1 items-center gap-8 py-10 sm:py-12 lg:grid-cols-[minmax(0,0.92fr)_minmax(22rem,0.68fr)] lg:gap-12 lg:py-14"
+      >
+        <div class="relative z-10 max-w-3xl">
+          <p class="mb-5 text-sm font-semibold text-teal-700">{content.hero.eyebrow}</p>
+          <h1 class="max-w-3xl text-4xl leading-[1.08] font-semibold text-slate-950 sm:text-6xl lg:text-7xl">
+            {content.hero.title}
+          </h1>
+          <p class="mt-5 max-w-2xl text-base leading-7 text-slate-700 sm:mt-7 sm:text-xl sm:leading-8">
+            {content.hero.body}
+          </p>
+          <div class="mt-7 flex flex-col gap-3 sm:mt-9 sm:flex-row">
+            <a
+              href={primaryHref}
+              class="inline-flex min-h-11 items-center justify-center rounded-md bg-emerald-700 px-5 py-3 text-sm font-semibold text-white transition-colors hover:bg-emerald-800 focus-visible:ring-3 focus-visible:ring-emerald-700/30 focus-visible:outline-none"
+            >
+              {primaryLabel}
+            </a>
+            <a
+              href={secondaryHref}
+              class="inline-flex min-h-11 items-center justify-center rounded-md border border-slate-300 bg-white px-5 py-3 text-sm font-semibold text-slate-900 transition-colors hover:border-slate-400 hover:bg-slate-100 focus-visible:ring-3 focus-visible:ring-slate-500/20 focus-visible:outline-none"
+            >
+              {secondaryLabel}
+            </a>
+          </div>
+        </div>
+
+        <aside
+          class="relative z-10 border border-slate-200 bg-white p-4 shadow-xl sm:p-5 lg:mt-16"
+          aria-label={content.preview.label}
+        >
+          <div class="border-b border-slate-200 pb-4 sm:pb-5">
+            <p class="text-xs font-semibold text-teal-700">{content.preview.label}</p>
+            <h2 class="mt-3 text-2xl font-semibold text-slate-950">{content.preview.name}</h2>
+            <p class="mt-1 text-sm text-slate-600">{content.preview.role}</p>
+          </div>
+          <div class="hidden py-4 sm:block sm:py-5">
+            <p class="text-sm leading-6 text-slate-700">{content.preview.summary}</p>
+          </div>
+          <div class="hidden grid-cols-2 gap-2 border-t border-slate-200 pt-4 sm:grid sm:gap-3 sm:pt-5">
+            {
+              content.preview.sections.map((section) => (
+                <div class="border border-slate-200 bg-slate-50 px-3 py-2 text-sm font-medium text-slate-700">
+                  {section}
+                </div>
+              ))
+            }
+          </div>
+        </aside>
+      </div>
+    </div>
+  </section>
+
+  <section class="border-b border-slate-200 bg-white px-5 py-12 sm:px-8">
+    <div class="mx-auto grid max-w-6xl gap-4 md:grid-cols-3">
+      {
+        content.process.map((item) => (
+          <article class="rounded-lg border border-slate-200 bg-white p-5">
+            <p class="text-sm font-semibold text-emerald-700">{item.step}</p>
+            <h2 class="mt-4 text-xl font-semibold text-slate-950">{item.title}</h2>
+            <p class="mt-3 text-sm leading-6 text-slate-600">{item.body}</p>
+          </article>
+        ))
+      }
+    </div>
+  </section>
+
+  <section class="bg-slate-50 px-5 py-12 sm:px-8">
+    <div class="mx-auto max-w-6xl">
+      <div class="grid gap-4 md:grid-cols-3">
+        {
+          content.trustNotes.map((note) => (
+            <article class="rounded-lg border border-slate-200 bg-white p-5">
+              <h2 class="text-base font-semibold text-slate-950">{note.title}</h2>
+              <p class="mt-3 text-sm leading-6 text-slate-600">{note.body}</p>
+            </article>
+          ))
+        }
+      </div>
+    </div>
+  </section>
+</main>
