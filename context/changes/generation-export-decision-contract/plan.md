@@ -259,14 +259,14 @@ No database migration is part of this change. If future slices persist generated
 
 #### Automated
 
-- [x] 1.1 Contract artifact exists — cc83daa
-- [x] 1.2 Contract artifact passes Prettier check — cc83daa
-- [x] 1.3 Contract artifact contains required decision headings — cc83daa
+- [x] 1.1 Contract artifact exists — 06adebc
+- [x] 1.2 Contract artifact passes Prettier check — 06adebc
+- [x] 1.3 Contract artifact contains required decision headings — 06adebc
 
 #### Manual
 
-- [x] 1.4 Contract answers both F-01 roadmap unknowns — cc83daa
-- [x] 1.5 Contract stays inside PRD scope — cc83daa
+- [x] 1.4 Contract answers both F-01 roadmap unknowns — 06adebc
+- [x] 1.5 Contract stays inside PRD scope — 06adebc
 
 ### Phase 2: Fixture And Runtime Spike
 
