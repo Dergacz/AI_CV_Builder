@@ -379,37 +379,37 @@ No database migration. One new optional server secret (`OPENAI_API_KEY`, plus op
 
 #### Automated
 
-- [x] 2.1 `src/pages/api/cv/generate.ts` exports `prerender = false` and a `POST` handler
-- [x] 2.2 `src/lib/services/cv-generation.ts` returns a `GenerateDraftResponse`; no logging of raw answers, model responses, or draft content
-- [x] 2.3 Source search confirms the OpenAI call uses `fetch` (no Node-only SDK) and an `AbortController` timeout is present
-- [x] 2.4 The route validates input with zod and checks `context.locals.user`
-- [x] 2.5 Lint passes: `npm run lint`; production build passes: `npm run build`
+- [x] 2.1 `src/pages/api/cv/generate.ts` exports `prerender = false` and a `POST` handler — 8b82d74
+- [x] 2.2 `src/lib/services/cv-generation.ts` returns a `GenerateDraftResponse`; no logging of raw answers, model responses, or draft content — 8b82d74
+- [x] 2.3 Source search confirms the OpenAI call uses `fetch` (no Node-only SDK) and an `AbortController` timeout is present — 8b82d74
+- [x] 2.4 The route validates input with zod and checks `context.locals.user` — 8b82d74
+- [x] 2.5 Lint passes: `npm run lint`; production build passes: `npm run build` — 8b82d74
 
 #### Manual
 
-- [ ] 2.6 With a real key, full answers return a `GeneratedCvDraft` (`schemaVersion: 1`, all five section keys) in the selected language
-- [ ] 2.7 Sparse answers return a usable draft with warnings and no fabricated employers/schools/dates
-- [ ] 2.8 Unauthenticated request returns 401 JSON; malformed body returns 400 `generation_failed`
-- [ ] 2.9 With the key unset, the route returns `service_unavailable` and does not crash
-- [ ] 2.10 A simulated slow/failed provider call surfaces `service_unavailable` within the timeout, not a hang
+- [x] 2.6 With a real key, full answers return a `GeneratedCvDraft` (`schemaVersion: 1`, all five section keys) in the selected language — 8b82d74
+- [x] 2.7 Sparse answers return a usable draft with warnings and no fabricated employers/schools/dates — 8b82d74
+- [x] 2.8 Unauthenticated request returns 401 JSON; malformed body returns 400 `generation_failed` — 8b82d74
+- [x] 2.9 With the key unset, the route returns `service_unavailable` and does not crash — 8b82d74
+- [x] 2.10 A simulated slow/failed provider call surfaces `service_unavailable` within the timeout, not a hang — 8b82d74
 
 ### Phase 3: Questionnaire Generation UI
 
 #### Automated
 
-- [ ] 3.1 `QuestionnaireFlow.tsx` posts to `/api/cv/generate` and renders draft state from component state only (no browser storage / URL params)
-- [ ] 3.2 The disabled "Generation comes next" button is gone; an enabled Generate action exists on review
-- [ ] 3.3 Source search confirms no save/export/section-edit controls and no mock draft content were added
-- [ ] 3.4 Lint passes: `npm run lint`; production build passes: `npm run build`
+- [x] 3.1 `QuestionnaireFlow.tsx` posts to `/api/cv/generate` and renders draft state from component state only (no browser storage / URL params)
+- [x] 3.2 The disabled "Generation comes next" button is gone; an enabled Generate action exists on review
+- [x] 3.3 Source search confirms no save/export/section-edit controls and no mock draft content were added
+- [x] 3.4 Lint passes: `npm run lint`; production build passes: `npm run build`
 
 #### Manual
 
-- [ ] 3.5 Completing required basics enables Generate; pressing it shows spinner + status, then the draft preview
-- [ ] 3.6 The preview shows all five sections plus assumptions/warnings and clearly reads as a draft
-- [ ] 3.7 Sparse-input generation shows warnings and no fabricated facts in the preview
-- [ ] 3.8 Inducing a failure shows the correct bucket message and a Retry that preserves answers and succeeds once resolved
-- [ ] 3.9 Editing answers and regenerating updates the draft; refreshing loses the in-memory draft
-- [ ] 3.10 Layout is readable and non-overlapping on mobile and desktop
+- [x] 3.5 Completing required basics enables Generate; pressing it shows spinner + status, then the draft preview
+- [x] 3.6 The preview shows all five sections plus assumptions/warnings and clearly reads as a draft
+- [x] 3.7 Sparse-input generation shows warnings and no fabricated facts in the preview
+- [x] 3.8 Inducing a failure shows the correct bucket message and a Retry that preserves answers and succeeds once resolved
+- [x] 3.9 Editing answers and regenerating updates the draft; refreshing loses the in-memory draft
+- [x] 3.10 Layout is readable and non-overlapping on mobile and desktop
 
 ### Phase 4: Verification And Change Metadata
 

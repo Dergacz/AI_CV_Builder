@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useMemo, useState, type ReactNode } from "react";
 import {
   QUESTIONNAIRE_VERSION,
   cvOutputLanguages,
@@ -6,10 +6,18 @@ import {
   type CvOutputLanguage,
   type CvQuestionnaireAnswers,
 } from "@/lib/cv-questionnaire";
+// Type-only import: keeps zod (pulled in by cv-draft's runtime exports) out of this client island.
+import type { GeneratedCvDraft, GenerateDraftResponse } from "@/lib/cv-draft";
+// Value import from the zod-free messages module so client and server share one source of error copy.
+import { generationErrorMessages } from "@/lib/cv-draft-messages";
 import { cn } from "@/lib/utils";
 
 type StepKey = "basics" | "experienceEducation" | "skillsLanguages" | "extraContext" | "review";
 type RequiredErrors = Partial<Record<"fullName" | "targetRoleOrGoal", string>>;
+type GenerationStatus = "idle" | "loading" | "success" | "error";
+
+const GENERATE_ENDPOINT = "/api/cv/generate";
+const NETWORK_FALLBACK_MESSAGE = generationErrorMessages.service_unavailable;
 
 const steps: { key: StepKey; label: string; title: string; body: string }[] = [
   {
@@ -40,7 +48,7 @@ const steps: { key: StepKey; label: string; title: string; body: string }[] = [
     key: "review",
     label: "Review",
     title: "Review your answers",
-    body: "Check what you provided. Draft generation comes in the next roadmap slice.",
+    body: "Check what you provided, then generate your CV draft.",
   },
 ];
 
@@ -58,11 +66,45 @@ export default function QuestionnaireFlow() {
   const [answers, setAnswers] = useState<CvQuestionnaireAnswers>(defaultCvQuestionnaireAnswers);
   const [activeStepIndex, setActiveStepIndex] = useState(0);
   const [errors, setErrors] = useState<RequiredErrors>({});
+  const [status, setStatus] = useState<GenerationStatus>("idle");
+  const [draft, setDraft] = useState<GeneratedCvDraft | null>(null);
+  const [generationError, setGenerationError] = useState<string | null>(null);
 
   const activeStep = steps[activeStepIndex];
   const isFirstStep = activeStepIndex === 0;
   const isLastStep = activeStepIndex === steps.length - 1;
+  const isGenerating = status === "loading";
   const sparseWarnings = useMemo(() => getSparseWarnings(answers), [answers]);
+
+  async function handleGenerate() {
+    setStatus("loading");
+    setGenerationError(null);
+    try {
+      const response = await fetch(GENERATE_ENDPOINT, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(answers),
+      });
+      const data = (await response.json()) as GenerateDraftResponse;
+      if (data.ok) {
+        setDraft(data.draft);
+        setStatus("success");
+      } else {
+        setGenerationError(data.message);
+        setStatus("error");
+      }
+    } catch {
+      // Network failure or non-JSON response — treat as a temporary service issue.
+      setGenerationError(NETWORK_FALLBACK_MESSAGE);
+      setStatus("error");
+    }
+  }
+
+  function handleEditAnswers() {
+    setStatus("idle");
+    setGenerationError(null);
+    setActiveStepIndex(steps.length - 1);
+  }
 
   function updateAnswer<Field extends keyof CvQuestionnaireAnswers>(
     field: Field,
@@ -101,6 +143,10 @@ export default function QuestionnaireFlow() {
     setActiveStepIndex((current) => current - 1);
   }
 
+  if (status === "success" && draft) {
+    return <DraftPreview draft={draft} onEdit={handleEditAnswers} />;
+  }
+
   return (
     <section className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm sm:p-6" aria-label="CV questionnaire">
       <div className="flex flex-col gap-5 border-b border-slate-200 pb-5 lg:flex-row lg:items-start lg:justify-between">
@@ -119,12 +165,13 @@ export default function QuestionnaireFlow() {
           <li key={step.key}>
             <button
               type="button"
+              disabled={isGenerating}
               onClick={() => {
                 if (activeStep.key === "basics" && index > activeStepIndex && !validateBasics()) return;
                 setActiveStepIndex(index);
               }}
               className={cn(
-                "min-h-11 w-full rounded-md border px-3 py-2 text-left text-xs font-semibold transition-colors",
+                "min-h-11 w-full rounded-md border px-3 py-2 text-left text-xs font-semibold transition-colors disabled:cursor-not-allowed disabled:opacity-60",
                 index === activeStepIndex
                   ? "border-emerald-700 bg-emerald-50 text-emerald-900"
                   : "border-slate-200 bg-white text-slate-600 hover:border-slate-300 hover:bg-slate-50",
@@ -256,9 +303,28 @@ export default function QuestionnaireFlow() {
         {activeStep.key === "review" && (
           <div className="space-y-6">
             <div className="rounded-md border border-emerald-200 bg-emerald-50 p-4 text-sm leading-6 text-emerald-950">
-              Your answers are captured for review. The next roadmap slice will use this shape to generate a draft; this
-              screen does not create, save, or export a CV yet.
+              Review your answers below, then generate your CV draft. Saving and PDF export come in later steps.
             </div>
+
+            {isGenerating && (
+              <div
+                role="status"
+                aria-live="polite"
+                className="flex items-center gap-3 rounded-md border border-slate-200 bg-slate-50 p-4 text-sm font-medium text-slate-700"
+              >
+                <Spinner />
+                Building your draft… this can take up to 30 seconds.
+              </div>
+            )}
+
+            {status === "error" && generationError && (
+              <div
+                role="alert"
+                className="rounded-md border border-red-200 bg-red-50 p-4 text-sm leading-6 text-red-900"
+              >
+                {generationError} You can try again — your answers are kept.
+              </div>
+            )}
 
             {sparseWarnings.length > 0 && (
               <section className="rounded-md border border-amber-200 bg-amber-50 p-4" aria-label="Sparse answer notes">
@@ -337,19 +403,31 @@ export default function QuestionnaireFlow() {
         <button
           type="button"
           onClick={goBack}
-          disabled={isFirstStep}
+          disabled={isFirstStep || isGenerating}
           className="inline-flex min-h-11 items-center justify-center rounded-md border border-slate-300 bg-white px-5 py-3 text-sm font-semibold text-slate-900 transition-colors hover:border-slate-400 hover:bg-slate-100 focus-visible:ring-3 focus-visible:ring-slate-500/20 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50"
         >
           Back
         </button>
-        <button
-          type="button"
-          onClick={goNext}
-          disabled={isLastStep}
-          className="inline-flex min-h-11 items-center justify-center rounded-md bg-emerald-700 px-5 py-3 text-sm font-semibold text-white transition-colors hover:bg-emerald-800 focus-visible:ring-3 focus-visible:ring-emerald-700/30 focus-visible:outline-none disabled:cursor-not-allowed disabled:bg-slate-300 disabled:text-slate-600"
-        >
-          {isLastStep ? "Generation comes next" : activeStepIndex === steps.length - 2 ? "Review answers" : "Next"}
-        </button>
+        {isLastStep ? (
+          <button
+            type="button"
+            onClick={() => {
+              void handleGenerate();
+            }}
+            disabled={isGenerating}
+            className="inline-flex min-h-11 items-center justify-center rounded-md bg-emerald-700 px-5 py-3 text-sm font-semibold text-white transition-colors hover:bg-emerald-800 focus-visible:ring-3 focus-visible:ring-emerald-700/30 focus-visible:outline-none disabled:cursor-not-allowed disabled:bg-slate-300 disabled:text-slate-600"
+          >
+            {isGenerating ? "Building your draft…" : status === "error" ? "Try again" : "Generate draft"}
+          </button>
+        ) : (
+          <button
+            type="button"
+            onClick={goNext}
+            className="inline-flex min-h-11 items-center justify-center rounded-md bg-emerald-700 px-5 py-3 text-sm font-semibold text-white transition-colors hover:bg-emerald-800 focus-visible:ring-3 focus-visible:ring-emerald-700/30 focus-visible:outline-none disabled:cursor-not-allowed disabled:bg-slate-300 disabled:text-slate-600"
+          >
+            {activeStepIndex === steps.length - 2 ? "Review answers" : "Next"}
+          </button>
+        )}
       </div>
     </section>
   );
@@ -465,6 +543,180 @@ function ReviewItem({ label, value, onEdit }: ReviewItemProps) {
       <p className={cn("mt-3 text-sm leading-6 whitespace-pre-wrap", hasValue ? "text-slate-700" : "text-slate-400")}>
         {hasValue ? value : "Skipped for now"}
       </p>
+    </section>
+  );
+}
+
+function Spinner() {
+  return (
+    <span
+      className="inline-block size-4 animate-spin rounded-full border-2 border-slate-300 border-t-emerald-700"
+      aria-hidden="true"
+    />
+  );
+}
+
+function formatExperienceDates(item: GeneratedCvDraft["sections"]["experience"][number]): string {
+  const end = item.isCurrent ? "Present" : item.endDate;
+  if (item.startDate && end) return `${item.startDate} – ${end}`;
+  return item.startDate ?? end ?? "";
+}
+
+function DraftSection({ title, children }: { title: string; children: ReactNode }) {
+  return (
+    <section>
+      <h3 className="text-xs font-semibold tracking-wide text-slate-500 uppercase">{title}</h3>
+      <div className="mt-2">{children}</div>
+    </section>
+  );
+}
+
+function EmptyNote({ children }: { children: ReactNode }) {
+  return <p className="text-sm leading-6 text-slate-400">{children}</p>;
+}
+
+function DraftPreview({ draft, onEdit }: { draft: GeneratedCvDraft; onEdit: () => void }) {
+  const { sections, assumptions, warnings } = draft;
+
+  return (
+    <section
+      className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm sm:p-6"
+      aria-label="Generated CV draft"
+    >
+      <div className="flex flex-col gap-4 border-b border-slate-200 pb-5 sm:flex-row sm:items-start sm:justify-between">
+        <div>
+          <p className="text-sm font-semibold text-teal-700">Draft preview</p>
+          <h2 className="mt-2 text-2xl font-semibold text-slate-950">Your generated CV draft</h2>
+          <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-600">
+            This is an early draft generated from your answers. A clean template and section editing come next; nothing
+            is saved or exported yet.
+          </p>
+        </div>
+        <button
+          type="button"
+          onClick={onEdit}
+          className="inline-flex min-h-11 shrink-0 items-center justify-center rounded-md border border-slate-300 bg-white px-5 py-3 text-sm font-semibold text-slate-900 transition-colors hover:border-slate-400 hover:bg-slate-100 focus-visible:ring-3 focus-visible:ring-slate-500/20 focus-visible:outline-none"
+        >
+          Edit answers
+        </button>
+      </div>
+
+      {warnings.length > 0 && (
+        <section className="mt-5 rounded-md border border-amber-200 bg-amber-50 p-4" aria-label="Draft warnings">
+          <h3 className="text-sm font-semibold text-amber-950">Before you rely on this draft</h3>
+          <ul className="mt-2 space-y-1 text-sm leading-6 text-amber-900">
+            {warnings.map((warning, index) => (
+              <li key={`${warning.code}-${index}`}>- {warning.message}</li>
+            ))}
+          </ul>
+        </section>
+      )}
+
+      <div className="mt-6 space-y-6">
+        <DraftSection title="Summary">
+          {sections.summary.headline && <p className="font-medium text-slate-900">{sections.summary.headline}</p>}
+          <p className="text-sm leading-6 whitespace-pre-wrap text-slate-700">{sections.summary.body}</p>
+        </DraftSection>
+
+        <DraftSection title="Experience">
+          {sections.experience.length === 0 ? (
+            <EmptyNote>No experience was added.</EmptyNote>
+          ) : (
+            <ul className="space-y-4">
+              {sections.experience.map((item, index) => {
+                const heading = [item.role, item.organization].filter(Boolean).join(" · ");
+                const meta = [item.location, formatExperienceDates(item)].filter(Boolean).join(" · ");
+                return (
+                  <li key={index} className="rounded-md border border-slate-100 bg-slate-50/60 p-3">
+                    <p className="font-medium text-slate-900">{heading || "Experience"}</p>
+                    {meta && <p className="text-xs text-slate-500">{meta}</p>}
+                    <p className="mt-1 text-sm leading-6 whitespace-pre-wrap text-slate-700">{item.description}</p>
+                    {item.highlights.length > 0 && (
+                      <ul className="mt-1 list-disc space-y-0.5 pl-5 text-sm leading-6 text-slate-700">
+                        {item.highlights.map((highlight, highlightIndex) => (
+                          <li key={highlightIndex}>{highlight}</li>
+                        ))}
+                      </ul>
+                    )}
+                  </li>
+                );
+              })}
+            </ul>
+          )}
+        </DraftSection>
+
+        <DraftSection title="Education">
+          {sections.education.length === 0 ? (
+            <EmptyNote>No education was added.</EmptyNote>
+          ) : (
+            <ul className="space-y-4">
+              {sections.education.map((item, index) => {
+                const heading = [item.program, item.institution].filter(Boolean).join(" · ");
+                const meta = [item.location, item.startDate, item.endDate].filter(Boolean).join(" · ");
+                return (
+                  <li key={index} className="rounded-md border border-slate-100 bg-slate-50/60 p-3">
+                    <p className="font-medium text-slate-900">{heading || "Education"}</p>
+                    {meta && <p className="text-xs text-slate-500">{meta}</p>}
+                    {item.description && (
+                      <p className="mt-1 text-sm leading-6 whitespace-pre-wrap text-slate-700">{item.description}</p>
+                    )}
+                  </li>
+                );
+              })}
+            </ul>
+          )}
+        </DraftSection>
+
+        <DraftSection title="Skills">
+          {sections.skills.length === 0 ? (
+            <EmptyNote>No skills were added.</EmptyNote>
+          ) : (
+            <ul className="space-y-2">
+              {sections.skills.map((group, index) => (
+                <li key={`${group.label}-${index}`} className="text-sm leading-6 text-slate-700">
+                  <span className="font-medium text-slate-900">{group.label}:</span> {group.items.join(", ")}
+                </li>
+              ))}
+            </ul>
+          )}
+        </DraftSection>
+
+        <DraftSection title="Languages">
+          {sections.languages.length === 0 ? (
+            <EmptyNote>No languages were added.</EmptyNote>
+          ) : (
+            <ul className="space-y-1">
+              {sections.languages.map((language, index) => (
+                <li key={`${language.name}-${index}`} className="text-sm leading-6 text-slate-700">
+                  <span className="font-medium text-slate-900">{language.name}</span>
+                  {language.proficiency ? ` — ${language.proficiency}` : ""}
+                </li>
+              ))}
+            </ul>
+          )}
+        </DraftSection>
+      </div>
+
+      {assumptions.length > 0 && (
+        <section className="mt-6 rounded-md border border-slate-200 bg-slate-50 p-4" aria-label="Draft assumptions">
+          <h3 className="text-sm font-semibold text-slate-900">Editorial assumptions</h3>
+          <ul className="mt-2 space-y-1 text-sm leading-6 text-slate-600">
+            {assumptions.map((assumption, index) => (
+              <li key={`${assumption.field}-${index}`}>- {assumption.reason}</li>
+            ))}
+          </ul>
+        </section>
+      )}
+
+      <div className="mt-6 border-t border-slate-200 pt-5">
+        <button
+          type="button"
+          onClick={onEdit}
+          className="text-sm font-semibold text-emerald-700 underline-offset-4 hover:underline"
+        >
+          Edit answers and regenerate
+        </button>
+      </div>
     </section>
   );
 }
