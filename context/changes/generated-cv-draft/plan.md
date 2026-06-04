@@ -364,26 +364,26 @@ No database migration. One new optional server secret (`OPENAI_API_KEY`, plus op
 
 #### Automated
 
-- [x] 1.1 `zod` appears in `package.json` dependencies and `npm install` succeeds
-- [x] 1.2 `src/types.ts` exports `GeneratedCvDraft` and all sub-types
-- [x] 1.3 `src/lib/cv-draft.ts` exports `generatedCvDraftSchema`, `GenerationErrorBucket`, `GenerateDraftResponse`, and `z.infer` is assignable to `GeneratedCvDraft`
-- [x] 1.4 `astro.config.mjs` declares `OPENAI_API_KEY` (and `OPENAI_MODEL` if added) in `env.schema`
-- [x] 1.5 Type checking / lint passes: `npm run lint`
+- [x] 1.1 `zod` appears in `package.json` dependencies and `npm install` succeeds — 6720a81
+- [x] 1.2 `src/types.ts` exports `GeneratedCvDraft` and all sub-types — 6720a81
+- [x] 1.3 `src/lib/cv-draft.ts` exports `generatedCvDraftSchema`, `GenerationErrorBucket`, `GenerateDraftResponse`, and `z.infer` is assignable to `GeneratedCvDraft` — 6720a81
+- [x] 1.4 `astro.config.mjs` declares `OPENAI_API_KEY` (and `OPENAI_MODEL` if added) in `env.schema` — 6720a81
+- [x] 1.5 Type checking / lint passes: `npm run lint` — 6720a81
 
 #### Manual
 
-- [x] 1.6 Validating `cv-contract.fixture.json` against `generatedCvDraftSchema` succeeds
-- [x] 1.7 A draft missing a section key or with an unknown warning code is rejected by the schema
+- [x] 1.6 Validating `cv-contract.fixture.json` against `generatedCvDraftSchema` succeeds — 6720a81
+- [x] 1.7 A draft missing a section key or with an unknown warning code is rejected by the schema — 6720a81
 
 ### Phase 2: OpenAI Generation Service And API Route
 
 #### Automated
 
-- [ ] 2.1 `src/pages/api/cv/generate.ts` exports `prerender = false` and a `POST` handler
-- [ ] 2.2 `src/lib/services/cv-generation.ts` returns a `GenerateDraftResponse`; no logging of raw answers, model responses, or draft content
-- [ ] 2.3 Source search confirms the OpenAI call uses `fetch` (no Node-only SDK) and an `AbortController` timeout is present
-- [ ] 2.4 The route validates input with zod and checks `context.locals.user`
-- [ ] 2.5 Lint passes: `npm run lint`; production build passes: `npm run build`
+- [x] 2.1 `src/pages/api/cv/generate.ts` exports `prerender = false` and a `POST` handler
+- [x] 2.2 `src/lib/services/cv-generation.ts` returns a `GenerateDraftResponse`; no logging of raw answers, model responses, or draft content
+- [x] 2.3 Source search confirms the OpenAI call uses `fetch` (no Node-only SDK) and an `AbortController` timeout is present
+- [x] 2.4 The route validates input with zod and checks `context.locals.user`
+- [x] 2.5 Lint passes: `npm run lint`; production build passes: `npm run build`
 
 #### Manual
 
