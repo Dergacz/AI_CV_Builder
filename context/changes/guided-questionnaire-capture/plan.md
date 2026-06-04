@@ -361,33 +361,33 @@ No database migration is required. No Supabase Auth migration is required. Addin
 
 #### Automated
 
-- [x] 1.1 `src/lib/cv-questionnaire.ts` exports `QUESTIONNAIRE_VERSION`, supported output languages, and `CvQuestionnaireAnswers`
-- [x] 1.2 `src/middleware.ts` protects `/cv/new` through `PROTECTED_ROUTES`
-- [x] 1.3 `src/pages/cv/new.astro` exists and renders a React questionnaire island with `client:load`
-- [x] 1.4 `src/pages/dashboard.astro` links "Start CV" to `/cv/new` and no longer leaves it disabled
-- [x] 1.5 Lint passes: `npm run lint`
+- [x] 1.1 `src/lib/cv-questionnaire.ts` exports `QUESTIONNAIRE_VERSION`, supported output languages, and `CvQuestionnaireAnswers` — b2c1023
+- [x] 1.2 `src/middleware.ts` protects `/cv/new` through `PROTECTED_ROUTES` — b2c1023
+- [x] 1.3 `src/pages/cv/new.astro` exists and renders a React questionnaire island with `client:load` — b2c1023
+- [x] 1.4 `src/pages/dashboard.astro` links "Start CV" to `/cv/new` and no longer leaves it disabled — b2c1023
+- [x] 1.5 Lint passes: `npm run lint` — b2c1023
 
 #### Manual
 
-- [x] 1.6 Signed-out `/cv/new` redirects to `/auth/signin`
-- [x] 1.7 Signed-in `/dashboard` shows "Start CV" as an active link
-- [x] 1.8 Following "Start CV" opens `/cv/new`
+- [x] 1.6 Signed-out `/cv/new` redirects to `/auth/signin` — b2c1023
+- [x] 1.7 Signed-in `/dashboard` shows "Start CV" as an active link — b2c1023
+- [x] 1.8 Following "Start CV" opens `/cv/new` — b2c1023
 
 ### Phase 2: Guided Questionnaire UI
 
 #### Automated
 
-- [ ] 2.1 Questionnaire state is component-local and source search finds no `localStorage`, `sessionStorage`, answer `fetch`, or Supabase usage in `QuestionnaireFlow.tsx`
-- [ ] 2.2 Basics validation trims required fields and does not require optional sections
-- [ ] 2.3 Output language state is limited to `en`, `pl`, or `ru`
-- [ ] 2.4 Lint passes: `npm run lint`
+- [x] 2.1 Questionnaire state is component-local and source search finds no `localStorage`, `sessionStorage`, answer `fetch`, or Supabase usage in `QuestionnaireFlow.tsx`
+- [x] 2.2 Basics validation trims required fields and does not require optional sections
+- [x] 2.3 Output language state is limited to `en`, `pl`, or `ru`
+- [x] 2.4 Lint passes: `npm run lint`
 
 #### Manual
 
-- [ ] 2.5 User can move forward and backward through guided steps without losing in-memory answers
-- [ ] 2.6 Blank full name or blank target/goal shows inline validation and blocks continuing from Basics
-- [ ] 2.7 Sparse optional sections are allowed
-- [ ] 2.8 The flow is readable and non-overlapping on mobile and desktop widths
+- [x] 2.5 User can move forward and backward through guided steps without losing in-memory answers
+- [x] 2.6 Blank full name or blank target/goal shows inline validation and blocks continuing from Basics
+- [x] 2.7 Sparse optional sections are allowed
+- [x] 2.8 The flow is readable and non-overlapping on mobile and desktop widths
 
 ### Phase 3: Review Answers End State
 
