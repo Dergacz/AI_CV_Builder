@@ -17,12 +17,12 @@ const error = Astro.url.searchParams.get("error");
         </p>
       </div>
 
-      <div class="w-full rounded-lg border border-slate-800 bg-slate-950 p-6 text-white shadow-xl sm:p-8">
-        <h2 class="mb-2 text-2xl font-semibold text-white">Create account</h2>
-        <p class="mb-6 text-sm leading-6 text-slate-300">Use an email you can access for your CV workspace.</p>
+      <div class="w-full rounded-lg border border-slate-200 bg-white p-6 text-slate-950 shadow-xl sm:p-8">
+        <h2 class="mb-2 text-2xl font-semibold text-slate-950">Create account</h2>
+        <p class="mb-6 text-sm leading-6 text-slate-600">Use an email you can access for your CV workspace.</p>
         <SignUpForm serverError={error} client:load />
-        <p class="mt-4 text-center text-sm text-slate-300">
-          Already have an account? <a href="/auth/signin" class="font-medium text-emerald-300 hover:underline"
+        <p class="mt-4 text-center text-sm text-slate-600">
+          Already have an account? <a href="/auth/signin" class="font-medium text-emerald-700 hover:underline"
             >Sign in</a
           >
         </p>
