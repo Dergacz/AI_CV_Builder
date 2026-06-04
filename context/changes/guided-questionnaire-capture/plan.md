@@ -393,30 +393,30 @@ No database migration is required. No Supabase Auth migration is required. Addin
 
 #### Automated
 
-- [x] 3.1 Review screen renders from the same `CvQuestionnaireAnswers` state shape used by the guided steps
-- [x] 3.2 Source search confirms no generation route, generation API call, mock generated CV draft, or saved-CV route was added
-- [x] 3.3 Lint passes: `npm run lint`
+- [x] 3.1 Review screen renders from the same `CvQuestionnaireAnswers` state shape used by the guided steps — 4136a1b
+- [x] 3.2 Source search confirms no generation route, generation API call, mock generated CV draft, or saved-CV route was added — 4136a1b
+- [x] 3.3 Lint passes: `npm run lint` — 4136a1b
 
 #### Manual
 
-- [x] 3.4 Completing required basics and skipping optional sections reaches review
-- [x] 3.5 Review accurately shows entered answers and marks skipped optional groups
-- [x] 3.6 Sparse optional answers show gentle non-blocking warnings
-- [x] 3.7 Review messaging clearly says draft generation comes next without presenting fake generation
+- [x] 3.4 Completing required basics and skipping optional sections reaches review — 4136a1b
+- [x] 3.5 Review accurately shows entered answers and marks skipped optional groups — 4136a1b
+- [x] 3.6 Sparse optional answers show gentle non-blocking warnings — 4136a1b
+- [x] 3.7 Review messaging clearly says draft generation comes next without presenting fake generation — 4136a1b
 
 ### Phase 4: Verification And Change Metadata
 
 #### Automated
 
-- [ ] 4.1 Astro types sync successfully: `npx astro sync`
-- [ ] 4.2 Lint passes: `npm run lint`
-- [ ] 4.3 Production build passes: `npm run build`
-- [ ] 4.4 Source search confirms no generation API, saved-CV persistence, browser answer storage, or PDF export was added
+- [x] 4.1 Astro types sync successfully: `npx astro sync`
+- [x] 4.2 Lint passes: `npm run lint`
+- [x] 4.3 Production build passes: `npm run build`
+- [x] 4.4 Source search confirms no generation API, saved-CV persistence, browser answer storage, or PDF export was added
 
 #### Manual
 
-- [ ] 4.5 Signed-out users cannot access `/cv/new`
-- [ ] 4.6 Signed-in users can navigate from `/dashboard` to `/cv/new`
-- [ ] 4.7 The guided questionnaire works from required basics through review
-- [ ] 4.8 Refreshing `/cv/new` loses in-progress answers, confirming S-03 did not add persistence
-- [ ] 4.9 `context/foundation/roadmap.md` remains unchanged by S-03 implementation
+- [x] 4.5 Signed-out users cannot access `/cv/new`
+- [x] 4.6 Signed-in users can navigate from `/dashboard` to `/cv/new`
+- [x] 4.7 The guided questionnaire works from required basics through review
+- [x] 4.8 Refreshing `/cv/new` loses in-progress answers, confirming S-03 did not add persistence
+- [x] 4.9 `context/foundation/roadmap.md` remains unchanged by S-03 implementation
