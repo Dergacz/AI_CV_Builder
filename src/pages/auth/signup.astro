@@ -6,17 +6,27 @@ const error = Astro.url.searchParams.get("error");
 ---
 
 <Layout title="Sign up">
-  <div class="bg-cosmic flex min-h-screen items-center justify-center p-4">
-    <div class="w-full max-w-sm rounded-2xl border border-white/10 bg-white/10 p-8 text-white backdrop-blur-xl">
-      <h1
-        class="mb-6 bg-gradient-to-r from-blue-200 to-purple-200 bg-clip-text text-center text-2xl font-bold text-transparent"
-      >
-        Sign up
-      </h1>
-      <SignUpForm serverError={error} client:load />
-      <p class="mt-4 text-center text-sm text-blue-100/60">
-        Already have an account? <a href="/auth/signin" class="text-purple-300 hover:underline">Sign in</a>
-      </p>
-    </div>
-  </div>
+  <main class="flex min-h-screen items-center justify-center bg-slate-50 px-5 py-10 text-slate-950 sm:px-8">
+    <section class="grid w-full max-w-5xl gap-8 lg:grid-cols-[minmax(0,0.95fr)_24rem] lg:items-center">
+      <div class="max-w-2xl">
+        <a href="/" class="text-base font-semibold text-slate-950">AI CV Builder</a>
+        <p class="mt-8 text-sm font-semibold text-teal-700">Start your account</p>
+        <h1 class="mt-4 text-4xl leading-tight font-semibold text-slate-950 sm:text-5xl">Create your CV workspace</h1>
+        <p class="mt-5 text-base leading-7 text-slate-700">
+          Set up account access first. The guided CV questionnaire comes next.
+        </p>
+      </div>
+
+      <div class="w-full rounded-lg border border-slate-200 bg-white p-6 text-slate-950 shadow-xl sm:p-8">
+        <h2 class="mb-2 text-2xl font-semibold text-slate-950">Create account</h2>
+        <p class="mb-6 text-sm leading-6 text-slate-600">Use an email you can access for your CV workspace.</p>
+        <SignUpForm serverError={error} client:load />
+        <p class="mt-4 text-center text-sm text-slate-600">
+          Already have an account? <a href="/auth/signin" class="font-medium text-emerald-700 hover:underline"
+            >Sign in</a
+          >
+        </p>
+      </div>
+    </section>
+  </main>
 </Layout>

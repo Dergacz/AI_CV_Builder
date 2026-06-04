@@ -5,32 +5,32 @@ const isAutoConfirmed = import.meta.env.DEV;
 
 const content = isAutoConfirmed
   ? {
-      emoji: "✅",
       heading: "Registration successful",
-      description: "Your account has been created. You can now sign in.",
+      eyebrow: "Account ready",
+      description: "Your account is ready. Sign in to open your CV workspace.",
       linkText: "Go to sign in",
     }
   : {
-      emoji: "📧",
       heading: "Check your email",
-      description: "We've sent a confirmation link to your email address. Click it to activate your account.",
+      eyebrow: "Confirm your account",
+      description: "We've sent a confirmation link to your email address. Open it to activate your CV workspace.",
       linkText: "Back to sign in",
     };
 ---
 
 <Layout title={content.heading}>
-  <div class="bg-cosmic flex min-h-screen items-center justify-center p-4">
-    <div
-      class="w-full max-w-sm rounded-2xl border border-white/10 bg-white/10 p-8 text-center text-white backdrop-blur-xl"
-    >
-      <div class="mb-4 text-5xl">{content.emoji}</div>
-      <h1 class="mb-3 bg-gradient-to-r from-blue-200 to-purple-200 bg-clip-text text-2xl font-bold text-transparent">
-        {content.heading}
-      </h1>
-      <p class="mb-6 text-blue-100/80">{content.description}</p>
-      <a href="/auth/signin" class="text-sm text-purple-300 hover:underline">
+  <main class="flex min-h-screen items-center justify-center bg-slate-50 px-5 py-10 text-slate-950 sm:px-8">
+    <section class="w-full max-w-md rounded-lg border border-slate-200 bg-white p-6 text-center shadow-lg sm:p-8">
+      <a href="/" class="text-base font-semibold text-slate-950">AI CV Builder</a>
+      <p class="mt-8 text-sm font-semibold text-teal-700">{content.eyebrow}</p>
+      <h1 class="mt-3 text-3xl font-semibold text-slate-950">{content.heading}</h1>
+      <p class="mt-4 text-sm leading-6 text-slate-600">{content.description}</p>
+      <a
+        href="/auth/signin"
+        class="mt-7 inline-flex min-h-11 items-center justify-center rounded-md bg-emerald-700 px-5 py-3 text-sm font-semibold text-white transition-colors hover:bg-emerald-800 focus-visible:ring-3 focus-visible:ring-emerald-700/30 focus-visible:outline-none"
+      >
         {content.linkText}
       </a>
-    </div>
-  </div>
+    </section>
+  </main>
 </Layout>
