@@ -397,32 +397,32 @@ No database migration. One new optional server secret (`OPENAI_API_KEY`, plus op
 
 #### Automated
 
-- [x] 3.1 `QuestionnaireFlow.tsx` posts to `/api/cv/generate` and renders draft state from component state only (no browser storage / URL params)
-- [x] 3.2 The disabled "Generation comes next" button is gone; an enabled Generate action exists on review
-- [x] 3.3 Source search confirms no save/export/section-edit controls and no mock draft content were added
-- [x] 3.4 Lint passes: `npm run lint`; production build passes: `npm run build`
+- [x] 3.1 `QuestionnaireFlow.tsx` posts to `/api/cv/generate` and renders draft state from component state only (no browser storage / URL params) — ce7af68
+- [x] 3.2 The disabled "Generation comes next" button is gone; an enabled Generate action exists on review — ce7af68
+- [x] 3.3 Source search confirms no save/export/section-edit controls and no mock draft content were added — ce7af68
+- [x] 3.4 Lint passes: `npm run lint`; production build passes: `npm run build` — ce7af68
 
 #### Manual
 
-- [x] 3.5 Completing required basics enables Generate; pressing it shows spinner + status, then the draft preview
-- [x] 3.6 The preview shows all five sections plus assumptions/warnings and clearly reads as a draft
-- [x] 3.7 Sparse-input generation shows warnings and no fabricated facts in the preview
-- [x] 3.8 Inducing a failure shows the correct bucket message and a Retry that preserves answers and succeeds once resolved
-- [x] 3.9 Editing answers and regenerating updates the draft; refreshing loses the in-memory draft
-- [x] 3.10 Layout is readable and non-overlapping on mobile and desktop
+- [x] 3.5 Completing required basics enables Generate; pressing it shows spinner + status, then the draft preview — ce7af68
+- [x] 3.6 The preview shows all five sections plus assumptions/warnings and clearly reads as a draft — ce7af68
+- [x] 3.7 Sparse-input generation shows warnings and no fabricated facts in the preview — ce7af68
+- [x] 3.8 Inducing a failure shows the correct bucket message and a Retry that preserves answers and succeeds once resolved — ce7af68
+- [x] 3.9 Editing answers and regenerating updates the draft; refreshing loses the in-memory draft — ce7af68
+- [x] 3.10 Layout is readable and non-overlapping on mobile and desktop — ce7af68
 
 ### Phase 4: Verification And Change Metadata
 
 #### Automated
 
-- [ ] 4.1 Astro types sync successfully: `npx astro sync`
-- [ ] 4.2 Lint passes: `npm run lint`
-- [ ] 4.3 Production build passes: `npm run build`
-- [ ] 4.4 Source search confirms no persistence, PDF/export, S-05 template/editing, or raw-answer logging was added
+- [x] 4.1 Astro types sync successfully: `npx astro sync`
+- [x] 4.2 Lint passes: `npm run lint`
+- [x] 4.3 Production build passes: `npm run build`
+- [x] 4.4 Source search confirms no persistence, PDF/export, S-05 template/editing, or raw-answer logging was added
 
 #### Manual
 
-- [ ] 4.5 Signed-out users cannot call generation (401) and cannot reach `/cv/new`
-- [ ] 4.6 A signed-in user can generate a draft from required basics and see the preview
-- [ ] 4.7 Refreshing `/cv/new` loses the in-memory draft, confirming no persistence
-- [ ] 4.8 `context/foundation/roadmap.md` remains unchanged by S-04 implementation
+- [x] 4.5 Signed-out users cannot call generation (401) and cannot reach `/cv/new`
+- [x] 4.6 A signed-in user can generate a draft from required basics and see the preview
+- [x] 4.7 Refreshing `/cv/new` loses the in-memory draft, confirming no persistence
+- [x] 4.8 `context/foundation/roadmap.md` remains unchanged by S-04 implementation
