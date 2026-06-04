@@ -408,15 +408,15 @@ No database migration is required. No Supabase Auth migration is required. Addin
 
 #### Automated
 
-- [x] 4.1 Astro types sync successfully: `npx astro sync`
-- [x] 4.2 Lint passes: `npm run lint`
-- [x] 4.3 Production build passes: `npm run build`
-- [x] 4.4 Source search confirms no generation API, saved-CV persistence, browser answer storage, or PDF export was added
+- [x] 4.1 Astro types sync successfully: `npx astro sync` — 0d06d55
+- [x] 4.2 Lint passes: `npm run lint` — 0d06d55
+- [x] 4.3 Production build passes: `npm run build` — 0d06d55
+- [x] 4.4 Source search confirms no generation API, saved-CV persistence, browser answer storage, or PDF export was added — 0d06d55
 
 #### Manual
 
-- [x] 4.5 Signed-out users cannot access `/cv/new`
-- [x] 4.6 Signed-in users can navigate from `/dashboard` to `/cv/new`
-- [x] 4.7 The guided questionnaire works from required basics through review
-- [x] 4.8 Refreshing `/cv/new` loses in-progress answers, confirming S-03 did not add persistence
-- [x] 4.9 `context/foundation/roadmap.md` remains unchanged by S-03 implementation
+- [x] 4.5 Signed-out users cannot access `/cv/new` — 0d06d55
+- [x] 4.6 Signed-in users can navigate from `/dashboard` to `/cv/new` — 0d06d55
+- [x] 4.7 The guided questionnaire works from required basics through review — 0d06d55
+- [x] 4.8 Refreshing `/cv/new` loses in-progress answers, confirming S-03 did not add persistence — 0d06d55
+- [x] 4.9 `context/foundation/roadmap.md` remains unchanged by S-03 implementation — 0d06d55
