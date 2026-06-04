@@ -415,14 +415,14 @@ No database migration. One new optional server secret (`OPENAI_API_KEY`, plus op
 
 #### Automated
 
-- [x] 4.1 Astro types sync successfully: `npx astro sync`
-- [x] 4.2 Lint passes: `npm run lint`
-- [x] 4.3 Production build passes: `npm run build`
-- [x] 4.4 Source search confirms no persistence, PDF/export, S-05 template/editing, or raw-answer logging was added
+- [x] 4.1 Astro types sync successfully: `npx astro sync` — 66e4a71
+- [x] 4.2 Lint passes: `npm run lint` — 66e4a71
+- [x] 4.3 Production build passes: `npm run build` — 66e4a71
+- [x] 4.4 Source search confirms no persistence, PDF/export, S-05 template/editing, or raw-answer logging was added — 66e4a71
 
 #### Manual
 
-- [x] 4.5 Signed-out users cannot call generation (401) and cannot reach `/cv/new`
-- [x] 4.6 A signed-in user can generate a draft from required basics and see the preview
-- [x] 4.7 Refreshing `/cv/new` loses the in-memory draft, confirming no persistence
-- [x] 4.8 `context/foundation/roadmap.md` remains unchanged by S-04 implementation
+- [x] 4.5 Signed-out users cannot call generation (401) and cannot reach `/cv/new` — 66e4a71
+- [x] 4.6 A signed-in user can generate a draft from required basics and see the preview — 66e4a71
+- [x] 4.7 Refreshing `/cv/new` loses the in-memory draft, confirming no persistence — 66e4a71
+- [x] 4.8 `context/foundation/roadmap.md` remains unchanged by S-04 implementation — 66e4a71
