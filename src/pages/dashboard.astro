@@ -4,24 +4,70 @@ import Layout from "@/layouts/Layout.astro";
 const { user } = Astro.locals;
 ---
 
-<Layout title="Dashboard">
-  <div class="bg-cosmic flex min-h-screen items-center justify-center p-4">
-    <div class="rounded-2xl border border-white/10 bg-white/10 p-8 text-center text-white backdrop-blur-xl">
-      <h1 class="mb-4 bg-gradient-to-r from-blue-200 to-purple-200 bg-clip-text text-3xl font-bold text-transparent">
-        Dashboard
-      </h1>
-      <p class="text-blue-100/80">
-        Welcome, <span class="font-semibold text-white">{user?.email}</span>
-      </p>
-      <p class="mt-2 text-sm text-blue-100/50">This page is only for authenticated users.</p>
-      <form method="POST" action="/api/auth/signout" class="mt-6">
-        <button
-          type="submit"
-          class="rounded-lg border border-white/20 bg-white/10 px-4 py-2 text-sm transition-colors hover:bg-white/20"
-        >
-          Sign out
-        </button>
-      </form>
+<Layout title="CV Workspace">
+  <main class="min-h-screen bg-slate-50 px-5 py-6 text-slate-950 sm:px-8">
+    <div class="mx-auto flex min-h-[calc(100vh-3rem)] max-w-6xl flex-col">
+      <header class="flex flex-col gap-4 border-b border-slate-200 pb-5 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <a href="/" class="text-base font-semibold text-slate-950">AI CV Builder</a>
+          <p class="mt-2 text-sm text-slate-600">
+            Signed in as <span class="font-medium text-slate-950">{user?.email}</span>
+          </p>
+        </div>
+        <form method="POST" action="/api/auth/signout">
+          <button
+            type="submit"
+            class="inline-flex min-h-10 items-center justify-center rounded-md border border-slate-300 bg-white px-4 text-sm font-semibold text-slate-900 transition-colors hover:border-slate-400 hover:bg-slate-100 focus-visible:ring-3 focus-visible:ring-slate-500/20 focus-visible:outline-none"
+          >
+            Sign out
+          </button>
+        </form>
+      </header>
+
+      <section class="grid flex-1 items-center gap-8 py-10 lg:grid-cols-[minmax(0,0.9fr)_minmax(18rem,0.45fr)]">
+        <div class="max-w-3xl">
+          <p class="text-sm font-semibold text-teal-700">Your CV workspace</p>
+          <h1 class="mt-4 text-4xl leading-tight font-semibold text-slate-950 sm:text-5xl">
+            Start from a calm place, then build the CV step by step
+          </h1>
+          <p class="mt-5 max-w-2xl text-base leading-7 text-slate-700">
+            This protected workspace is ready for your first CV flow. Start with the guided questionnaire; saved CVs
+            come later in the saved-library slice.
+          </p>
+          <div class="mt-8 flex flex-col gap-3 sm:flex-row">
+            <a
+              href="/cv/new"
+              class="inline-flex min-h-11 items-center justify-center rounded-md bg-emerald-700 px-5 py-3 text-sm font-semibold text-white transition-colors hover:bg-emerald-800 focus-visible:ring-3 focus-visible:ring-emerald-700/30 focus-visible:outline-none"
+            >
+              Start CV
+            </a>
+            <a
+              href="/"
+              class="inline-flex min-h-11 items-center justify-center rounded-md border border-slate-300 bg-white px-5 py-3 text-sm font-semibold text-slate-900 transition-colors hover:border-slate-400 hover:bg-slate-100 focus-visible:ring-3 focus-visible:ring-slate-500/20 focus-visible:outline-none"
+            >
+              Back to overview
+            </a>
+          </div>
+        </div>
+
+        <aside class="rounded-lg border border-slate-200 bg-white p-5 shadow-sm" aria-label="Workspace status">
+          <h2 class="text-base font-semibold text-slate-950">Workspace status</h2>
+          <dl class="mt-5 space-y-4 text-sm">
+            <div>
+              <dt class="font-medium text-slate-950">Account access</dt>
+              <dd class="mt-1 text-slate-600">Active</dd>
+            </div>
+            <div>
+              <dt class="font-medium text-slate-950">Guided questionnaire</dt>
+              <dd class="mt-1 text-slate-600">Ready to start</dd>
+            </div>
+            <div>
+              <dt class="font-medium text-slate-950">Saved CVs</dt>
+              <dd class="mt-1 text-slate-600">Planned for the saved-library slice</dd>
+            </div>
+          </dl>
+        </aside>
+      </section>
     </div>
-  </div>
+  </main>
 </Layout>

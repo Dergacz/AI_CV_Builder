@@ -3,7 +3,7 @@ project: AI CV Builder
 version: 1
 status: draft
 created: 2026-06-01
-updated: 2026-06-03
+updated: 2026-06-04
 prd_version: 1
 main_goal: speed
 top_blocker: decisions
@@ -32,11 +32,11 @@ Here, north star means the smallest end-to-end slice whose successful delivery p
 | F-01 | generation-export-decision-contract | (foundation) generation and PDF export decisions are captured as minimal contracts | -                      | NFR: Export reliability, Response timing | done     |
 | F-02 | cv-persistence-privacy-contract     | (foundation) owner-only saved-CV persistence is defined enough to plan save/reopen | -                      | Access Control, NFR: Privacy, Retention  | done     |
 | S-01 | product-landing-start               | user can understand the value proposition and start CV creation                    | -                      | FR-001, FR-002                           | done     |
-| S-02 | account-access-for-cv-work          | user can sign up, log in, and reach the CV workspace                               | -                      | FR-003                                   | ready    |
-| S-03 | guided-questionnaire-capture        | user can create a new CV by answering a simple guided questionnaire                | S-01, S-02             | US-01, FR-004, FR-005                    | proposed |
+| S-02 | account-access-for-cv-work          | user can sign up, log in, and reach the CV workspace                               | -                      | FR-003                                   | done     |
+| S-03 | guided-questionnaire-capture        | user can create a new CV by answering a simple guided questionnaire                | S-01, S-02             | US-01, FR-004, FR-005                    | done     |
 | S-04 | generated-cv-draft                  | user can receive a usable structured CV draft from questionnaire answers           | F-01, S-03             | US-01, FR-006, FR-012, FR-013, FR-014    | blocked  |
 | S-05 | cv-template-section-editing         | user can review the draft in one clean template and edit named sections            | S-04                   | US-01, FR-007, FR-008                    | proposed |
-| S-06 | saved-cv-library                    | user can save CV changes and reopen previous CVs from their account                | F-02, S-02             | FR-009, FR-011                           | blocked  |
+| S-06 | saved-cv-library                    | user can save CV changes and reopen previous CVs from their account                | F-02, S-02             | FR-009, FR-011                           | ready    |
 | S-07 | pdf-export                          | user can export the reviewed CV as a clean PDF and see export failure states       | F-01, S-05             | US-01, FR-010, FR-014                    | blocked  |
 | S-08 | full-saved-pdf-flow                 | user can complete the full saved PDF flow in English, Polish, or Russian           | F-01, F-02, S-06, S-07 | US-01, FR-015                            | blocked  |
 
@@ -115,7 +115,7 @@ Foundations below assume these are present and do NOT re-scaffold them.
 - **Blockers:** -
 - **Unknowns:** -
 - **Risk:** Auth already exists, but the product flow still needs to make account access feel like part of CV creation rather than a starter dashboard.
-- **Status:** ready
+- **Status:** done
 
 ### S-03: Guided questionnaire capture
 
@@ -128,7 +128,7 @@ Foundations below assume these are present and do NOT re-scaffold them.
 - **Unknowns:**
   - Which questions collect enough structure for a useful first generated CV without feeling like a professional resume form? - Owner: team. Block: no.
 - **Risk:** This is where the blank-page problem is reduced; a questionnaire that is too thin will make generation look weak later.
-- **Status:** proposed
+- **Status:** done
 
 ### S-04: Generated CV draft
 
@@ -165,9 +165,9 @@ Foundations below assume these are present and do NOT re-scaffold them.
 - **Parallel with:** S-04, S-05, S-07
 - **Blockers:** -
 - **Unknowns:**
-  - F-02 is resolved; S-02 must provide the authenticated CV workspace before saved-library behavior can be planned. - Owner: team. Block: yes.
+  - F-02 and S-02 are resolved; keep the saved-CV library minimal and owner-only when planning this slice. - Owner: team. Block: no.
 - **Risk:** Saving and reopening are required for real usefulness, but the dashboard should stay minimal and not distract from finishing the first CV.
-- **Status:** blocked
+- **Status:** ready
 
 ### S-07: PDF export
 
@@ -202,11 +202,11 @@ Foundations below assume these are present and do NOT re-scaffold them.
 | F-01       | generation-export-decision-contract | Define generation and PDF export contracts                  | no                    | Implemented; use completed contract for S-04 and S-07 |
 | F-02       | cv-persistence-privacy-contract     | Define saved-CV persistence and owner privacy contract      | no                    | Implemented; use completed contract for S-06 and S-08 |
 | S-01       | product-landing-start               | Replace starter landing with product landing and start path | no                    | Implemented; landing start path is complete           |
-| S-02       | account-access-for-cv-work          | Connect account access to the CV workspace                  | yes                   | Auth baseline exists                                  |
-| S-03       | guided-questionnaire-capture        | Build guided questionnaire capture                          | no                    | S-01 resolved; requires S-02                          |
+| S-02       | account-access-for-cv-work          | Connect account access to the CV workspace                  | no                    | Implemented; workspace shell is complete              |
+| S-03       | guided-questionnaire-capture        | Build guided questionnaire capture                          | no                    | Implemented; guided questionnaire and review are complete |
 | S-04       | generated-cv-draft                  | Generate usable CV draft from questionnaire answers         | no                    | F-01 resolved; requires S-03                          |
 | S-05       | cv-template-section-editing         | Add CV template review and section editing                  | no                    | Requires S-04                                         |
-| S-06       | saved-cv-library                    | Save and reopen CVs from account                            | no                    | F-02 resolved; requires S-02                          |
+| S-06       | saved-cv-library                    | Save and reopen CVs from account                            | yes                   | F-02 and S-02 resolved                                |
 | S-07       | pdf-export                          | Export reviewed CV as PDF                                   | no                    | F-01 resolved; requires S-05                          |
 | S-08       | full-saved-pdf-flow                 | Complete saved PDF flow with language support               | no                    | Requires F-01, F-02, S-06, and S-07                   |
 
@@ -232,3 +232,5 @@ Foundations below assume these are present and do NOT re-scaffold them.
 - **F-01 `generation-export-decision-contract`** - Implemented on 2026-06-03. Decision contract and PDF runtime spike are in `context/changes/generation-export-decision-contract/`; unlocks S-04/S-07 planning once their remaining prerequisites are ready.
 - **F-02 `cv-persistence-privacy-contract`** - Implemented on 2026-06-03. Persistence/privacy contract is in `context/changes/cv-persistence-privacy-contract/persistence-privacy-contract.md`; unlocks S-06/S-08 planning once their remaining prerequisites are ready.
 - **S-01 `product-landing-start`** - Implemented on 2026-06-03. Product landing now replaces the starter homepage and sends signed-out users to `/auth/signup` and signed-in users to `/dashboard`; unlocks S-03 planning once S-02 is ready.
+- **S-02 `account-access-for-cv-work`** - Implemented on 2026-06-04. Account redirects, product auth pages, and protected CV workspace shell are complete; unlocks S-03 and S-06 planning.
+- **S-03 `guided-questionnaire-capture`** - Implemented on 2026-06-04. Protected `/cv/new` route, client-only guided questionnaire island, and read-only review end state are complete; questionnaire answer contract (`QUESTIONNAIRE_VERSION`, output language) unlocks S-04 planning.
