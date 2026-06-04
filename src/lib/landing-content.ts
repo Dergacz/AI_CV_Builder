@@ -46,7 +46,7 @@ export const landingContentByLocale = {
     nav: {
       productName: "AI CV Builder",
       signIn: "Sign in",
-      dashboard: "Dashboard",
+      dashboard: "Workspace",
     },
     hero: {
       eyebrow: "For the blank-page moment",
@@ -58,7 +58,7 @@ export const landingContentByLocale = {
       },
       secondaryCta: {
         signedOut: "Sign in",
-        signedIn: "View dashboard",
+        signedIn: "Open workspace",
       },
     },
     preview: {

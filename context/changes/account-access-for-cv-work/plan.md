@@ -388,41 +388,41 @@ No database migration is required. No Supabase Auth architecture migration is re
 
 #### Manual
 
-- [ ] 2.4 `/auth/signin` reads as AI CV Builder account access, not starter-template auth
-- [ ] 2.5 `/auth/signup` reads as starting CV work, not a generic starter signup
-- [ ] 2.6 `/auth/confirm-email` remains understandable in both local-dev and production confirmation copy paths
-- [ ] 2.7 Auth page layouts remain readable and non-overlapping on mobile and desktop widths
+- [x] 2.4 `/auth/signin` reads as AI CV Builder account access, not starter-template auth — user-confirmed 2026-06-04
+- [x] 2.5 `/auth/signup` reads as starting CV work, not a generic starter signup — user-confirmed 2026-06-04
+- [x] 2.6 `/auth/confirm-email` remains understandable in both local-dev and production confirmation copy paths — user-confirmed 2026-06-04
+- [x] 2.7 Auth page layouts remain readable and non-overlapping on mobile and desktop widths — user-confirmed 2026-06-04
 
 ### Phase 3: CV Workspace Shell
 
 #### Automated
 
-- [ ] 3.1 `/dashboard` remains listed in `PROTECTED_ROUTES`
-- [ ] 3.2 Dashboard source contains no starter-only protected-page copy such as "This page is only for authenticated users."
-- [ ] 3.3 No questionnaire route or saved-CV route is added in this phase
-- [ ] 3.4 Lint passes: `npm run lint`
+- [x] 3.1 `/dashboard` remains listed in `PROTECTED_ROUTES` — verified 2026-06-04
+- [x] 3.2 Dashboard source contains no starter-only protected-page copy such as "This page is only for authenticated users." — verified 2026-06-04
+- [x] 3.3 No questionnaire route or saved-CV route is added in this phase — verified 2026-06-04
+- [x] 3.4 Lint passes: `npm run lint` — verified 2026-06-04
 
 #### Manual
 
-- [ ] 3.5 Visiting `/dashboard` while signed out redirects to `/auth/signin`
-- [ ] 3.6 Visiting `/dashboard` while signed in shows the personal CV workspace shell
-- [ ] 3.7 The visible "Start CV" action is disabled or clearly coming-next and does not navigate
-- [ ] 3.8 Signout remains available from the workspace and returns the user to `/`
-- [ ] 3.9 Landing signed-in navigation points to `/dashboard` with workspace language
+- [x] 3.5 Visiting `/dashboard` while signed out redirects to `/auth/signin` — verified 2026-06-04
+- [x] 3.6 Visiting `/dashboard` while signed in shows the personal CV workspace shell — user-confirmed 2026-06-04
+- [x] 3.7 The visible "Start CV" action is disabled or clearly coming-next and does not navigate — verified 2026-06-04
+- [x] 3.8 Signout remains available from the workspace and returns the user to `/` — verified 2026-06-04
+- [x] 3.9 Landing signed-in navigation points to `/dashboard` with workspace language — verified 2026-06-04
 
 ### Phase 4: Verification And Change Metadata
 
 #### Automated
 
-- [ ] 4.1 Astro types sync successfully: `npx astro sync`
-- [ ] 4.2 Lint passes: `npm run lint`
-- [ ] 4.3 Production build passes: `npm run build`
-- [ ] 4.4 Source search confirms no new questionnaire or saved-CV route was added for S-02
+- [x] 4.1 Astro types sync successfully: `npx astro sync` — verified 2026-06-04
+- [x] 4.2 Lint passes: `npm run lint` — verified 2026-06-04
+- [x] 4.3 Production build passes: `npm run build` — verified 2026-06-04
+- [x] 4.4 Source search confirms no new questionnaire or saved-CV route was added for S-02 — verified 2026-06-04
 
 #### Manual
 
-- [ ] 4.5 Signed-out users can start from `/`, reach signup/signin, and cannot access `/dashboard`
-- [ ] 4.6 Signed-in users land on `/dashboard` after signin and see the CV workspace shell
-- [ ] 4.7 Signup behaves correctly for the available Supabase confirmation setting
-- [ ] 4.8 Friendly auth errors appear without exposing raw provider details
-- [ ] 4.9 `context/foundation/roadmap.md` remains unchanged by this S-02 implementation
+- [x] 4.5 Signed-out users can start from `/`, reach signup/signin, and cannot access `/dashboard` — user-confirmed plus redirect verified 2026-06-04
+- [x] 4.6 Signed-in users land on `/dashboard` after signin and see the CV workspace shell — user-confirmed 2026-06-04
+- [x] 4.7 Signup behaves correctly for the available Supabase confirmation setting — user-confirmed 2026-06-04
+- [x] 4.8 Friendly auth errors appear without exposing raw provider details — user-confirmed 2026-06-04
+- [x] 4.9 `context/foundation/roadmap.md` remains unchanged by this S-02 implementation — satisfied before separate closure sync 2026-06-04
