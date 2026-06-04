@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import {
   QUESTIONNAIRE_VERSION,
   cvOutputLanguages,
@@ -8,7 +8,7 @@ import {
 } from "@/lib/cv-questionnaire";
 import { cn } from "@/lib/utils";
 
-type StepKey = "basics" | "experienceEducation" | "skillsLanguages" | "extraContext";
+type StepKey = "basics" | "experienceEducation" | "skillsLanguages" | "extraContext" | "review";
 type RequiredErrors = Partial<Record<"fullName" | "targetRoleOrGoal", string>>;
 
 const steps: { key: StepKey; label: string; title: string; body: string }[] = [
@@ -36,6 +36,12 @@ const steps: { key: StepKey; label: string; title: string; body: string }[] = [
     title: "Add anything useful",
     body: "Include details that did not fit elsewhere. The review step comes next.",
   },
+  {
+    key: "review",
+    label: "Review",
+    title: "Review your answers",
+    body: "Check what you provided. Draft generation comes in the next roadmap slice.",
+  },
 ];
 
 const outputLanguageLabels: Record<CvOutputLanguage, string> = {
@@ -56,6 +62,7 @@ export default function QuestionnaireFlow() {
   const activeStep = steps[activeStepIndex];
   const isFirstStep = activeStepIndex === 0;
   const isLastStep = activeStepIndex === steps.length - 1;
+  const sparseWarnings = useMemo(() => getSparseWarnings(answers), [answers]);
 
   function updateAnswer<Field extends keyof CvQuestionnaireAnswers>(
     field: Field,
@@ -241,8 +248,86 @@ export default function QuestionnaireFlow() {
               placeholder="Add preferences, achievements, constraints, career change context, or anything that feels relevant."
             />
             <div className="rounded-md border border-emerald-200 bg-emerald-50 p-4 text-sm leading-6 text-emerald-950">
-              Phase 3 will add the answer review screen. For now, your answers stay only in this page while you move
-              between steps.
+              Next, you will review these answers. They stay only in this page while you move between steps.
+            </div>
+          </div>
+        )}
+
+        {activeStep.key === "review" && (
+          <div className="space-y-6">
+            <div className="rounded-md border border-emerald-200 bg-emerald-50 p-4 text-sm leading-6 text-emerald-950">
+              Your answers are captured for review. The next roadmap slice will use this shape to generate a draft; this
+              screen does not create, save, or export a CV yet.
+            </div>
+
+            {sparseWarnings.length > 0 && (
+              <section className="rounded-md border border-amber-200 bg-amber-50 p-4" aria-label="Sparse answer notes">
+                <h3 className="text-sm font-semibold text-amber-950">Before generation, keep in mind</h3>
+                <ul className="mt-3 space-y-2 text-sm leading-6 text-amber-900">
+                  {sparseWarnings.map((warning) => (
+                    <li key={warning}>- {warning}</li>
+                  ))}
+                </ul>
+              </section>
+            )}
+
+            <div className="grid gap-4 lg:grid-cols-2">
+              <ReviewItem
+                label="Name"
+                value={answers.fullName}
+                onEdit={() => {
+                  setActiveStepIndex(0);
+                }}
+              />
+              <ReviewItem
+                label="Target role or goal"
+                value={answers.targetRoleOrGoal}
+                onEdit={() => {
+                  setActiveStepIndex(0);
+                }}
+              />
+              <ReviewItem
+                label="CV output language"
+                value={outputLanguageLabels[answers.outputLanguage]}
+                onEdit={() => {
+                  setActiveStepIndex(0);
+                }}
+              />
+              <ReviewItem
+                label="Experience"
+                value={answers.experience}
+                onEdit={() => {
+                  setActiveStepIndex(1);
+                }}
+              />
+              <ReviewItem
+                label="Education"
+                value={answers.education}
+                onEdit={() => {
+                  setActiveStepIndex(1);
+                }}
+              />
+              <ReviewItem
+                label="Skills and tools"
+                value={answers.skillsAndTools}
+                onEdit={() => {
+                  setActiveStepIndex(2);
+                }}
+              />
+              <ReviewItem
+                label="Spoken languages"
+                value={answers.spokenLanguages}
+                onEdit={() => {
+                  setActiveStepIndex(2);
+                }}
+              />
+              <ReviewItem
+                label="Additional context"
+                value={answers.additionalContext}
+                onEdit={() => {
+                  setActiveStepIndex(3);
+                }}
+              />
             </div>
           </div>
         )}
@@ -263,11 +348,37 @@ export default function QuestionnaireFlow() {
           disabled={isLastStep}
           className="inline-flex min-h-11 items-center justify-center rounded-md bg-emerald-700 px-5 py-3 text-sm font-semibold text-white transition-colors hover:bg-emerald-800 focus-visible:ring-3 focus-visible:ring-emerald-700/30 focus-visible:outline-none disabled:cursor-not-allowed disabled:bg-slate-300 disabled:text-slate-600"
         >
-          {isLastStep ? "Review comes next" : "Next"}
+          {isLastStep ? "Generation comes next" : activeStepIndex === steps.length - 2 ? "Review answers" : "Next"}
         </button>
       </div>
     </section>
   );
+}
+
+function getSparseWarnings(answers: CvQuestionnaireAnswers) {
+  const warnings: string[] = [];
+
+  if (!answers.experience.trim()) {
+    warnings.push(
+      "Experience is empty, so the future draft may keep that section conservative or ask you to review it.",
+    );
+  }
+
+  if (!answers.education.trim()) {
+    warnings.push("Education is empty; the future draft should not invent schools, courses, or dates.");
+  }
+
+  if (!answers.skillsAndTools.trim()) {
+    warnings.push("Skills and tools are empty, so the future draft may have fewer concrete strengths to work with.");
+  }
+
+  if (!answers.spokenLanguages.trim()) {
+    warnings.push(
+      "Spoken languages are empty; the selected CV output language will not be treated as a claimed skill.",
+    );
+  }
+
+  return warnings;
 }
 
 interface TextFieldProps {
@@ -327,5 +438,33 @@ function TextAreaField({ id, label, value, onChange, placeholder, error }: TextF
       />
       {error && <p className="mt-1 text-xs text-red-600">{error}</p>}
     </div>
+  );
+}
+
+interface ReviewItemProps {
+  label: string;
+  value: string;
+  onEdit: () => void;
+}
+
+function ReviewItem({ label, value, onEdit }: ReviewItemProps) {
+  const hasValue = Boolean(value.trim());
+
+  return (
+    <section className="rounded-md border border-slate-200 bg-white p-4">
+      <div className="flex items-start justify-between gap-3">
+        <h3 className="text-sm font-semibold text-slate-950">{label}</h3>
+        <button
+          type="button"
+          onClick={onEdit}
+          className="text-sm font-semibold text-emerald-700 underline-offset-4 hover:underline"
+        >
+          Edit
+        </button>
+      </div>
+      <p className={cn("mt-3 text-sm leading-6 whitespace-pre-wrap", hasValue ? "text-slate-700" : "text-slate-400")}>
+        {hasValue ? value : "Skipped for now"}
+      </p>
+    </section>
   );
 }

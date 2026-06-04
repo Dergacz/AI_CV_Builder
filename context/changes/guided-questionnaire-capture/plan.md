@@ -377,32 +377,32 @@ No database migration is required. No Supabase Auth migration is required. Addin
 
 #### Automated
 
-- [x] 2.1 Questionnaire state is component-local and source search finds no `localStorage`, `sessionStorage`, answer `fetch`, or Supabase usage in `QuestionnaireFlow.tsx`
-- [x] 2.2 Basics validation trims required fields and does not require optional sections
-- [x] 2.3 Output language state is limited to `en`, `pl`, or `ru`
-- [x] 2.4 Lint passes: `npm run lint`
+- [x] 2.1 Questionnaire state is component-local and source search finds no `localStorage`, `sessionStorage`, answer `fetch`, or Supabase usage in `QuestionnaireFlow.tsx` — db5323b
+- [x] 2.2 Basics validation trims required fields and does not require optional sections — db5323b
+- [x] 2.3 Output language state is limited to `en`, `pl`, or `ru` — db5323b
+- [x] 2.4 Lint passes: `npm run lint` — db5323b
 
 #### Manual
 
-- [x] 2.5 User can move forward and backward through guided steps without losing in-memory answers
-- [x] 2.6 Blank full name or blank target/goal shows inline validation and blocks continuing from Basics
-- [x] 2.7 Sparse optional sections are allowed
-- [x] 2.8 The flow is readable and non-overlapping on mobile and desktop widths
+- [x] 2.5 User can move forward and backward through guided steps without losing in-memory answers — db5323b
+- [x] 2.6 Blank full name or blank target/goal shows inline validation and blocks continuing from Basics — db5323b
+- [x] 2.7 Sparse optional sections are allowed — db5323b
+- [x] 2.8 The flow is readable and non-overlapping on mobile and desktop widths — db5323b
 
 ### Phase 3: Review Answers End State
 
 #### Automated
 
-- [ ] 3.1 Review screen renders from the same `CvQuestionnaireAnswers` state shape used by the guided steps
-- [ ] 3.2 Source search confirms no generation route, generation API call, mock generated CV draft, or saved-CV route was added
-- [ ] 3.3 Lint passes: `npm run lint`
+- [x] 3.1 Review screen renders from the same `CvQuestionnaireAnswers` state shape used by the guided steps
+- [x] 3.2 Source search confirms no generation route, generation API call, mock generated CV draft, or saved-CV route was added
+- [x] 3.3 Lint passes: `npm run lint`
 
 #### Manual
 
-- [ ] 3.4 Completing required basics and skipping optional sections reaches review
-- [ ] 3.5 Review accurately shows entered answers and marks skipped optional groups
-- [ ] 3.6 Sparse optional answers show gentle non-blocking warnings
-- [ ] 3.7 Review messaging clearly says draft generation comes next without presenting fake generation
+- [x] 3.4 Completing required basics and skipping optional sections reaches review
+- [x] 3.5 Review accurately shows entered answers and marks skipped optional groups
+- [x] 3.6 Sparse optional answers show gentle non-blocking warnings
+- [x] 3.7 Review messaging clearly says draft generation comes next without presenting fake generation
 
 ### Phase 4: Verification And Change Metadata
 
