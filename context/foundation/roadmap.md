@@ -41,13 +41,13 @@ Here, north star means the smallest end-to-end slice whose successful delivery p
 | S-02 | account-access-for-cv-work          | user can sign up, log in, and reach the CV workspace                                                                                | -                            | FR-003                                   | done    | -                |
 | S-03 | guided-questionnaire-capture        | user can create a new CV by answering a simple guided questionnaire                                                                 | S-01, S-02                   | US-01, FR-004, FR-005                    | done    | -                |
 | S-04 | generated-cv-draft                  | user can receive a usable structured CV draft from questionnaire answers                                                            | F-01, S-03                   | US-01, FR-006, FR-012, FR-013, FR-014    | done    | -                |
-| S-05 | cv-template-section-editing         | user can review the draft in one clean template and edit named sections                                                             | S-04                         | US-01, FR-007, FR-008                    | ready   | -                |
+| S-05 | cv-template-section-editing         | user can review the draft in one clean template and edit named sections                                                             | S-04                         | US-01, FR-007, FR-008                    | done    | -                |
 | S-06 | saved-cv-library                    | user can save CV changes and reopen previous CVs from their account                                                                 | F-02, S-02                   | FR-009, FR-011                           | ready   | -                |
-| S-07 | pdf-export                          | user can export the reviewed CV as a clean PDF and see export failure states                                                        | F-01, S-05                   | US-01, FR-010, FR-014                    | blocked | S-05             |
+| S-07 | pdf-export                          | user can export the reviewed CV as a clean PDF and see export failure states                                                        | F-01, S-05                   | US-01, FR-010, FR-014                    | ready   | -                |
 | S-09 | interface-localization              | user can use the whole app interface (landing, auth, dashboard, questionnaire, review, error states) in English, Polish, or Russian | S-01, S-02, S-03             | US-01, FR-015                            | ready   | -                |
 | S-08 | full-saved-pdf-flow                 | user can complete the full saved PDF flow in English, Polish, or Russian                                                            | F-01, F-02, S-06, S-07, S-09 | US-01, FR-015                            | blocked | S-06, S-07, S-09 |
 
-**Ready now:** S-05 (`cv-template-section-editing`), S-06 (`saved-cv-library`), S-09 (`interface-localization`) - all have prerequisites met and can be planned in parallel.
+**Ready now:** S-06 (`saved-cv-library`), S-07 (`pdf-export`), S-09 (`interface-localization`) - all have prerequisites met and can be planned in parallel.
 
 ## Streams
 
@@ -165,7 +165,7 @@ Foundations below assume these are present and do NOT re-scaffold them.
   - What section-editing controls keep editing simple without becoming a full document editor? - Owner: team. Block: no.
   - User-facing strings introduced by this slice are registered into the en/pl/ru i18n catalog per the S-09 convention, so the editing UI is translated by the time S-08 runs. - Owner: team. Block: no.
 - **Risk:** Editing must build trust in the generated draft while preserving the PRD boundary against advanced layout editing.
-- **Status:** ready
+- **Status:** done
 
 ### S-06: Saved CV library
 
@@ -185,14 +185,14 @@ Foundations below assume these are present and do NOT re-scaffold them.
 - **Outcome:** user can export the reviewed CV as a clean, readable PDF and see clear export failure states if export fails.
 - **Change ID:** pdf-export
 - **PRD refs:** US-01, FR-010, FR-014
-- **Prerequisites:** F-01 (done), S-05
+- **Prerequisites:** F-01 (done), S-05 (done)
 - **Parallel with:** S-06
-- **Blocked by:** S-05 (reviewed CV template not yet implemented)
+- **Blocked by:** - (all prerequisites met)
 - **Unknowns:**
-  - F-01 is resolved; S-05 must provide the reviewed CV template before final PDF export can be planned against the completed contract. - Owner: team. Block: yes.
+  - F-01 and S-05 are both resolved; the reviewed CV template is available as the input to final PDF export, which can now be planned against the completed contract. - Owner: team. Block: no.
   - Export-related user-facing strings (including failure states) are registered into the en/pl/ru i18n catalog per the S-09 convention. - Owner: team. Block: no.
 - **Risk:** PDF quality is a guardrail; a late export surprise would threaten the whole launch path.
-- **Status:** blocked
+- **Status:** ready
 
 ### S-08: Full saved PDF flow
 
@@ -232,9 +232,9 @@ Foundations below assume these are present and do NOT re-scaffold them.
 | S-02       | account-access-for-cv-work          | Connect account access to the CV workspace                  | no                    | Implemented; workspace shell is complete                                                                         |
 | S-03       | guided-questionnaire-capture        | Build guided questionnaire capture                          | no                    | Implemented; guided questionnaire and review are complete                                                        |
 | S-04       | generated-cv-draft                  | Generate usable CV draft from questionnaire answers         | no                    | Implemented; OpenAI generation service, API route, and questionnaire generation UI are complete                  |
-| S-05       | cv-template-section-editing         | Add CV template review and section editing                  | yes                   | S-04 resolved; ready to plan                                                                                     |
+| S-05       | cv-template-section-editing         | Add CV template review and section editing                  | no                    | Implemented; clean template review and per-section editing are complete                                          |
 | S-06       | saved-cv-library                    | Save and reopen CVs from account                            | yes                   | F-02 and S-02 resolved; ready to plan                                                                            |
-| S-07       | pdf-export                          | Export reviewed CV as PDF                                   | no                    | Blocked by S-05 (F-01 resolved)                                                                                  |
+| S-07       | pdf-export                          | Export reviewed CV as PDF                                   | yes                   | S-05 resolved (F-01 resolved); ready to plan                                                                     |
 | S-08       | full-saved-pdf-flow                 | Complete saved PDF flow with language support               | no                    | Blocked by S-06, S-07, and S-09 (F-01, F-02 resolved)                                                            |
 | S-09       | interface-localization              | Translate the app interface into English, Polish, Russian   | yes                   | S-01/S-02/S-03 resolved; ready to plan. UI language separate from CV output language; UI-string translation only |
 
@@ -263,3 +263,4 @@ Foundations below assume these are present and do NOT re-scaffold them.
 - **S-02 `account-access-for-cv-work`** - Implemented on 2026-06-04. Account redirects, product auth pages, and protected CV workspace shell are complete; unlocks S-03 and S-06 planning.
 - **S-03 `guided-questionnaire-capture`** - Implemented on 2026-06-04. Protected `/cv/new` route, client-only guided questionnaire island, and read-only review end state are complete; questionnaire answer contract (`QUESTIONNAIRE_VERSION`, output language) unlocks S-04 planning.
 - **S-04 `generated-cv-draft`** - Implemented on 2026-06-05. OpenAI generation service (`src/lib/services/cv-generation.ts`), `/api/cv/generate` route with content-length validation, and the questionnaire-driven generation UI with loading/failure states are complete; the structured draft (`GeneratedCvDraft`) unlocks S-05 planning.
+- **S-05 `cv-template-section-editing`** - Implemented on 2026-06-05. Clean professional CV template review with per-section editing (Summary, Experience, Education, Skills, Languages), a regenerate-discard guard, and accessibility improvements are complete; the reviewed CV template unlocks S-07 (pdf-export) planning.
