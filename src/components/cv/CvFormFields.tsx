@@ -21,6 +21,8 @@ interface FieldProps {
 
 /** Labelled single-line text input (label above). Shared by the questionnaire and section editors. */
 export function TextField({ id, label, value, onChange, placeholder, error }: FieldProps) {
+  const errorId = `${id}-error`;
+
   return (
     <div>
       <label htmlFor={id} className="text-sm font-medium text-slate-700">
@@ -33,10 +35,12 @@ export function TextField({ id, label, value, onChange, placeholder, error }: Fi
           onChange(event.target.value);
         }}
         placeholder={placeholder}
+        aria-invalid={error ? "true" : undefined}
+        aria-describedby={error ? errorId : undefined}
         className={cn("mt-2", baseInputClass, inputBorderClass(error))}
       />
       {error && (
-        <p className="mt-1 text-xs text-red-600" role="alert">
+        <p id={errorId} className="mt-1 text-xs text-red-600" role="alert">
           {error}
         </p>
       )}
@@ -50,6 +54,8 @@ interface TextAreaProps extends FieldProps {
 
 /** Labelled multi-line text input (label above). Shared by the questionnaire and section editors. */
 export function TextAreaField({ id, label, value, onChange, placeholder, error, rows = 6 }: TextAreaProps) {
+  const errorId = `${id}-error`;
+
   return (
     <div>
       <label htmlFor={id} className="text-sm font-medium text-slate-700">
@@ -63,10 +69,12 @@ export function TextAreaField({ id, label, value, onChange, placeholder, error, 
         }}
         placeholder={placeholder}
         rows={rows}
+        aria-invalid={error ? "true" : undefined}
+        aria-describedby={error ? errorId : undefined}
         className={cn("mt-2 resize-y", baseInputClass, inputBorderClass(error))}
       />
       {error && (
-        <p className="mt-1 text-xs text-red-600" role="alert">
+        <p id={errorId} className="mt-1 text-xs text-red-600" role="alert">
           {error}
         </p>
       )}

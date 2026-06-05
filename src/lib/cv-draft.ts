@@ -14,9 +14,11 @@ export { generationErrorMessages, type GenerationErrorBucket };
  * (`context/changes/generation-export-decision-contract/decision-contract.md`).
  */
 
+const requiredTextSchema = z.string().refine((value) => value.trim().length > 0);
+
 export const summarySectionSchema = z.object({
   headline: z.string().optional(),
-  body: z.string(),
+  body: requiredTextSchema,
 });
 
 export const experienceItemSchema = z.object({
@@ -40,13 +42,13 @@ export const educationItemSchema = z.object({
 });
 
 export const skillGroupSchema = z.object({
-  label: z.string(),
+  label: requiredTextSchema,
   // The contract requires at least one skill when a group exists.
-  items: z.array(z.string()).min(1),
+  items: z.array(requiredTextSchema).min(1),
 });
 
 export const languageItemSchema = z.object({
-  name: z.string(),
+  name: requiredTextSchema,
   proficiency: z.string().optional(),
 });
 

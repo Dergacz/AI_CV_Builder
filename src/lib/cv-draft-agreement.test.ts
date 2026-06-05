@@ -60,6 +60,24 @@ describe("client guards ⊆ zod schema", () => {
 });
 
 describe("shared required constraints are enforced both sides", () => {
+  it("an empty summary body is rejected by the client guard and the schema", () => {
+    const summary = { body: "" };
+    expect(validateSummary(summary).body).toBeDefined();
+
+    const draft = baseDraft();
+    draft.sections.summary = summary;
+    expect(generatedCvDraftSchema.safeParse(draft).success).toBe(false);
+  });
+
+  it("an empty skill group label is rejected by the client guard and the schema", () => {
+    const group = { label: "", items: ["Figma"] };
+    expect(validateSkillGroup(group).label).toBeDefined();
+
+    const draft = baseDraft();
+    draft.sections.skills = [group];
+    expect(generatedCvDraftSchema.safeParse(draft).success).toBe(false);
+  });
+
   it("an empty skill group is rejected by the client guard and the schema", () => {
     const group = { label: "Tools", items: [] };
     expect(validateSkillGroup(group).items).toBeDefined();
@@ -67,5 +85,26 @@ describe("shared required constraints are enforced both sides", () => {
     const draft = baseDraft();
     draft.sections.skills = [group];
     expect(generatedCvDraftSchema.safeParse(draft).success).toBe(false);
+  });
+
+  it("an empty language name is rejected by the client guard and the schema", () => {
+    const language = { name: "" };
+    expect(validateLanguage(language).name).toBeDefined();
+
+    const draft = baseDraft();
+    draft.sections.languages = [language];
+    expect(generatedCvDraftSchema.safeParse(draft).success).toBe(false);
+  });
+
+  it("optional-empty fields are accepted by the client guards and the schema", () => {
+    const draft = baseDraft();
+    draft.sections.summary = { headline: "", body: "Has content." };
+    draft.sections.skills = [{ label: "Tools", items: ["Figma"] }];
+    draft.sections.languages = [{ name: "English", proficiency: "" }];
+
+    expect(isClean(validateSummary(draft.sections.summary))).toBe(true);
+    expect(isClean(validateSkillGroup(draft.sections.skills[0]))).toBe(true);
+    expect(isClean(validateLanguage(draft.sections.languages[0]))).toBe(true);
+    expect(generatedCvDraftSchema.safeParse(draft).success).toBe(true);
   });
 });

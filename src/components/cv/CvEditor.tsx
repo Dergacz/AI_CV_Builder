@@ -1,4 +1,4 @@
-import { useState, type ReactNode } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 
 import type { GeneratedCvDraft } from "@/lib/cv-draft";
 import { cvEditorCopy } from "@/lib/cv-editor-copy";
@@ -40,9 +40,9 @@ export default function CvEditor({
   const canEdit = editor.openSection === null;
   const [confirmOpen, setConfirmOpen] = useState(false);
 
-  // Guard the regenerate path: prompt before discarding edits — either already committed
-  // (hasEdits) or in progress in an open section editor. A pristine draft skips the prompt.
-  const hasWorkToLose = editor.hasEdits || editor.openSection !== null;
+  // Guard the regenerate path only after a committed edit. Opening a section without saving
+  // can still be cancelled locally, so it should not trigger the discard-edits prompt.
+  const hasWorkToLose = editor.hasEdits;
   function requestEditAnswers() {
     if (hasWorkToLose) {
       setConfirmOpen(true);
@@ -200,6 +200,7 @@ export default function CvEditor({
         <ConfirmDiscardDialog
           onConfirm={() => {
             setConfirmOpen(false);
+            editor.reset();
             onEditAnswers();
           }}
           onCancel={() => {
@@ -211,17 +212,60 @@ export default function CvEditor({
   );
 }
 
+const focusableSelector =
+  'a[href], button:not([disabled]), textarea:not([disabled]), input:not([disabled]), select:not([disabled]), [tabindex]:not([tabindex="-1"])';
+
+function getFocusableElements(container: HTMLElement): HTMLElement[] {
+  return Array.from(container.querySelectorAll<HTMLElement>(focusableSelector));
+}
+
 function ConfirmDiscardDialog({ onConfirm, onCancel }: { onConfirm: () => void; onCancel: () => void }) {
+  const dialogRef = useRef<HTMLDivElement>(null);
+  const restoreFocusRef = useRef<HTMLElement | null>(null);
+
+  useEffect(() => {
+    restoreFocusRef.current = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+    const firstFocusable = dialogRef.current ? getFocusableElements(dialogRef.current)[0] : null;
+    firstFocusable?.focus();
+
+    return () => {
+      restoreFocusRef.current?.focus();
+    };
+  }, []);
+
   return (
     <div
       className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/40 p-4"
       onKeyDown={(event) => {
-        if (event.key === "Escape") onCancel();
+        if (event.key === "Escape") {
+          onCancel();
+          return;
+        }
+
+        if (event.key !== "Tab" || !dialogRef.current) return;
+
+        const focusable = getFocusableElements(dialogRef.current);
+        if (focusable.length === 0) {
+          event.preventDefault();
+          return;
+        }
+
+        const first = focusable[0];
+        const last = focusable[focusable.length - 1];
+
+        if (event.shiftKey && document.activeElement === first) {
+          event.preventDefault();
+          last.focus();
+        } else if (!event.shiftKey && document.activeElement === last) {
+          event.preventDefault();
+          first.focus();
+        }
       }}
       role="presentation"
       onClick={onCancel}
     >
       <div
+        ref={dialogRef}
         role="dialog"
         aria-modal="true"
         aria-labelledby="cv-discard-title"

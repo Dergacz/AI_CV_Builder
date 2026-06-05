@@ -13,6 +13,8 @@ export interface CvDraftEditor {
   open: (section: CvSectionKey) => void;
   /** Close the open section without committing (Cancel). */
   close: () => void;
+  /** Clear all editor-local state after discarding edits or accepting a fresh draft. */
+  reset: () => void;
   /** Commit a validated section back into the draft immutably and close the editor. */
   commitSection: <K extends CvSectionKey>(key: K, value: GeneratedCvDraft["sections"][K]) => void;
 }
@@ -37,6 +39,11 @@ export function useCvDraftEditor(setDraft: Dispatch<SetStateAction<GeneratedCvDr
     setOpenSection(null);
   }, []);
 
+  const reset = useCallback(() => {
+    setOpenSection(null);
+    setHasEdits(false);
+  }, []);
+
   const commitSection = useCallback<CvDraftEditor["commitSection"]>(
     (key, value) => {
       setDraft((current) =>
@@ -53,5 +60,5 @@ export function useCvDraftEditor(setDraft: Dispatch<SetStateAction<GeneratedCvDr
     [setDraft],
   );
 
-  return { openSection, hasEdits, open, close, commitSection };
+  return { openSection, hasEdits, open, close, reset, commitSection };
 }
