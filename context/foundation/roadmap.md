@@ -3,7 +3,7 @@ project: AI CV Builder
 version: 1
 status: draft
 created: 2026-06-01
-updated: 2026-06-04
+updated: 2026-06-05
 prd_version: 1
 main_goal: speed
 top_blocker: decisions
@@ -27,28 +27,38 @@ Here, north star means the smallest end-to-end slice whose successful delivery p
 
 ## At a glance
 
-| ID   | Change ID                           | Outcome (user can ...)                                                             | Prerequisites          | PRD refs                                 | Status   |
-| ---- | ----------------------------------- | ---------------------------------------------------------------------------------- | ---------------------- | ---------------------------------------- | -------- |
-| F-01 | generation-export-decision-contract | (foundation) generation and PDF export decisions are captured as minimal contracts | -                      | NFR: Export reliability, Response timing | done     |
-| F-02 | cv-persistence-privacy-contract     | (foundation) owner-only saved-CV persistence is defined enough to plan save/reopen | -                      | Access Control, NFR: Privacy, Retention  | done     |
-| S-01 | product-landing-start               | user can understand the value proposition and start CV creation                    | -                      | FR-001, FR-002                           | done     |
-| S-02 | account-access-for-cv-work          | user can sign up, log in, and reach the CV workspace                               | -                      | FR-003                                   | done     |
-| S-03 | guided-questionnaire-capture        | user can create a new CV by answering a simple guided questionnaire                | S-01, S-02             | US-01, FR-004, FR-005                    | done     |
-| S-04 | generated-cv-draft                  | user can receive a usable structured CV draft from questionnaire answers           | F-01, S-03             | US-01, FR-006, FR-012, FR-013, FR-014    | blocked  |
-| S-05 | cv-template-section-editing         | user can review the draft in one clean template and edit named sections            | S-04                   | US-01, FR-007, FR-008                    | proposed |
-| S-06 | saved-cv-library                    | user can save CV changes and reopen previous CVs from their account                | F-02, S-02             | FR-009, FR-011                           | ready    |
-| S-07 | pdf-export                          | user can export the reviewed CV as a clean PDF and see export failure states       | F-01, S-05             | US-01, FR-010, FR-014                    | blocked  |
-| S-08 | full-saved-pdf-flow                 | user can complete the full saved PDF flow in English, Polish, or Russian           | F-01, F-02, S-06, S-07 | US-01, FR-015                            | blocked  |
+**Status legend** (mutually exclusive):
+
+- `done` - implemented and merged.
+- `ready` - all prerequisites met; ready to hand to `/10x-plan`.
+- `blocked` - one or more prerequisites are not yet implemented (see **Blocked by**).
+
+| ID   | Change ID                           | Outcome (user can ...)                                                                                                              | Prerequisites                | PRD refs                                 | Status  | Blocked by       |
+| ---- | ----------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------- | ---------------------------- | ---------------------------------------- | ------- | ---------------- |
+| F-01 | generation-export-decision-contract | (foundation) generation and PDF export decisions are captured as minimal contracts                                                  | -                            | NFR: Export reliability, Response timing | done    | -                |
+| F-02 | cv-persistence-privacy-contract     | (foundation) owner-only saved-CV persistence is defined enough to plan save/reopen                                                  | -                            | Access Control, NFR: Privacy, Retention  | done    | -                |
+| S-01 | product-landing-start               | user can understand the value proposition and start CV creation                                                                     | -                            | FR-001, FR-002                           | done    | -                |
+| S-02 | account-access-for-cv-work          | user can sign up, log in, and reach the CV workspace                                                                                | -                            | FR-003                                   | done    | -                |
+| S-03 | guided-questionnaire-capture        | user can create a new CV by answering a simple guided questionnaire                                                                 | S-01, S-02                   | US-01, FR-004, FR-005                    | done    | -                |
+| S-04 | generated-cv-draft                  | user can receive a usable structured CV draft from questionnaire answers                                                            | F-01, S-03                   | US-01, FR-006, FR-012, FR-013, FR-014    | done    | -                |
+| S-05 | cv-template-section-editing         | user can review the draft in one clean template and edit named sections                                                             | S-04                         | US-01, FR-007, FR-008                    | ready   | -                |
+| S-06 | saved-cv-library                    | user can save CV changes and reopen previous CVs from their account                                                                 | F-02, S-02                   | FR-009, FR-011                           | ready   | -                |
+| S-07 | pdf-export                          | user can export the reviewed CV as a clean PDF and see export failure states                                                        | F-01, S-05                   | US-01, FR-010, FR-014                    | blocked | S-05             |
+| S-09 | interface-localization              | user can use the whole app interface (landing, auth, dashboard, questionnaire, review, error states) in English, Polish, or Russian | S-01, S-02, S-03             | US-01, FR-015                            | ready   | -                |
+| S-08 | full-saved-pdf-flow                 | user can complete the full saved PDF flow in English, Polish, or Russian                                                            | F-01, F-02, S-06, S-07, S-09 | US-01, FR-015                            | blocked | S-06, S-07, S-09 |
+
+**Ready now:** S-05 (`cv-template-section-editing`), S-06 (`saved-cv-library`), S-09 (`interface-localization`) - all have prerequisites met and can be planned in parallel.
 
 ## Streams
 
 Navigation aid - groups items that share a Prerequisites chain. Canonical ordering still lives in the dependency graph below; this table is the proposed reading order across parallel tracks.
 
-| Stream | Theme                      | Chain                                | Note                                                                                    |
-| ------ | -------------------------- | ------------------------------------ | --------------------------------------------------------------------------------------- |
-| A      | Entry and account          | `S-01` -> `S-02` -> `S-03`           | Opens the fastest path into the core questionnaire without waiting on deeper decisions. |
-| B      | Generation and export      | `F-01` -> `S-04` -> `S-05` -> `S-07` | Resolves the decision blocker around the generated draft and PDF path.                  |
-| C      | Persistence and completion | `F-02` -> `S-06` -> `S-08`           | Joins Streams A and B at `S-08` for the full saved PDF flow.                            |
+| Stream | Theme                      | Chain                                | Note                                                                                                              |
+| ------ | -------------------------- | ------------------------------------ | ----------------------------------------------------------------------------------------------------------------- |
+| A      | Entry and account          | `S-01` -> `S-02` -> `S-03`           | Opens the fastest path into the core questionnaire without waiting on deeper decisions.                           |
+| B      | Generation and export      | `F-01` -> `S-04` -> `S-05` -> `S-07` | Resolves the decision blocker around the generated draft and PDF path.                                            |
+| C      | Persistence and completion | `F-02` -> `S-06` -> `S-08`           | Joins Streams A and B at `S-08` for the full saved PDF flow.                                                      |
+| D      | Interface localization     | `S-03` -> `S-09` -> `S-08`           | Establishes the multilingual UI once; joins the completion track at `S-08`. Separate from per-CV output language. |
 
 ## Baseline
 
@@ -135,35 +145,36 @@ Foundations below assume these are present and do NOT re-scaffold them.
 - **Outcome:** user can receive a usable structured CV draft from questionnaire answers, including clear loading and major failure states.
 - **Change ID:** generated-cv-draft
 - **PRD refs:** US-01, FR-006, FR-012, FR-013, FR-014
-- **Prerequisites:** F-01, S-03
+- **Prerequisites:** F-01 (done), S-03 (done)
 - **Parallel with:** S-06
-- **Blockers:** -
+- **Blocked by:** - (all prerequisites met)
 - **Unknowns:**
-  - F-01 is resolved; S-03 must provide questionnaire answers before draft generation can be planned against the completed contract. - Owner: team. Block: yes.
+  - F-01 and S-03 are both resolved; the questionnaire answer contract (`QUESTIONNAIRE_VERSION`, output language) from S-03 is the input to draft generation. - Owner: team. Block: no.
 - **Risk:** This slice proves whether everyday-language answers can become a professional draft; it should not wait behind editing or dashboard work.
-- **Status:** blocked
+- **Status:** done
 
 ### S-05: CV template and section editing
 
 - **Outcome:** user can review the generated CV in one clean professional template and edit Summary, Experience, Education, Skills, and Languages.
 - **Change ID:** cv-template-section-editing
 - **PRD refs:** US-01, FR-007, FR-008
-- **Prerequisites:** S-04
+- **Prerequisites:** S-04 (done)
 - **Parallel with:** S-06
-- **Blockers:** -
+- **Blocked by:** - (all prerequisites met)
 - **Unknowns:**
   - What section-editing controls keep editing simple without becoming a full document editor? - Owner: team. Block: no.
+  - User-facing strings introduced by this slice are registered into the en/pl/ru i18n catalog per the S-09 convention, so the editing UI is translated by the time S-08 runs. - Owner: team. Block: no.
 - **Risk:** Editing must build trust in the generated draft while preserving the PRD boundary against advanced layout editing.
-- **Status:** proposed
+- **Status:** ready
 
 ### S-06: Saved CV library
 
 - **Outcome:** user can save CV changes and reopen previously created CVs from their account.
 - **Change ID:** saved-cv-library
 - **PRD refs:** FR-009, FR-011
-- **Prerequisites:** F-02, S-02
+- **Prerequisites:** F-02 (done), S-02 (done)
 - **Parallel with:** S-04, S-05, S-07
-- **Blockers:** -
+- **Blocked by:** - (all prerequisites met)
 - **Unknowns:**
   - F-02 and S-02 are resolved; keep the saved-CV library minimal and owner-only when planning this slice. - Owner: team. Block: no.
 - **Risk:** Saving and reopening are required for real usefulness, but the dashboard should stay minimal and not distract from finishing the first CV.
@@ -174,11 +185,12 @@ Foundations below assume these are present and do NOT re-scaffold them.
 - **Outcome:** user can export the reviewed CV as a clean, readable PDF and see clear export failure states if export fails.
 - **Change ID:** pdf-export
 - **PRD refs:** US-01, FR-010, FR-014
-- **Prerequisites:** F-01, S-05
+- **Prerequisites:** F-01 (done), S-05
 - **Parallel with:** S-06
-- **Blockers:** -
+- **Blocked by:** S-05 (reviewed CV template not yet implemented)
 - **Unknowns:**
   - F-01 is resolved; S-05 must provide the reviewed CV template before final PDF export can be planned against the completed contract. - Owner: team. Block: yes.
+  - Export-related user-facing strings (including failure states) are registered into the en/pl/ru i18n catalog per the S-09 convention. - Owner: team. Block: no.
 - **Risk:** PDF quality is a guardrail; a late export surprise would threaten the whole launch path.
 - **Status:** blocked
 
@@ -187,34 +199,50 @@ Foundations below assume these are present and do NOT re-scaffold them.
 - **Outcome:** user can complete the full flow from starting a CV to exporting a saved PDF in English, Polish, or Russian.
 - **Change ID:** full-saved-pdf-flow
 - **PRD refs:** US-01, FR-015
-- **Prerequisites:** F-01, F-02, S-06, S-07
+- **Prerequisites:** F-01 (done), F-02 (done), S-06, S-07, S-09
 - **Parallel with:** -
-- **Blockers:** -
+- **Blocked by:** S-06, S-07, S-09 (save/reopen, PDF export, and interface localization not yet implemented)
 - **Unknowns:**
-  - Which UI text must be translated for launch, and how will CV output language be selected without deep localization? - Owner: team. Block: yes.
-- **Risk:** This is the chosen first full proof; it intentionally waits until generation, save/reopen, PDF export, and lightweight language support can be exercised together.
+  - Interface translation is owned by S-09; this slice's remaining unknown is integration-only - verifying the full start -> save -> export flow renders correctly in each of English, Polish, and Russian once S-06, S-07, and S-09 land. - Owner: team. Block: no.
+- **Risk:** This is the chosen first full proof; it intentionally waits until generation, save/reopen, PDF export, and the multilingual UI can be exercised together.
 - **Status:** blocked
+
+### S-09: Interface localization (multilingual UI)
+
+- **Outcome:** user can use the entire app interface - landing, auth, dashboard, guided questionnaire, draft review, and error/empty states - in English, Polish, or Russian, choosing their interface language independently of each CV's output language.
+- **Change ID:** interface-localization
+- **PRD refs:** US-01, FR-015
+- **Prerequisites:** S-01 (done), S-02 (done), S-03 (done)
+- **Parallel with:** S-04, S-05, S-06, S-07
+- **Blocked by:** - (all prerequisites met)
+- **Unknowns:**
+  - Locale strategy: lightweight message-catalog approach (extending the existing `landingContentByLocale` pattern in `src/lib/landing-content.ts`) vs. Astro's built-in i18n routing. - Owner: team. Block: no.
+  - How interface language is persisted and switched (cookie or session vs. account preference), and whether routes stay unprefixed or move to `/[lang]/`. - Owner: team. Block: no.
+- **Convention:** UI language is a separate preference from per-CV output language; the existing `CvOutputLanguage` selection (`src/lib/cv-questionnaire.ts`) is unchanged. Later UI-bearing slices (S-05, S-07) register their user-facing strings into the en/pl/ru message catalog as part of their own implementation, so no string is left English-only when S-08 runs.
+- **Risk:** If scope drifts into deep localization (date/number/currency formats, country-specific resume norms), it pulls a parked non-goal onto the launch path and threatens the `speed` goal. Keep to UI-string translation only.
+- **Status:** ready
 
 ## Backlog Handoff
 
-| Roadmap ID | Change ID                           | Suggested issue title                                       | Ready for `/10x-plan` | Notes                                                 |
-| ---------- | ----------------------------------- | ----------------------------------------------------------- | --------------------- | ----------------------------------------------------- |
-| F-01       | generation-export-decision-contract | Define generation and PDF export contracts                  | no                    | Implemented; use completed contract for S-04 and S-07 |
-| F-02       | cv-persistence-privacy-contract     | Define saved-CV persistence and owner privacy contract      | no                    | Implemented; use completed contract for S-06 and S-08 |
-| S-01       | product-landing-start               | Replace starter landing with product landing and start path | no                    | Implemented; landing start path is complete           |
-| S-02       | account-access-for-cv-work          | Connect account access to the CV workspace                  | no                    | Implemented; workspace shell is complete              |
-| S-03       | guided-questionnaire-capture        | Build guided questionnaire capture                          | no                    | Implemented; guided questionnaire and review are complete |
-| S-04       | generated-cv-draft                  | Generate usable CV draft from questionnaire answers         | no                    | F-01 resolved; requires S-03                          |
-| S-05       | cv-template-section-editing         | Add CV template review and section editing                  | no                    | Requires S-04                                         |
-| S-06       | saved-cv-library                    | Save and reopen CVs from account                            | yes                   | F-02 and S-02 resolved                                |
-| S-07       | pdf-export                          | Export reviewed CV as PDF                                   | no                    | F-01 resolved; requires S-05                          |
-| S-08       | full-saved-pdf-flow                 | Complete saved PDF flow with language support               | no                    | Requires F-01, F-02, S-06, and S-07                   |
+| Roadmap ID | Change ID                           | Suggested issue title                                       | Ready for `/10x-plan` | Notes                                                                                                            |
+| ---------- | ----------------------------------- | ----------------------------------------------------------- | --------------------- | ---------------------------------------------------------------------------------------------------------------- |
+| F-01       | generation-export-decision-contract | Define generation and PDF export contracts                  | no                    | Implemented; use completed contract for S-04 and S-07                                                            |
+| F-02       | cv-persistence-privacy-contract     | Define saved-CV persistence and owner privacy contract      | no                    | Implemented; use completed contract for S-06 and S-08                                                            |
+| S-01       | product-landing-start               | Replace starter landing with product landing and start path | no                    | Implemented; landing start path is complete                                                                      |
+| S-02       | account-access-for-cv-work          | Connect account access to the CV workspace                  | no                    | Implemented; workspace shell is complete                                                                         |
+| S-03       | guided-questionnaire-capture        | Build guided questionnaire capture                          | no                    | Implemented; guided questionnaire and review are complete                                                        |
+| S-04       | generated-cv-draft                  | Generate usable CV draft from questionnaire answers         | no                    | Implemented; OpenAI generation service, API route, and questionnaire generation UI are complete                  |
+| S-05       | cv-template-section-editing         | Add CV template review and section editing                  | yes                   | S-04 resolved; ready to plan                                                                                     |
+| S-06       | saved-cv-library                    | Save and reopen CVs from account                            | yes                   | F-02 and S-02 resolved; ready to plan                                                                            |
+| S-07       | pdf-export                          | Export reviewed CV as PDF                                   | no                    | Blocked by S-05 (F-01 resolved)                                                                                  |
+| S-08       | full-saved-pdf-flow                 | Complete saved PDF flow with language support               | no                    | Blocked by S-06, S-07, and S-09 (F-01, F-02 resolved)                                                            |
+| S-09       | interface-localization              | Translate the app interface into English, Polish, Russian   | yes                   | S-01/S-02/S-03 resolved; ready to plan. UI language separate from CV output language; UI-string translation only |
 
 ## Open Roadmap Questions
 
 1. **Which generation output contract is sufficient for the editable CV sections?** - Owner: team. Block: S-04.
 2. **Which PDF export approach can reliably produce a clean CV without delaying launch?** - Owner: team. Block: S-07.
-3. **How should English, Polish, and Russian be selected for UI text and CV output without deep localization?** - Owner: team. Block: S-08.
+3. **How should English, Polish, and Russian be selected for UI text and CV output without deep localization?** - UI-text selection is now owned by S-09 (separate lightweight UI message catalog, interface language chosen independently of CV output); CV output language is already handled in S-03/S-04. Owner: team. Block: S-09.
 
 ## Parked
 
@@ -222,7 +250,7 @@ Foundations below assume these are present and do NOT re-scaffold them.
 - **Multiple templates and advanced visual customization** - Why parked: PRD Non-Goals keep the MVP to one clean professional template.
 - **Full document editor** - Why parked: PRD Non-Goals exclude drag-and-drop, layout editing, section reordering, and advanced formatting.
 - **Per-section AI regeneration** - Why parked: PRD Non-Goals keep AI regeneration full-CV only in v1.
-- **Deep localization** - Why parked: PRD Non-Goals allow English, Polish, and Russian support without country-specific resume norms.
+- **Deep localization** - Why parked: PRD Non-Goals allow English, Polish, and Russian support without country-specific resume norms. S-09 covers UI-string translation only; date/number/currency formatting and country-specific resume norms stay out of scope.
 - **Subscription or billing system** - Why parked: PRD Non-Goals exclude payment scope from the MVP.
 - **Job-description-based CV tailoring** - Why parked: PRD Non-Goals defer tailoring complexity beyond the start-from-scratch flow.
 - **Cover letter generation** - Why parked: PRD Non-Goals keep cover letters outside the core MVP.
@@ -234,3 +262,4 @@ Foundations below assume these are present and do NOT re-scaffold them.
 - **S-01 `product-landing-start`** - Implemented on 2026-06-03. Product landing now replaces the starter homepage and sends signed-out users to `/auth/signup` and signed-in users to `/dashboard`; unlocks S-03 planning once S-02 is ready.
 - **S-02 `account-access-for-cv-work`** - Implemented on 2026-06-04. Account redirects, product auth pages, and protected CV workspace shell are complete; unlocks S-03 and S-06 planning.
 - **S-03 `guided-questionnaire-capture`** - Implemented on 2026-06-04. Protected `/cv/new` route, client-only guided questionnaire island, and read-only review end state are complete; questionnaire answer contract (`QUESTIONNAIRE_VERSION`, output language) unlocks S-04 planning.
+- **S-04 `generated-cv-draft`** - Implemented on 2026-06-05. OpenAI generation service (`src/lib/services/cv-generation.ts`), `/api/cv/generate` route with content-length validation, and the questionnaire-driven generation UI with loading/failure states are complete; the structured draft (`GeneratedCvDraft`) unlocks S-05 planning.
