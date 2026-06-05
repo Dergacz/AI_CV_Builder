@@ -1,7 +1,7 @@
 ---
 change_id: cv-template-section-editing
 title: CV template and section editing
-status: implementing
+status: implemented
 created: 2026-06-05
 updated: 2026-06-05
 archived_at: null

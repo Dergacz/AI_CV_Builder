@@ -287,14 +287,14 @@ None — no schema or persisted data. The `GeneratedCvDraft` shape is unchanged,
 
 #### Automated
 
-- [x] 3.1 Type checking passes: `npm run lint`
-- [x] 3.2 Production build succeeds: `npm run build`
-- [x] 3.3 Validation/agreement tests pass
-- [x] 3.4 Formatting clean: `npm run format`
+- [x] 3.1 Type checking passes: `npm run lint` — caec0bc
+- [x] 3.2 Production build succeeds: `npm run build` — caec0bc
+- [x] 3.3 Validation/agreement tests pass — caec0bc
+- [x] 3.4 Formatting clean: `npm run format` — caec0bc
 
 #### Manual
 
-- [x] 3.5 Editing then triggering regenerate prompts confirmation; cancel keeps edits; confirm discards and returns to questionnaire
-- [x] 3.6 With no edits, regenerate affordances behave as before (no prompt)
-- [x] 3.7 After full edit pass, in-memory draft still satisfies `generatedCvDraftSchema`
-- [x] 3.8 Keyboard-only editing works end to end; empty sections remain renderable
+- [x] 3.5 Editing then triggering regenerate prompts confirmation; cancel keeps edits; confirm discards and returns to questionnaire — caec0bc
+- [x] 3.6 With no edits, regenerate affordances behave as before (no prompt) — caec0bc
+- [x] 3.7 After full edit pass, in-memory draft still satisfies `generatedCvDraftSchema` — caec0bc
+- [x] 3.8 Keyboard-only editing works end to end; empty sections remain renderable — caec0bc
