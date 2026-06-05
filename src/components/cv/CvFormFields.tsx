@@ -4,7 +4,7 @@ const baseInputClass =
   "w-full rounded-md border bg-white px-3 py-2 text-slate-950 placeholder-slate-400 transition-colors focus:ring-2 focus:outline-none";
 
 /** Shared border styling: red on error, emerald focus otherwise. Reused by every CV input. */
-export function inputBorderClass(error?: string): string {
+function inputBorderClass(error?: string): string {
   return error
     ? "border-red-400 focus:ring-red-200"
     : "border-slate-300 focus:border-emerald-700 focus:ring-emerald-100";
@@ -35,7 +35,11 @@ export function TextField({ id, label, value, onChange, placeholder, error }: Fi
         placeholder={placeholder}
         className={cn("mt-2", baseInputClass, inputBorderClass(error))}
       />
-      {error && <p className="mt-1 text-xs text-red-600">{error}</p>}
+      {error && (
+        <p className="mt-1 text-xs text-red-600" role="alert">
+          {error}
+        </p>
+      )}
     </div>
   );
 }
@@ -61,7 +65,11 @@ export function TextAreaField({ id, label, value, onChange, placeholder, error, 
         rows={rows}
         className={cn("mt-2 resize-y", baseInputClass, inputBorderClass(error))}
       />
-      {error && <p className="mt-1 text-xs text-red-600">{error}</p>}
+      {error && (
+        <p className="mt-1 text-xs text-red-600" role="alert">
+          {error}
+        </p>
+      )}
     </div>
   );
 }

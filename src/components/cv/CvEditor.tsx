@@ -1,4 +1,4 @@
-import { type ReactNode } from "react";
+import { useState, type ReactNode } from "react";
 
 import type { GeneratedCvDraft } from "@/lib/cv-draft";
 import { cvEditorCopy } from "@/lib/cv-editor-copy";
@@ -38,6 +38,18 @@ export default function CvEditor({
 }) {
   const { sections, assumptions, warnings } = draft;
   const canEdit = editor.openSection === null;
+  const [confirmOpen, setConfirmOpen] = useState(false);
+
+  // Guard the regenerate path: prompt before discarding edits — either already committed
+  // (hasEdits) or in progress in an open section editor. A pristine draft skips the prompt.
+  const hasWorkToLose = editor.hasEdits || editor.openSection !== null;
+  function requestEditAnswers() {
+    if (hasWorkToLose) {
+      setConfirmOpen(true);
+    } else {
+      onEditAnswers();
+    }
+  }
 
   return (
     <section
@@ -52,7 +64,7 @@ export default function CvEditor({
         </div>
         <button
           type="button"
-          onClick={onEditAnswers}
+          onClick={requestEditAnswers}
           className="inline-flex min-h-11 shrink-0 items-center justify-center rounded-md border border-slate-300 bg-white px-5 py-3 text-sm font-semibold text-slate-900 transition-colors hover:border-slate-400 hover:bg-slate-100 focus-visible:ring-3 focus-visible:ring-slate-500/20 focus-visible:outline-none"
         >
           {cvEditorCopy.preview.editAnswers}
@@ -177,13 +189,73 @@ export default function CvEditor({
       <div className="mt-6 border-t border-slate-200 pt-5">
         <button
           type="button"
-          onClick={onEditAnswers}
+          onClick={requestEditAnswers}
           className="text-sm font-semibold text-emerald-700 underline-offset-4 hover:underline"
         >
           {cvEditorCopy.preview.regenerateLink}
         </button>
       </div>
+
+      {confirmOpen && (
+        <ConfirmDiscardDialog
+          onConfirm={() => {
+            setConfirmOpen(false);
+            onEditAnswers();
+          }}
+          onCancel={() => {
+            setConfirmOpen(false);
+          }}
+        />
+      )}
     </section>
+  );
+}
+
+function ConfirmDiscardDialog({ onConfirm, onCancel }: { onConfirm: () => void; onCancel: () => void }) {
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/40 p-4"
+      onKeyDown={(event) => {
+        if (event.key === "Escape") onCancel();
+      }}
+      role="presentation"
+      onClick={onCancel}
+    >
+      <div
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="cv-discard-title"
+        aria-describedby="cv-discard-body"
+        className="w-full max-w-md rounded-lg border border-slate-200 bg-white p-5 shadow-lg"
+        onClick={(event) => {
+          event.stopPropagation();
+        }}
+      >
+        <h2 id="cv-discard-title" className="text-lg font-semibold text-slate-950">
+          {cvEditorCopy.regenerate.confirmTitle}
+        </h2>
+        <p id="cv-discard-body" className="mt-2 text-sm leading-6 text-slate-600">
+          {cvEditorCopy.regenerate.confirmBody}
+        </p>
+        <div className="mt-5 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
+          <button
+            type="button"
+            autoFocus
+            onClick={onCancel}
+            className="inline-flex min-h-11 items-center justify-center rounded-md border border-slate-300 bg-white px-5 py-3 text-sm font-semibold text-slate-900 transition-colors hover:border-slate-400 hover:bg-slate-100 focus-visible:ring-3 focus-visible:ring-slate-500/20 focus-visible:outline-none"
+          >
+            {cvEditorCopy.regenerate.cancel}
+          </button>
+          <button
+            type="button"
+            onClick={onConfirm}
+            className="inline-flex min-h-11 items-center justify-center rounded-md bg-red-700 px-5 py-3 text-sm font-semibold text-white transition-colors hover:bg-red-800 focus-visible:ring-3 focus-visible:ring-red-700/30 focus-visible:outline-none"
+          >
+            {cvEditorCopy.regenerate.confirm}
+          </button>
+        </div>
+      </div>
+    </div>
   );
 }
 

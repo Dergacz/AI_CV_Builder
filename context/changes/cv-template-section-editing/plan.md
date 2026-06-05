@@ -258,43 +258,43 @@ None — no schema or persisted data. The `GeneratedCvDraft` shape is unchanged,
 
 #### Automated
 
-- [x] 1.1 Type checking passes: `npm run lint` — 94a2064
-- [x] 1.2 Production build succeeds: `npm run build` — 94a2064
-- [x] 1.3 Formatting clean: `npm run format` — 94a2064
+- [x] 1.1 Type checking passes: `npm run lint` — e747e1b
+- [x] 1.2 Production build succeeds: `npm run build` — e747e1b
+- [x] 1.3 Formatting clean: `npm run format` — e747e1b
 
 #### Manual
 
-- [x] 1.4 Draft preview renders identically to before (all sections, warnings, assumptions, empty-states) — 94a2064
-- [x] 1.5 No console errors; island still hydrates on `/cv/new` — 94a2064
+- [x] 1.4 Draft preview renders identically to before (all sections, warnings, assumptions, empty-states) — e747e1b
+- [x] 1.5 No console errors; island still hydrates on `/cv/new` — e747e1b
 
 ### Phase 2: Section editing — per-section toggle, validation, all five sections
 
 #### Automated
 
-- [x] 2.1 Type checking passes: `npm run lint`
-- [x] 2.2 Production build succeeds: `npm run build`
-- [x] 2.3 Validation unit tests pass (guards block required-field violations, allow optional-empty)
+- [x] 2.1 Type checking passes: `npm run lint` — e747e1b
+- [x] 2.2 Production build succeeds: `npm run build` — e747e1b
+- [x] 2.3 Validation unit tests pass (guards block required-field violations, allow optional-empty) — e747e1b
 
 #### Manual
 
-- [x] 2.4 Each of the five sections can enter edit mode, change content, Save; Cancel restores prior content
-- [x] 2.5 Add/remove works for experience entries, education entries, skill groups, languages, highlights, skill items
-- [x] 2.6 Save blocked with inline message on empty summary body, zero-item skill group, empty skill-group label, empty language name
-- [x] 2.7 Only the actively edited section shows a form; the rest stay clean read-only
-- [x] 2.8 Empty sections show empty-state with Add affordance and can gain a first item
+- [x] 2.4 Each of the five sections can enter edit mode, change content, Save; Cancel restores prior content — e747e1b
+- [x] 2.5 Add/remove works for experience entries, education entries, skill groups, languages, highlights, skill items — e747e1b
+- [x] 2.6 Save blocked with inline message on empty summary body, zero-item skill group, empty skill-group label, empty language name — e747e1b
+- [x] 2.7 Only the actively edited section shows a form; the rest stay clean read-only — e747e1b
+- [x] 2.8 Empty sections show empty-state with Add affordance and can gain a first item — e747e1b
 
 ### Phase 3: Regenerate-conflict guard + integration and verification
 
 #### Automated
 
-- [ ] 3.1 Type checking passes: `npm run lint`
-- [ ] 3.2 Production build succeeds: `npm run build`
-- [ ] 3.3 Validation/agreement tests pass
-- [ ] 3.4 Formatting clean: `npm run format`
+- [x] 3.1 Type checking passes: `npm run lint`
+- [x] 3.2 Production build succeeds: `npm run build`
+- [x] 3.3 Validation/agreement tests pass
+- [x] 3.4 Formatting clean: `npm run format`
 
 #### Manual
 
-- [ ] 3.5 Editing then triggering regenerate prompts confirmation; cancel keeps edits; confirm discards and returns to questionnaire
-- [ ] 3.6 With no edits, regenerate affordances behave as before (no prompt)
-- [ ] 3.7 After full edit pass, in-memory draft still satisfies `generatedCvDraftSchema`
-- [ ] 3.8 Keyboard-only editing works end to end; empty sections remain renderable
+- [x] 3.5 Editing then triggering regenerate prompts confirmation; cancel keeps edits; confirm discards and returns to questionnaire
+- [x] 3.6 With no edits, regenerate affordances behave as before (no prompt)
+- [x] 3.7 After full edit pass, in-memory draft still satisfies `generatedCvDraftSchema`
+- [x] 3.8 Keyboard-only editing works end to end; empty sections remain renderable
