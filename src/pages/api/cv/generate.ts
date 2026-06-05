@@ -9,6 +9,7 @@ export const prerender = false;
 
 const MAX_SHORT_FIELD = 300;
 const MAX_LONG_FIELD = 5000;
+const MAX_REQUEST_BODY_BYTES = 40_000;
 
 // Server-only: kept out of `cv-questionnaire.ts` so zod is not bundled into the
 // client questionnaire island. Output matches `CvQuestionnaireAnswers`.
@@ -37,6 +38,11 @@ export const POST: APIRoute = async (context) => {
       error: "service_unavailable",
       message: "Your session has expired. Please sign in again.",
     });
+  }
+
+  const contentLength = Number(context.request.headers.get("content-length"));
+  if (Number.isFinite(contentLength) && contentLength > MAX_REQUEST_BODY_BYTES) {
+    return json(413, { ok: false, error: "generation_failed", message: generationErrorMessages.generation_failed });
   }
 
   let body: unknown;

@@ -27,18 +27,26 @@ Here, north star means the smallest end-to-end slice whose successful delivery p
 
 ## At a glance
 
-| ID   | Change ID                           | Outcome (user can ...)                                                             | Prerequisites          | PRD refs                                 | Status   |
-| ---- | ----------------------------------- | ---------------------------------------------------------------------------------- | ---------------------- | ---------------------------------------- | -------- |
-| F-01 | generation-export-decision-contract | (foundation) generation and PDF export decisions are captured as minimal contracts | -                      | NFR: Export reliability, Response timing | done     |
-| F-02 | cv-persistence-privacy-contract     | (foundation) owner-only saved-CV persistence is defined enough to plan save/reopen | -                      | Access Control, NFR: Privacy, Retention  | done     |
-| S-01 | product-landing-start               | user can understand the value proposition and start CV creation                    | -                      | FR-001, FR-002                           | done     |
-| S-02 | account-access-for-cv-work          | user can sign up, log in, and reach the CV workspace                               | -                      | FR-003                                   | done     |
-| S-03 | guided-questionnaire-capture        | user can create a new CV by answering a simple guided questionnaire                | S-01, S-02             | US-01, FR-004, FR-005                    | done     |
-| S-04 | generated-cv-draft                  | user can receive a usable structured CV draft from questionnaire answers           | F-01, S-03             | US-01, FR-006, FR-012, FR-013, FR-014    | blocked  |
-| S-05 | cv-template-section-editing         | user can review the draft in one clean template and edit named sections            | S-04                   | US-01, FR-007, FR-008                    | proposed |
-| S-06 | saved-cv-library                    | user can save CV changes and reopen previous CVs from their account                | F-02, S-02             | FR-009, FR-011                           | ready    |
-| S-07 | pdf-export                          | user can export the reviewed CV as a clean PDF and see export failure states       | F-01, S-05             | US-01, FR-010, FR-014                    | blocked  |
-| S-08 | full-saved-pdf-flow                 | user can complete the full saved PDF flow in English, Polish, or Russian           | F-01, F-02, S-06, S-07 | US-01, FR-015                            | blocked  |
+**Status legend** (mutually exclusive):
+
+- `done` - implemented and merged.
+- `ready` - all prerequisites met; ready to hand to `/10x-plan`.
+- `blocked` - one or more prerequisites are not yet implemented (see **Blocked by**).
+
+| ID   | Change ID                           | Outcome (user can ...)                                                             | Prerequisites          | PRD refs                                 | Status  | Blocked by |
+| ---- | ----------------------------------- | ---------------------------------------------------------------------------------- | ---------------------- | ---------------------------------------- | ------- | ---------- |
+| F-01 | generation-export-decision-contract | (foundation) generation and PDF export decisions are captured as minimal contracts | -                      | NFR: Export reliability, Response timing | done    | -          |
+| F-02 | cv-persistence-privacy-contract     | (foundation) owner-only saved-CV persistence is defined enough to plan save/reopen | -                      | Access Control, NFR: Privacy, Retention  | done    | -          |
+| S-01 | product-landing-start               | user can understand the value proposition and start CV creation                    | -                      | FR-001, FR-002                           | done    | -          |
+| S-02 | account-access-for-cv-work          | user can sign up, log in, and reach the CV workspace                               | -                      | FR-003                                   | done    | -          |
+| S-03 | guided-questionnaire-capture        | user can create a new CV by answering a simple guided questionnaire                | S-01, S-02             | US-01, FR-004, FR-005                    | done    | -          |
+| S-04 | generated-cv-draft                  | user can receive a usable structured CV draft from questionnaire answers           | F-01, S-03             | US-01, FR-006, FR-012, FR-013, FR-014    | ready   | -          |
+| S-05 | cv-template-section-editing         | user can review the draft in one clean template and edit named sections            | S-04                   | US-01, FR-007, FR-008                    | blocked | S-04       |
+| S-06 | saved-cv-library                    | user can save CV changes and reopen previous CVs from their account                | F-02, S-02             | FR-009, FR-011                           | ready   | -          |
+| S-07 | pdf-export                          | user can export the reviewed CV as a clean PDF and see export failure states       | F-01, S-05             | US-01, FR-010, FR-014                    | blocked | S-05       |
+| S-08 | full-saved-pdf-flow                 | user can complete the full saved PDF flow in English, Polish, or Russian           | F-01, F-02, S-06, S-07 | US-01, FR-015                            | blocked | S-06, S-07 |
+
+**Ready now:** S-04 (`generated-cv-draft`), S-06 (`saved-cv-library`) - both have all prerequisites met and can be planned in parallel.
 
 ## Streams
 
@@ -135,13 +143,13 @@ Foundations below assume these are present and do NOT re-scaffold them.
 - **Outcome:** user can receive a usable structured CV draft from questionnaire answers, including clear loading and major failure states.
 - **Change ID:** generated-cv-draft
 - **PRD refs:** US-01, FR-006, FR-012, FR-013, FR-014
-- **Prerequisites:** F-01, S-03
+- **Prerequisites:** F-01 (done), S-03 (done)
 - **Parallel with:** S-06
-- **Blockers:** -
+- **Blocked by:** - (all prerequisites met)
 - **Unknowns:**
-  - F-01 is resolved; S-03 must provide questionnaire answers before draft generation can be planned against the completed contract. - Owner: team. Block: yes.
+  - F-01 and S-03 are both resolved; the questionnaire answer contract (`QUESTIONNAIRE_VERSION`, output language) from S-03 is the input to draft generation. - Owner: team. Block: no.
 - **Risk:** This slice proves whether everyday-language answers can become a professional draft; it should not wait behind editing or dashboard work.
-- **Status:** blocked
+- **Status:** ready
 
 ### S-05: CV template and section editing
 
@@ -150,20 +158,20 @@ Foundations below assume these are present and do NOT re-scaffold them.
 - **PRD refs:** US-01, FR-007, FR-008
 - **Prerequisites:** S-04
 - **Parallel with:** S-06
-- **Blockers:** -
+- **Blocked by:** S-04 (generated draft not yet implemented)
 - **Unknowns:**
   - What section-editing controls keep editing simple without becoming a full document editor? - Owner: team. Block: no.
 - **Risk:** Editing must build trust in the generated draft while preserving the PRD boundary against advanced layout editing.
-- **Status:** proposed
+- **Status:** blocked
 
 ### S-06: Saved CV library
 
 - **Outcome:** user can save CV changes and reopen previously created CVs from their account.
 - **Change ID:** saved-cv-library
 - **PRD refs:** FR-009, FR-011
-- **Prerequisites:** F-02, S-02
+- **Prerequisites:** F-02 (done), S-02 (done)
 - **Parallel with:** S-04, S-05, S-07
-- **Blockers:** -
+- **Blocked by:** - (all prerequisites met)
 - **Unknowns:**
   - F-02 and S-02 are resolved; keep the saved-CV library minimal and owner-only when planning this slice. - Owner: team. Block: no.
 - **Risk:** Saving and reopening are required for real usefulness, but the dashboard should stay minimal and not distract from finishing the first CV.
@@ -174,9 +182,9 @@ Foundations below assume these are present and do NOT re-scaffold them.
 - **Outcome:** user can export the reviewed CV as a clean, readable PDF and see clear export failure states if export fails.
 - **Change ID:** pdf-export
 - **PRD refs:** US-01, FR-010, FR-014
-- **Prerequisites:** F-01, S-05
+- **Prerequisites:** F-01 (done), S-05
 - **Parallel with:** S-06
-- **Blockers:** -
+- **Blocked by:** S-05 (reviewed CV template not yet implemented)
 - **Unknowns:**
   - F-01 is resolved; S-05 must provide the reviewed CV template before final PDF export can be planned against the completed contract. - Owner: team. Block: yes.
 - **Risk:** PDF quality is a guardrail; a late export surprise would threaten the whole launch path.
@@ -187,9 +195,9 @@ Foundations below assume these are present and do NOT re-scaffold them.
 - **Outcome:** user can complete the full flow from starting a CV to exporting a saved PDF in English, Polish, or Russian.
 - **Change ID:** full-saved-pdf-flow
 - **PRD refs:** US-01, FR-015
-- **Prerequisites:** F-01, F-02, S-06, S-07
+- **Prerequisites:** F-01 (done), F-02 (done), S-06, S-07
 - **Parallel with:** -
-- **Blockers:** -
+- **Blocked by:** S-06, S-07 (save/reopen and PDF export not yet implemented)
 - **Unknowns:**
   - Which UI text must be translated for launch, and how will CV output language be selected without deep localization? - Owner: team. Block: yes.
 - **Risk:** This is the chosen first full proof; it intentionally waits until generation, save/reopen, PDF export, and lightweight language support can be exercised together.
@@ -204,11 +212,11 @@ Foundations below assume these are present and do NOT re-scaffold them.
 | S-01       | product-landing-start               | Replace starter landing with product landing and start path | no                    | Implemented; landing start path is complete           |
 | S-02       | account-access-for-cv-work          | Connect account access to the CV workspace                  | no                    | Implemented; workspace shell is complete              |
 | S-03       | guided-questionnaire-capture        | Build guided questionnaire capture                          | no                    | Implemented; guided questionnaire and review are complete |
-| S-04       | generated-cv-draft                  | Generate usable CV draft from questionnaire answers         | no                    | F-01 resolved; requires S-03                          |
-| S-05       | cv-template-section-editing         | Add CV template review and section editing                  | no                    | Requires S-04                                         |
-| S-06       | saved-cv-library                    | Save and reopen CVs from account                            | yes                   | F-02 and S-02 resolved                                |
-| S-07       | pdf-export                          | Export reviewed CV as PDF                                   | no                    | F-01 resolved; requires S-05                          |
-| S-08       | full-saved-pdf-flow                 | Complete saved PDF flow with language support               | no                    | Requires F-01, F-02, S-06, and S-07                   |
+| S-04       | generated-cv-draft                  | Generate usable CV draft from questionnaire answers         | yes                   | F-01 and S-03 resolved; ready to plan                 |
+| S-05       | cv-template-section-editing         | Add CV template review and section editing                  | no                    | Blocked by S-04                                       |
+| S-06       | saved-cv-library                    | Save and reopen CVs from account                            | yes                   | F-02 and S-02 resolved; ready to plan                 |
+| S-07       | pdf-export                          | Export reviewed CV as PDF                                   | no                    | Blocked by S-05 (F-01 resolved)                       |
+| S-08       | full-saved-pdf-flow                 | Complete saved PDF flow with language support               | no                    | Blocked by S-06 and S-07 (F-01, F-02 resolved)        |
 
 ## Open Roadmap Questions
 

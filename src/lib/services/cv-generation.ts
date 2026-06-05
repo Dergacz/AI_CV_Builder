@@ -282,6 +282,7 @@ export async function generateCvDraft(
   }
 
   const draft = {
+    ...(rawContent as object),
     schemaVersion: 1 as const,
     language: answers.outputLanguage,
     source: {
@@ -290,7 +291,6 @@ export async function generateCvDraft(
       modelProvider: MODEL_PROVIDER,
       modelName: model,
     },
-    ...(rawContent as object),
   };
 
   const parsed = generatedCvDraftSchema.safeParse(draft);
