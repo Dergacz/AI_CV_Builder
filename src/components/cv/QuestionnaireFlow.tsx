@@ -557,7 +557,7 @@ function Spinner() {
 }
 
 function formatExperienceDates(item: GeneratedCvDraft["sections"]["experience"][number]): string {
-  const end = item.isCurrent ? "Present" : item.endDate;
+  const end = item.endDate ?? (item.isCurrent ? "Present" : undefined);
   if (item.startDate && end) return `${item.startDate} – ${end}`;
   return item.startDate ?? end ?? "";
 }
