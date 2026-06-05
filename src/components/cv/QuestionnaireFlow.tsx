@@ -1,4 +1,4 @@
-import { useMemo, useState, type ReactNode } from "react";
+import { useMemo, useState } from "react";
 import {
   QUESTIONNAIRE_VERSION,
   cvOutputLanguages,
@@ -10,6 +10,9 @@ import {
 import type { GeneratedCvDraft, GenerateDraftResponse } from "@/lib/cv-draft";
 // Value import from the zod-free messages module so client and server share one source of error copy.
 import { generationErrorMessages } from "@/lib/cv-draft-messages";
+import CvEditor from "@/components/cv/CvEditor";
+import { TextAreaField, TextField } from "@/components/cv/CvFormFields";
+import { useCvDraftEditor } from "@/components/hooks/useCvDraftEditor";
 import { cn } from "@/lib/utils";
 
 type StepKey = "basics" | "experienceEducation" | "skillsLanguages" | "extraContext" | "review";
@@ -69,6 +72,7 @@ export default function QuestionnaireFlow() {
   const [status, setStatus] = useState<GenerationStatus>("idle");
   const [draft, setDraft] = useState<GeneratedCvDraft | null>(null);
   const [generationError, setGenerationError] = useState<string | null>(null);
+  const editor = useCvDraftEditor(setDraft);
 
   const activeStep = steps[activeStepIndex];
   const isFirstStep = activeStepIndex === 0;
@@ -144,7 +148,7 @@ export default function QuestionnaireFlow() {
   }
 
   if (status === "success" && draft) {
-    return <DraftPreview draft={draft} onEdit={handleEditAnswers} />;
+    return <CvEditor draft={draft} editor={editor} onEditAnswers={handleEditAnswers} />;
   }
 
   return (
@@ -459,66 +463,6 @@ function getSparseWarnings(answers: CvQuestionnaireAnswers) {
   return warnings;
 }
 
-interface TextFieldProps {
-  id: string;
-  label: string;
-  value: string;
-  onChange: (value: string) => void;
-  placeholder: string;
-  error?: string;
-}
-
-function TextField({ id, label, value, onChange, placeholder, error }: TextFieldProps) {
-  return (
-    <div>
-      <label htmlFor={id} className="text-sm font-medium text-slate-700">
-        {label}
-      </label>
-      <input
-        id={id}
-        value={value}
-        onChange={(event) => {
-          onChange(event.target.value);
-        }}
-        placeholder={placeholder}
-        className={cn(
-          "mt-2 w-full rounded-md border bg-white px-3 py-2 text-slate-950 placeholder-slate-400 transition-colors focus:ring-2 focus:outline-none",
-          error
-            ? "border-red-400 focus:ring-red-200"
-            : "border-slate-300 focus:border-emerald-700 focus:ring-emerald-100",
-        )}
-      />
-      {error && <p className="mt-1 text-xs text-red-600">{error}</p>}
-    </div>
-  );
-}
-
-function TextAreaField({ id, label, value, onChange, placeholder, error }: TextFieldProps) {
-  return (
-    <div>
-      <label htmlFor={id} className="text-sm font-medium text-slate-700">
-        {label}
-      </label>
-      <textarea
-        id={id}
-        value={value}
-        onChange={(event) => {
-          onChange(event.target.value);
-        }}
-        placeholder={placeholder}
-        rows={6}
-        className={cn(
-          "mt-2 w-full resize-y rounded-md border bg-white px-3 py-2 text-slate-950 placeholder-slate-400 transition-colors focus:ring-2 focus:outline-none",
-          error
-            ? "border-red-400 focus:ring-red-200"
-            : "border-slate-300 focus:border-emerald-700 focus:ring-emerald-100",
-        )}
-      />
-      {error && <p className="mt-1 text-xs text-red-600">{error}</p>}
-    </div>
-  );
-}
-
 interface ReviewItemProps {
   label: string;
   value: string;
@@ -553,170 +497,5 @@ function Spinner() {
       className="inline-block size-4 animate-spin rounded-full border-2 border-slate-300 border-t-emerald-700"
       aria-hidden="true"
     />
-  );
-}
-
-function formatExperienceDates(item: GeneratedCvDraft["sections"]["experience"][number]): string {
-  const end = item.endDate ?? (item.isCurrent ? "Present" : undefined);
-  if (item.startDate && end) return `${item.startDate} – ${end}`;
-  return item.startDate ?? end ?? "";
-}
-
-function DraftSection({ title, children }: { title: string; children: ReactNode }) {
-  return (
-    <section>
-      <h3 className="text-xs font-semibold tracking-wide text-slate-500 uppercase">{title}</h3>
-      <div className="mt-2">{children}</div>
-    </section>
-  );
-}
-
-function EmptyNote({ children }: { children: ReactNode }) {
-  return <p className="text-sm leading-6 text-slate-400">{children}</p>;
-}
-
-function DraftPreview({ draft, onEdit }: { draft: GeneratedCvDraft; onEdit: () => void }) {
-  const { sections, assumptions, warnings } = draft;
-
-  return (
-    <section
-      className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm sm:p-6"
-      aria-label="Generated CV draft"
-    >
-      <div className="flex flex-col gap-4 border-b border-slate-200 pb-5 sm:flex-row sm:items-start sm:justify-between">
-        <div>
-          <p className="text-sm font-semibold text-teal-700">Draft preview</p>
-          <h2 className="mt-2 text-2xl font-semibold text-slate-950">Your generated CV draft</h2>
-          <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-600">
-            This is an early draft generated from your answers. A clean template and section editing come next; nothing
-            is saved or exported yet.
-          </p>
-        </div>
-        <button
-          type="button"
-          onClick={onEdit}
-          className="inline-flex min-h-11 shrink-0 items-center justify-center rounded-md border border-slate-300 bg-white px-5 py-3 text-sm font-semibold text-slate-900 transition-colors hover:border-slate-400 hover:bg-slate-100 focus-visible:ring-3 focus-visible:ring-slate-500/20 focus-visible:outline-none"
-        >
-          Edit answers
-        </button>
-      </div>
-
-      {warnings.length > 0 && (
-        <section className="mt-5 rounded-md border border-amber-200 bg-amber-50 p-4" aria-label="Draft warnings">
-          <h3 className="text-sm font-semibold text-amber-950">Before you rely on this draft</h3>
-          <ul className="mt-2 space-y-1 text-sm leading-6 text-amber-900">
-            {warnings.map((warning, index) => (
-              <li key={`${warning.code}-${index}`}>- {warning.message}</li>
-            ))}
-          </ul>
-        </section>
-      )}
-
-      <div className="mt-6 space-y-6">
-        <DraftSection title="Summary">
-          {sections.summary.headline && <p className="font-medium text-slate-900">{sections.summary.headline}</p>}
-          <p className="text-sm leading-6 whitespace-pre-wrap text-slate-700">{sections.summary.body}</p>
-        </DraftSection>
-
-        <DraftSection title="Experience">
-          {sections.experience.length === 0 ? (
-            <EmptyNote>No experience was added.</EmptyNote>
-          ) : (
-            <ul className="space-y-4">
-              {sections.experience.map((item, index) => {
-                const heading = [item.role, item.organization].filter(Boolean).join(" · ");
-                const meta = [item.location, formatExperienceDates(item)].filter(Boolean).join(" · ");
-                return (
-                  <li key={index} className="rounded-md border border-slate-100 bg-slate-50/60 p-3">
-                    <p className="font-medium text-slate-900">{heading || "Experience"}</p>
-                    {meta && <p className="text-xs text-slate-500">{meta}</p>}
-                    <p className="mt-1 text-sm leading-6 whitespace-pre-wrap text-slate-700">{item.description}</p>
-                    {item.highlights.length > 0 && (
-                      <ul className="mt-1 list-disc space-y-0.5 pl-5 text-sm leading-6 text-slate-700">
-                        {item.highlights.map((highlight, highlightIndex) => (
-                          <li key={highlightIndex}>{highlight}</li>
-                        ))}
-                      </ul>
-                    )}
-                  </li>
-                );
-              })}
-            </ul>
-          )}
-        </DraftSection>
-
-        <DraftSection title="Education">
-          {sections.education.length === 0 ? (
-            <EmptyNote>No education was added.</EmptyNote>
-          ) : (
-            <ul className="space-y-4">
-              {sections.education.map((item, index) => {
-                const heading = [item.program, item.institution].filter(Boolean).join(" · ");
-                const meta = [item.location, item.startDate, item.endDate].filter(Boolean).join(" · ");
-                return (
-                  <li key={index} className="rounded-md border border-slate-100 bg-slate-50/60 p-3">
-                    <p className="font-medium text-slate-900">{heading || "Education"}</p>
-                    {meta && <p className="text-xs text-slate-500">{meta}</p>}
-                    {item.description && (
-                      <p className="mt-1 text-sm leading-6 whitespace-pre-wrap text-slate-700">{item.description}</p>
-                    )}
-                  </li>
-                );
-              })}
-            </ul>
-          )}
-        </DraftSection>
-
-        <DraftSection title="Skills">
-          {sections.skills.length === 0 ? (
-            <EmptyNote>No skills were added.</EmptyNote>
-          ) : (
-            <ul className="space-y-2">
-              {sections.skills.map((group, index) => (
-                <li key={`${group.label}-${index}`} className="text-sm leading-6 text-slate-700">
-                  <span className="font-medium text-slate-900">{group.label}:</span> {group.items.join(", ")}
-                </li>
-              ))}
-            </ul>
-          )}
-        </DraftSection>
-
-        <DraftSection title="Languages">
-          {sections.languages.length === 0 ? (
-            <EmptyNote>No languages were added.</EmptyNote>
-          ) : (
-            <ul className="space-y-1">
-              {sections.languages.map((language, index) => (
-                <li key={`${language.name}-${index}`} className="text-sm leading-6 text-slate-700">
-                  <span className="font-medium text-slate-900">{language.name}</span>
-                  {language.proficiency ? ` — ${language.proficiency}` : ""}
-                </li>
-              ))}
-            </ul>
-          )}
-        </DraftSection>
-      </div>
-
-      {assumptions.length > 0 && (
-        <section className="mt-6 rounded-md border border-slate-200 bg-slate-50 p-4" aria-label="Draft assumptions">
-          <h3 className="text-sm font-semibold text-slate-900">Editorial assumptions</h3>
-          <ul className="mt-2 space-y-1 text-sm leading-6 text-slate-600">
-            {assumptions.map((assumption, index) => (
-              <li key={`${assumption.field}-${index}`}>- {assumption.reason}</li>
-            ))}
-          </ul>
-        </section>
-      )}
-
-      <div className="mt-6 border-t border-slate-200 pt-5">
-        <button
-          type="button"
-          onClick={onEdit}
-          className="text-sm font-semibold text-emerald-700 underline-offset-4 hover:underline"
-        >
-          Edit answers and regenerate
-        </button>
-      </div>
-    </section>
   );
 }
