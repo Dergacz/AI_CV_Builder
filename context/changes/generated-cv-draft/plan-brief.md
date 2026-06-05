@@ -16,18 +16,18 @@ A signed-in user presses **Generate draft** on review, sees a spinner with hones
 
 ## Key Decisions Made
 
-| Decision | Choice | Why (1 sentence) | Source |
-| --- | --- | --- | --- |
-| Output contract / shape | Reuse F-01 `GeneratedCvDraft` verbatim | Already settled and fixture-backed; S-04 just implements it | Frame (F-01) |
-| Error buckets, timeout, minimal-input | Reuse F-01 (`generation_failed`/`service_unavailable`, <30s, no fabrication) | Contract decisions belong to F-01 | Frame (F-01) |
-| AI provider | OpenAI with strict structured outputs (`json_schema`) | Hardest guarantee of schema conformance; fetch-based, Workers-safe | Plan |
-| JSON enforcement | Native structured output **+** server-side zod validation | Defense-in-depth; invalid → `generation_failed` | Plan |
-| Draft display | Inline in the `/cv/new` island, in-memory | No persistence in S-04; matches S-03's client-island pattern | Plan |
-| Preview fidelity | Minimal readable preview, no editing | Avoids stealing S-05's template/editing scope | Plan |
-| Loading UX | Simple spinner + honest status text | Satisfies FR-013 without fake progress (F-01) | Plan |
-| Error + retry | Bucket message + manual Retry, answers preserved | F-01 says retry is the MVP recovery; no surprise re-billing | Plan |
-| No-key behavior | Return `service_unavailable` | Mirrors Supabase `null`-when-unconfigured pattern | Plan |
-| Testing | Repo gates + manual, no new runner | Consistent with S-03; keeps the 3-week MVP moving | Plan |
+| Decision                              | Choice                                                                       | Why (1 sentence)                                                   | Source       |
+| ------------------------------------- | ---------------------------------------------------------------------------- | ------------------------------------------------------------------ | ------------ |
+| Output contract / shape               | Reuse F-01 `GeneratedCvDraft` verbatim                                       | Already settled and fixture-backed; S-04 just implements it        | Frame (F-01) |
+| Error buckets, timeout, minimal-input | Reuse F-01 (`generation_failed`/`service_unavailable`, <30s, no fabrication) | Contract decisions belong to F-01                                  | Frame (F-01) |
+| AI provider                           | OpenAI with strict structured outputs (`json_schema`)                        | Hardest guarantee of schema conformance; fetch-based, Workers-safe | Plan         |
+| JSON enforcement                      | Native structured output **+** server-side zod validation                    | Defense-in-depth; invalid → `generation_failed`                    | Plan         |
+| Draft display                         | Inline in the `/cv/new` island, in-memory                                    | No persistence in S-04; matches S-03's client-island pattern       | Plan         |
+| Preview fidelity                      | Minimal readable preview, no editing                                         | Avoids stealing S-05's template/editing scope                      | Plan         |
+| Loading UX                            | Simple spinner + honest status text                                          | Satisfies FR-013 without fake progress (F-01)                      | Plan         |
+| Error + retry                         | Bucket message + manual Retry, answers preserved                             | F-01 says retry is the MVP recovery; no surprise re-billing        | Plan         |
+| No-key behavior                       | Return `service_unavailable`                                                 | Mirrors Supabase `null`-when-unconfigured pattern                  | Plan         |
+| Testing                               | Repo gates + manual, no new runner                                           | Consistent with S-03; keeps the 3-week MVP moving                  | Plan         |
 
 ## Scope
 
@@ -41,12 +41,12 @@ Back-to-front in four phases. Lock the contract in code (zod schema + shared typ
 
 ## Phases at a Glance
 
-| Phase | What it delivers | Key risk |
-| --- | --- | --- |
-| 1. Contract & validation foundation | `zod`, `GeneratedCvDraft` type, zod schema, response type, `OPENAI_API_KEY` config | Schema drifting from the F-01 contract |
-| 2. Service & API route | OpenAI generation logic + auth-gated JSON endpoint | Workers runtime/SDK compat; model schema conformance; timeout/cost |
-| 3. Questionnaire generation UI | Generate action, loading, minimal preview, error/retry | Scope creep into S-05 template/editing |
-| 4. Verification & change metadata | Repo gates, scope guards, metadata update | Silent persistence/PDF/editing leakage |
+| Phase                               | What it delivers                                                                   | Key risk                                                           |
+| ----------------------------------- | ---------------------------------------------------------------------------------- | ------------------------------------------------------------------ |
+| 1. Contract & validation foundation | `zod`, `GeneratedCvDraft` type, zod schema, response type, `OPENAI_API_KEY` config | Schema drifting from the F-01 contract                             |
+| 2. Service & API route              | OpenAI generation logic + auth-gated JSON endpoint                                 | Workers runtime/SDK compat; model schema conformance; timeout/cost |
+| 3. Questionnaire generation UI      | Generate action, loading, minimal preview, error/retry                             | Scope creep into S-05 template/editing                             |
+| 4. Verification & change metadata   | Repo gates, scope guards, metadata update                                          | Silent persistence/PDF/editing leakage                             |
 
 **Prerequisites:** F-01 (done) and S-03 (done); an OpenAI API key for end-to-end manual testing (absence degrades to `service_unavailable`).
 **Estimated effort:** ~2–3 sessions across 4 phases.

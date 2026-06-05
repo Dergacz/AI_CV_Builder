@@ -20,14 +20,14 @@ Cloudflare Workers is the right MVP platform because the repo already uses `@ast
 
 Scoring uses Pass = 2, Partial = 1, Fail = 0. Hard filter: none of the candidates were eliminated because the app does not require persistent processes. Compatibility penalty: platforms requiring an adapter/runtime migration were kept, but ranked below the current Workers path.
 
-| Platform | CLI-first | Managed/Serverless | Agent-readable docs | Stable deploy API | MCP / Integration | Total |
-|---|---|---|---|---|---|---|
-| Cloudflare Workers | Pass | Pass | Pass | Pass | Pass | 10/10 |
-| Vercel | Pass | Pass | Pass | Pass | Partial | 9/10 |
-| Netlify | Partial | Pass | Pass | Partial | Pass | 8/10 |
-| Railway | Pass | Partial | Pass | Partial | Pass | 7/10 |
-| Render | Partial | Partial | Pass | Partial | Partial | 6/10 |
-| Fly.io | Pass | Partial | Partial | Partial | Partial | 6/10 |
+| Platform           | CLI-first | Managed/Serverless | Agent-readable docs | Stable deploy API | MCP / Integration | Total |
+| ------------------ | --------- | ------------------ | ------------------- | ----------------- | ----------------- | ----- |
+| Cloudflare Workers | Pass      | Pass               | Pass                | Pass              | Pass              | 10/10 |
+| Vercel             | Pass      | Pass               | Pass                | Pass              | Partial           | 9/10  |
+| Netlify            | Partial   | Pass               | Pass                | Partial           | Pass              | 8/10  |
+| Railway            | Pass      | Partial            | Pass                | Partial           | Pass              | 7/10  |
+| Render             | Partial   | Partial            | Pass                | Partial           | Partial           | 6/10  |
+| Fly.io             | Pass      | Partial            | Partial             | Partial           | Partial           | 6/10  |
 
 Cloudflare Workers supports the current Astro SSR runtime with `@astrojs/cloudflare`, `wrangler deploy`, `wrangler rollback`, `wrangler tail`, Worker preview URLs, Markdown/LLM-friendly docs, and Cloudflare MCP servers. Workers Free includes 100,000 requests/day with CPU limits; Workers Paid is $5/month with included request and CPU allocations. Sources: https://docs.astro.build/en/guides/integrations-guide/cloudflare/, https://developers.cloudflare.com/workers/framework-guides/web-apps/astro/, https://developers.cloudflare.com/workers/platform/pricing/, https://developers.cloudflare.com/workers/wrangler/commands/workers/, https://developers.cloudflare.com/workers/configuration/previews/.
 
@@ -87,16 +87,16 @@ Six months after launch, Cloudflare looked like the obvious choice but failed be
 
 ## Risk Register
 
-| Risk | Source | Likelihood | Impact | Mitigation |
-|---|---|---|---|---|
-| PDF export library does not run in Workers | Devil's advocate | High | High | Spike PDF export before building full editor flow; choose a Workers-compatible renderer or isolate PDF generation behind an external service if needed. |
-| AI generation exceeds comfortable Worker request behavior | Devil's advocate | Medium | High | Test the full prompt path with the intended model; add timeouts, retry boundaries, and clear failure UI before launch. |
-| Old Pages guidance causes wrong deploy setup | Unknown unknowns | Medium | Medium | Treat `wrangler.jsonc` and `@astrojs/cloudflare` docs as source of truth; deploy SSR with `npx wrangler deploy`, not `wrangler pages deploy`. |
-| Supabase region adds latency from Workers | Research finding | Medium | Medium | Pick a Supabase region close to expected users; measure authenticated request timing before public demo. |
-| Secrets diverge between `.env`, `.dev.vars`, GitHub, and Workers | Pre-mortem | Medium | High | Maintain a deployment checklist listing every required variable and where it lives; verify with a production smoke test after each secret change. |
-| Rollback cannot undo changed bindings or DB state | Devil's advocate | Medium | High | Keep schema changes separate from app deploys; document manual rollback steps for Supabase and Cloudflare resource changes. |
-| Preview deployments accidentally use production data | Unknown unknowns | Medium | High | Configure separate preview secrets or read-only/test Supabase project before enabling public PR preview URLs. |
-| Free-tier CPU/request limits surprise the MVP | Research finding | Low | Medium | Start on Free for validation, but budget the Workers Paid $5/month tier if SSR, AI orchestration, or traffic exceeds free limits. |
+| Risk                                                             | Source           | Likelihood | Impact | Mitigation                                                                                                                                              |
+| ---------------------------------------------------------------- | ---------------- | ---------- | ------ | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| PDF export library does not run in Workers                       | Devil's advocate | High       | High   | Spike PDF export before building full editor flow; choose a Workers-compatible renderer or isolate PDF generation behind an external service if needed. |
+| AI generation exceeds comfortable Worker request behavior        | Devil's advocate | Medium     | High   | Test the full prompt path with the intended model; add timeouts, retry boundaries, and clear failure UI before launch.                                  |
+| Old Pages guidance causes wrong deploy setup                     | Unknown unknowns | Medium     | Medium | Treat `wrangler.jsonc` and `@astrojs/cloudflare` docs as source of truth; deploy SSR with `npx wrangler deploy`, not `wrangler pages deploy`.           |
+| Supabase region adds latency from Workers                        | Research finding | Medium     | Medium | Pick a Supabase region close to expected users; measure authenticated request timing before public demo.                                                |
+| Secrets diverge between `.env`, `.dev.vars`, GitHub, and Workers | Pre-mortem       | Medium     | High   | Maintain a deployment checklist listing every required variable and where it lives; verify with a production smoke test after each secret change.       |
+| Rollback cannot undo changed bindings or DB state                | Devil's advocate | Medium     | High   | Keep schema changes separate from app deploys; document manual rollback steps for Supabase and Cloudflare resource changes.                             |
+| Preview deployments accidentally use production data             | Unknown unknowns | Medium     | High   | Configure separate preview secrets or read-only/test Supabase project before enabling public PR preview URLs.                                           |
+| Free-tier CPU/request limits surprise the MVP                    | Research finding | Low        | Medium | Start on Free for validation, but budget the Workers Paid $5/month tier if SSR, AI orchestration, or traffic exceeds free limits.                       |
 
 ## Getting Started
 
