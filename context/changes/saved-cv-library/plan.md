@@ -425,10 +425,10 @@ This is the **first** migration in the repo; Supabase is already initialized (`s
 
 #### Automated
 
-- [x] T.1 Unit tests pass: schema accept/reject, `defaultCvTitle`, `source_snapshot` assembly
-- [x] T.2 `npm run lint`, `npm run build`, `npm run test` all pass
+- [x] T.1 Unit tests pass: schema accept/reject, `defaultCvTitle`, `source_snapshot` assembly — 1909e7d
+- [x] T.2 `npm run lint`, `npm run build`, `npm run test` all pass — 1909e7d
 
 #### Manual
 
-- [x] T.3 Full E2E walkthrough (generate → save → reopen → edit → delete)
-- [x] T.4 RLS cross-account isolation verified (empty list + 404)
+- [x] T.3 Full E2E walkthrough (generate → save → reopen → edit → delete) — 1909e7d
+- [x] T.4 RLS cross-account isolation verified (empty list + 404) — 1909e7d
