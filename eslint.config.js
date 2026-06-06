@@ -65,6 +65,10 @@ const astroConfig = tseslint.config({
     "astro/no-set-html-directive": "error",
     "astro/no-unused-css-selector": "warn",
     "astro/prefer-class-list-directive": "warn",
+    // astro-eslint-parser models a top-level frontmatter `return` (the idiomatic
+    // page-redirect pattern) without a function parent, which crashes this typed rule
+    // (nullThrows: "Expected node to have a parent"). Server-only frontmatter, so off here.
+    "@typescript-eslint/no-misused-promises": "off",
   },
 });
 

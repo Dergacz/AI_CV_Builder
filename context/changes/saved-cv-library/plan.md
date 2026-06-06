@@ -390,24 +390,24 @@ This is the **first** migration in the repo; Supabase is already initialized (`s
 
 #### Automated
 
-- [x] 4.1 `npm run build` and `npm run lint` pass
+- [x] 4.1 `npm run build` and `npm run lint` pass — 848b2b3
 
 #### Manual
 
-- [x] 4.2 Save bar with editable default title; Save inserts then switches to update mode (no duplicate)
-- [x] 4.3 Success/error feedback announced via status/alert roles
+- [x] 4.2 Save bar with editable default title; Save inserts then switches to update mode (no duplicate) — 848b2b3
+- [x] 4.3 Success/error feedback announced via status/alert roles — 848b2b3
 
 ### Phase 5: Reopen Route `/cv/[id]`
 
 #### Automated
 
-- [ ] 5.1 `npm run build` and `npm run lint` pass
+- [x] 5.1 `npm run build` and `npm run lint` pass
 
 #### Manual
 
-- [ ] 5.2 Owned CV renders; section edit + Save persists across reopen
-- [ ] 5.3 Non-owned/nonexistent id redirects to `/dashboard`
-- [ ] 5.4 Regenerate / edit-answers affordance absent on this route
+- [x] 5.2 Owned CV renders; section edit + Save persists across reopen
+- [x] 5.3 Non-owned/nonexistent id redirects to `/dashboard`
+- [x] 5.4 Regenerate / edit-answers affordance absent on this route
 
 ### Phase 6: Dashboard Library + Delete
 
