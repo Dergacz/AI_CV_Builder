@@ -352,21 +352,21 @@ This is the **first** migration in the repo; Supabase is already initialized (`s
 
 #### Automated
 
-- [x] 1.1 `npx supabase db reset` applies the migration cleanly
-- [x] 1.2 `npm run db:types` regenerates `src/db/database.types.ts` with a `cvs` row type
-- [x] 1.3 `npm run build` passes with the typed client
+- [x] 1.1 `npx supabase db reset` applies the migration cleanly — 92760cc
+- [x] 1.2 `npm run db:types` regenerates `src/db/database.types.ts` with a `cvs` row type — 92760cc
+- [x] 1.3 `npm run build` passes with the typed client — 92760cc
 
 #### Manual
 
-- [ ] 1.4 `public.cvs` exists with RLS + four owner-only policies
-- [ ] 1.5 `updated_at` trigger present and bumps on update
+- [x] 1.4 `public.cvs` exists with RLS + four owner-only policies — 92760cc
+- [x] 1.5 `updated_at` trigger present and bumps on update — 92760cc
 
 ### Phase 2: Types, Schemas, Services, Copy
 
 #### Automated
 
-- [ ] 2.1 `npm run build` passes (types/schemas/service; `generate.ts` imports extracted schema)
-- [ ] 2.2 `npm run lint` passes
+- [x] 2.1 `npm run build` passes (types/schemas/service; `generate.ts` imports extracted schema)
+- [x] 2.2 `npm run lint` passes
 
 #### Manual
 
