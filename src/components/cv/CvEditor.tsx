@@ -1,8 +1,11 @@
 import { useEffect, useRef, useState, type ReactNode } from "react";
 
 import type { GeneratedCvDraft } from "@/lib/cv-draft";
+import type { CvQuestionnaireAnswers } from "@/lib/cv-questionnaire";
 import { cvEditorCopy } from "@/lib/cv-editor-copy";
+import { cvLibraryCopy } from "@/lib/cv-library-copy";
 import type { CvDraftEditor } from "@/components/hooks/useCvDraftEditor";
+import type { CvSaveController } from "@/components/hooks/useCvSave";
 import {
   DraftSection,
   EducationContent,
@@ -30,11 +33,16 @@ import {
 export default function CvEditor({
   draft,
   editor,
+  save,
+  answers,
   onEditAnswers,
 }: {
   draft: GeneratedCvDraft;
   editor: CvDraftEditor;
-  onEditAnswers: () => void;
+  save: CvSaveController;
+  answers: CvQuestionnaireAnswers;
+  /** Omitted on the reopen flow (Phase 5), which hides the edit-answers/regenerate path. */
+  onEditAnswers?: () => void;
 }) {
   const { sections, assumptions, warnings } = draft;
   const canEdit = editor.openSection === null;
@@ -44,6 +52,7 @@ export default function CvEditor({
   // can still be cancelled locally, so it should not trigger the discard-edits prompt.
   const hasWorkToLose = editor.hasEdits;
   function requestEditAnswers() {
+    if (!onEditAnswers) return;
     if (hasWorkToLose) {
       setConfirmOpen(true);
     } else {
@@ -62,13 +71,61 @@ export default function CvEditor({
           <h2 className="mt-2 text-2xl font-semibold text-slate-950">{cvEditorCopy.preview.title}</h2>
           <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-600">{cvEditorCopy.preview.description}</p>
         </div>
-        <button
-          type="button"
-          onClick={requestEditAnswers}
-          className="inline-flex min-h-11 shrink-0 items-center justify-center rounded-md border border-slate-300 bg-white px-5 py-3 text-sm font-semibold text-slate-900 transition-colors hover:border-slate-400 hover:bg-slate-100 focus-visible:ring-3 focus-visible:ring-slate-500/20 focus-visible:outline-none"
-        >
-          {cvEditorCopy.preview.editAnswers}
-        </button>
+        {onEditAnswers && (
+          <button
+            type="button"
+            onClick={requestEditAnswers}
+            className="inline-flex min-h-11 shrink-0 items-center justify-center rounded-md border border-slate-300 bg-white px-5 py-3 text-sm font-semibold text-slate-900 transition-colors hover:border-slate-400 hover:bg-slate-100 focus-visible:ring-3 focus-visible:ring-slate-500/20 focus-visible:outline-none"
+          >
+            {cvEditorCopy.preview.editAnswers}
+          </button>
+        )}
+      </div>
+
+      <div className="mt-5 rounded-md border border-slate-200 bg-slate-50 p-4">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+          <div className="flex-1">
+            <label htmlFor="cv-title" className="text-sm font-medium text-slate-700">
+              {cvLibraryCopy.saveBar.titleLabel}
+            </label>
+            <input
+              id="cv-title"
+              type="text"
+              value={save.title}
+              maxLength={200}
+              onChange={(event) => {
+                save.setTitle(event.target.value);
+              }}
+              placeholder={cvLibraryCopy.saveBar.titlePlaceholder}
+              className="mt-1 block w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 transition-colors focus-visible:border-emerald-600 focus-visible:ring-3 focus-visible:ring-emerald-700/20 focus-visible:outline-none"
+            />
+          </div>
+          <div className="flex items-center gap-3">
+            {save.status === "saved" && (
+              <span role="status" className="text-sm font-medium text-emerald-700">
+                {cvLibraryCopy.saveBar.saved}
+              </span>
+            )}
+            <button
+              type="button"
+              onClick={() => {
+                void save.save(draft, answers);
+              }}
+              disabled={save.status === "saving" || !canEdit}
+              className="inline-flex min-h-11 shrink-0 items-center justify-center rounded-md bg-emerald-700 px-5 py-3 text-sm font-semibold text-white transition-colors hover:bg-emerald-800 focus-visible:ring-3 focus-visible:ring-emerald-700/30 focus-visible:outline-none disabled:cursor-not-allowed disabled:bg-slate-300 disabled:text-slate-600"
+            >
+              {save.status === "saving" ? cvLibraryCopy.saveBar.saving : cvLibraryCopy.saveBar.save}
+            </button>
+          </div>
+        </div>
+        {save.status === "error" && save.error && (
+          <div
+            role="alert"
+            className="mt-3 rounded-md border border-red-200 bg-red-50 p-3 text-sm leading-6 text-red-900"
+          >
+            {save.error}
+          </div>
+        )}
       </div>
 
       {warnings.length > 0 && (
@@ -186,22 +243,24 @@ export default function CvEditor({
         </section>
       )}
 
-      <div className="mt-6 border-t border-slate-200 pt-5">
-        <button
-          type="button"
-          onClick={requestEditAnswers}
-          className="text-sm font-semibold text-emerald-700 underline-offset-4 hover:underline"
-        >
-          {cvEditorCopy.preview.regenerateLink}
-        </button>
-      </div>
+      {onEditAnswers && (
+        <div className="mt-6 border-t border-slate-200 pt-5">
+          <button
+            type="button"
+            onClick={requestEditAnswers}
+            className="text-sm font-semibold text-emerald-700 underline-offset-4 hover:underline"
+          >
+            {cvEditorCopy.preview.regenerateLink}
+          </button>
+        </div>
+      )}
 
       {confirmOpen && (
         <ConfirmDiscardDialog
           onConfirm={() => {
             setConfirmOpen(false);
             editor.reset();
-            onEditAnswers();
+            onEditAnswers?.();
           }}
           onCancel={() => {
             setConfirmOpen(false);

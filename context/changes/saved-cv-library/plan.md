@@ -376,26 +376,26 @@ This is the **first** migration in the repo; Supabase is already initialized (`s
 
 #### Automated
 
-- [x] 3.1 `npm run build` passes (routes typecheck against typed client)
-- [x] 3.2 `npm run lint` passes
+- [x] 3.1 `npm run build` passes (routes typecheck against typed client) — 1bd1523
+- [x] 3.2 `npm run lint` passes — 1bd1523
 
 #### Manual
 
-- [ ] 3.3 `POST /api/cv` inserts an owned row; returns `{ ok:true, cv:{ id } }`
-- [ ] 3.4 `GET /api/cv` returns only the caller's summaries, newest first
-- [ ] 3.5 `GET/PUT/DELETE /api/cv/[id]` correct; non-owner GET → 404
-- [ ] 3.6 No raw `draft`/`answers` in logs or error responses
+- [x] 3.3 `POST /api/cv` inserts an owned row; returns `{ ok:true, cv:{ id } }` — 1bd1523
+- [x] 3.4 `GET /api/cv` returns only the caller's summaries, newest first — 1bd1523
+- [x] 3.5 `GET/PUT/DELETE /api/cv/[id]` correct; non-owner GET → 404 — 1bd1523
+- [x] 3.6 No raw `draft`/`answers` in logs or error responses — 1bd1523
 
 ### Phase 4: Save UI in the Creation Flow
 
 #### Automated
 
-- [ ] 4.1 `npm run build` and `npm run lint` pass
+- [x] 4.1 `npm run build` and `npm run lint` pass
 
 #### Manual
 
-- [ ] 4.2 Save bar with editable default title; Save inserts then switches to update mode (no duplicate)
-- [ ] 4.3 Success/error feedback announced via status/alert roles
+- [x] 4.2 Save bar with editable default title; Save inserts then switches to update mode (no duplicate)
+- [x] 4.3 Success/error feedback announced via status/alert roles
 
 ### Phase 5: Reopen Route `/cv/[id]`
 
