@@ -1,11 +1,16 @@
-name: CI
+name: Deploy
 
 on:
-  pull_request:
+  push:
     branches: [master]
 
+# не запускать несколько деплоев параллельно
+concurrency:
+  group: deploy-master
+  cancel-in-progress: false
+
 jobs:
-  ci:
+  deploy:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -21,3 +26,9 @@ jobs:
         env:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_KEY: ${{ secrets.SUPABASE_KEY }}
+      - name: Deploy to Cloudflare Workers
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          command: deploy
