@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, type ReactNode } from "react";
+import { useState, type ReactNode } from "react";
 
 import type { GeneratedCvDraft } from "@/lib/cv-draft";
 import type { CvQuestionnaireAnswers } from "@/lib/cv-questionnaire";
@@ -6,6 +6,7 @@ import { cvEditorCopy } from "@/lib/cv-editor-copy";
 import { cvLibraryCopy } from "@/lib/cv-library-copy";
 import type { CvDraftEditor } from "@/components/hooks/useCvDraftEditor";
 import type { CvSaveController } from "@/components/hooks/useCvSave";
+import ConfirmDialog from "@/components/cv/ConfirmDialog";
 import {
   DraftSection,
   EducationContent,
@@ -256,7 +257,11 @@ export default function CvEditor({
       )}
 
       {confirmOpen && (
-        <ConfirmDiscardDialog
+        <ConfirmDialog
+          title={cvEditorCopy.regenerate.confirmTitle}
+          body={cvEditorCopy.regenerate.confirmBody}
+          confirmLabel={cvEditorCopy.regenerate.confirm}
+          cancelLabel={cvEditorCopy.regenerate.cancel}
           onConfirm={() => {
             setConfirmOpen(false);
             editor.reset();
@@ -268,97 +273,6 @@ export default function CvEditor({
         />
       )}
     </section>
-  );
-}
-
-const focusableSelector =
-  'a[href], button:not([disabled]), textarea:not([disabled]), input:not([disabled]), select:not([disabled]), [tabindex]:not([tabindex="-1"])';
-
-function getFocusableElements(container: HTMLElement): HTMLElement[] {
-  return Array.from(container.querySelectorAll<HTMLElement>(focusableSelector));
-}
-
-function ConfirmDiscardDialog({ onConfirm, onCancel }: { onConfirm: () => void; onCancel: () => void }) {
-  const dialogRef = useRef<HTMLDivElement>(null);
-  const restoreFocusRef = useRef<HTMLElement | null>(null);
-
-  useEffect(() => {
-    restoreFocusRef.current = document.activeElement instanceof HTMLElement ? document.activeElement : null;
-    const firstFocusable = dialogRef.current ? getFocusableElements(dialogRef.current)[0] : null;
-    firstFocusable?.focus();
-
-    return () => {
-      restoreFocusRef.current?.focus();
-    };
-  }, []);
-
-  return (
-    <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/40 p-4"
-      onKeyDown={(event) => {
-        if (event.key === "Escape") {
-          onCancel();
-          return;
-        }
-
-        if (event.key !== "Tab" || !dialogRef.current) return;
-
-        const focusable = getFocusableElements(dialogRef.current);
-        if (focusable.length === 0) {
-          event.preventDefault();
-          return;
-        }
-
-        const first = focusable[0];
-        const last = focusable[focusable.length - 1];
-
-        if (event.shiftKey && document.activeElement === first) {
-          event.preventDefault();
-          last.focus();
-        } else if (!event.shiftKey && document.activeElement === last) {
-          event.preventDefault();
-          first.focus();
-        }
-      }}
-      role="presentation"
-      onClick={onCancel}
-    >
-      <div
-        ref={dialogRef}
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="cv-discard-title"
-        aria-describedby="cv-discard-body"
-        className="w-full max-w-md rounded-lg border border-slate-200 bg-white p-5 shadow-lg"
-        onClick={(event) => {
-          event.stopPropagation();
-        }}
-      >
-        <h2 id="cv-discard-title" className="text-lg font-semibold text-slate-950">
-          {cvEditorCopy.regenerate.confirmTitle}
-        </h2>
-        <p id="cv-discard-body" className="mt-2 text-sm leading-6 text-slate-600">
-          {cvEditorCopy.regenerate.confirmBody}
-        </p>
-        <div className="mt-5 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
-          <button
-            type="button"
-            autoFocus
-            onClick={onCancel}
-            className="inline-flex min-h-11 items-center justify-center rounded-md border border-slate-300 bg-white px-5 py-3 text-sm font-semibold text-slate-900 transition-colors hover:border-slate-400 hover:bg-slate-100 focus-visible:ring-3 focus-visible:ring-slate-500/20 focus-visible:outline-none"
-          >
-            {cvEditorCopy.regenerate.cancel}
-          </button>
-          <button
-            type="button"
-            onClick={onConfirm}
-            className="inline-flex min-h-11 items-center justify-center rounded-md bg-red-700 px-5 py-3 text-sm font-semibold text-white transition-colors hover:bg-red-800 focus-visible:ring-3 focus-visible:ring-red-700/30 focus-visible:outline-none"
-          >
-            {cvEditorCopy.regenerate.confirm}
-          </button>
-        </div>
-      </div>
-    </div>
   );
 }
 

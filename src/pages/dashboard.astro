@@ -1,7 +1,28 @@
 ---
 import Layout from "@/layouts/Layout.astro";
+import SavedCvList from "@/components/cv/SavedCvList";
+import { createClient } from "@/lib/supabase";
+import { listCvs } from "@/lib/services/cv-repository";
+import type { SavedCvSummary } from "@/types";
+import { cvLibraryCopy } from "@/lib/cv-library-copy";
 
 const { user } = Astro.locals;
+
+// Route is auth-protected by middleware; load the owner's saved CVs for the library.
+const supabase = createClient(Astro.request.headers, Astro.cookies);
+let cvs: SavedCvSummary[] = [];
+if (supabase) {
+  const {
+    data: { user: verifiedUser },
+  } = await supabase.auth.getUser();
+  if (verifiedUser) {
+    try {
+      cvs = await listCvs(supabase, verifiedUser.id);
+    } catch {
+      cvs = [];
+    }
+  }
+}
 ---
 
 <Layout title="CV Workspace">
@@ -31,8 +52,8 @@ const { user } = Astro.locals;
             Start from a calm place, then build the CV step by step
           </h1>
           <p class="mt-5 max-w-2xl text-base leading-7 text-slate-700">
-            This protected workspace is ready for your first CV flow. Start with the guided questionnaire; saved CVs
-            come later in the saved-library slice.
+            This protected workspace is ready for your CV flow. Start with the guided questionnaire, then save and
+            reopen your CVs from the library below.
           </p>
           <div class="mt-8 flex flex-col gap-3 sm:flex-row">
             <a
@@ -63,10 +84,28 @@ const { user } = Astro.locals;
             </div>
             <div>
               <dt class="font-medium text-slate-950">Saved CVs</dt>
-              <dd class="mt-1 text-slate-600">Planned for the saved-library slice</dd>
+              <dd class="mt-1 text-slate-600">{cvs.length} saved</dd>
             </div>
           </dl>
         </aside>
+      </section>
+
+      <section class="border-t border-slate-200 py-10" aria-label="Saved CV library">
+        <div class="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+          <div>
+            <h2 class="text-2xl font-semibold text-slate-950">{cvLibraryCopy.dashboard.title}</h2>
+            <p class="mt-2 max-w-2xl text-sm leading-6 text-slate-600">{cvLibraryCopy.dashboard.description}</p>
+          </div>
+          <a
+            href="/cv/new"
+            class="inline-flex min-h-10 shrink-0 items-center justify-center rounded-md border border-slate-300 bg-white px-4 text-sm font-semibold text-slate-900 transition-colors hover:border-slate-400 hover:bg-slate-100 focus-visible:ring-3 focus-visible:ring-slate-500/20 focus-visible:outline-none"
+          >
+            {cvLibraryCopy.dashboard.startCta}
+          </a>
+        </div>
+        <div class="mt-6">
+          <SavedCvList client:load cvs={cvs} />
+        </div>
       </section>
     </div>
   </main>

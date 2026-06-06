@@ -401,25 +401,25 @@ This is the **first** migration in the repo; Supabase is already initialized (`s
 
 #### Automated
 
-- [x] 5.1 `npm run build` and `npm run lint` pass
+- [x] 5.1 `npm run build` and `npm run lint` pass — 5ec70bd
 
 #### Manual
 
-- [x] 5.2 Owned CV renders; section edit + Save persists across reopen
-- [x] 5.3 Non-owned/nonexistent id redirects to `/dashboard`
-- [x] 5.4 Regenerate / edit-answers affordance absent on this route
+- [x] 5.2 Owned CV renders; section edit + Save persists across reopen — 5ec70bd
+- [x] 5.3 Non-owned/nonexistent id redirects to `/dashboard` — 5ec70bd
+- [x] 5.4 Regenerate / edit-answers affordance absent on this route — 5ec70bd
 
 ### Phase 6: Dashboard Library + Delete
 
 #### Automated
 
-- [ ] 6.1 `npm run build` and `npm run lint` pass
+- [x] 6.1 `npm run build` and `npm run lint` pass
 
 #### Manual
 
-- [ ] 6.2 Dashboard lists CVs newest-first; empty state when none
-- [ ] 6.3 Open navigates to `/cv/[id]`; Delete confirms then removes card + row
-- [ ] 6.4 Failed delete surfaces alert, card remains
+- [x] 6.2 Dashboard lists CVs newest-first; empty state when none
+- [x] 6.3 Open navigates to `/cv/[id]`; Delete confirms then removes card + row
+- [x] 6.4 Failed delete surfaces alert, card remains
 
 ### Testing & Gates
 
