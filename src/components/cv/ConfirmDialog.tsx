@@ -20,6 +20,7 @@ export default function ConfirmDialog({
   body,
   confirmLabel,
   cancelLabel,
+  confirmDisabled = false,
   onConfirm,
   onCancel,
 }: {
@@ -27,6 +28,7 @@ export default function ConfirmDialog({
   body: string;
   confirmLabel: string;
   cancelLabel: string;
+  confirmDisabled?: boolean;
   onConfirm: () => void;
   onCancel: () => void;
 }) {
@@ -104,8 +106,9 @@ export default function ConfirmDialog({
           </button>
           <button
             type="button"
+            disabled={confirmDisabled}
             onClick={onConfirm}
-            className="inline-flex min-h-11 items-center justify-center rounded-md bg-red-700 px-5 py-3 text-sm font-semibold text-white transition-colors hover:bg-red-800 focus-visible:ring-3 focus-visible:ring-red-700/30 focus-visible:outline-none"
+            className="inline-flex min-h-11 items-center justify-center rounded-md bg-red-700 px-5 py-3 text-sm font-semibold text-white transition-colors hover:bg-red-800 focus-visible:ring-3 focus-visible:ring-red-700/30 focus-visible:outline-none disabled:cursor-not-allowed disabled:bg-slate-300 disabled:text-slate-600"
           >
             {confirmLabel}
           </button>

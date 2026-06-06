@@ -62,6 +62,21 @@ function buildSourceSnapshot(answers: CvQuestionnaireAnswers): SourceSnapshot {
   };
 }
 
+/**
+ * Assemble the row for a create: owner from the verified user, title defaulted from
+ * answers when absent, `language` mirrored from the draft, and `source_snapshot` built
+ * here (clients can't shape it). Pure and exported for unit testing.
+ */
+export function buildCvInsert(userId: string, input: SaveCvInput): Database["public"]["Tables"]["cvs"]["Insert"] {
+  return {
+    user_id: userId,
+    title: input.title ?? defaultCvTitle(input.answers, new Date()),
+    language: input.draft.language,
+    draft: toJson(input.draft),
+    source_snapshot: toJson(buildSourceSnapshot(input.answers)),
+  };
+}
+
 /** List the owner's CVs, newest-updated first. Content-free summaries. */
 export async function listCvs(supabase: TypedSupabaseClient, userId: string): Promise<SavedCvSummary[]> {
   const { data, error } = await supabase
@@ -97,16 +112,9 @@ export async function createCv(
   userId: string,
   input: SaveCvInput,
 ): Promise<SavedCvSummary> {
-  const title = input.title ?? defaultCvTitle(input.answers, new Date());
   const { data, error } = await supabase
     .from("cvs")
-    .insert({
-      user_id: userId,
-      title,
-      language: input.draft.language,
-      draft: toJson(input.draft),
-      source_snapshot: toJson(buildSourceSnapshot(input.answers)),
-    })
+    .insert(buildCvInsert(userId, input))
     .select(SUMMARY_COLUMNS)
     .single();
   if (error) {

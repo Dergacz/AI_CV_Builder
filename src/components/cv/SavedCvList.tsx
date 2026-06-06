@@ -33,7 +33,7 @@ export default function SavedCvList({ cvs: initialCvs }: { cvs: SavedCvSummary[]
   const [error, setError] = useState<string | null>(null);
 
   async function confirmDelete() {
-    if (!pendingDelete) return;
+    if (!pendingDelete || deleting) return;
     const target = pendingDelete;
     setDeleting(true);
     setError(null);
@@ -112,6 +112,7 @@ export default function SavedCvList({ cvs: initialCvs }: { cvs: SavedCvSummary[]
           body={cvLibraryCopy.delete.confirmBody}
           confirmLabel={deleting ? cvLibraryCopy.saveBar.saving : cvLibraryCopy.delete.confirm}
           cancelLabel={cvLibraryCopy.delete.cancel}
+          confirmDisabled={deleting}
           onConfirm={() => {
             void confirmDelete();
           }}

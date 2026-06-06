@@ -15,6 +15,8 @@ export interface CvSaveController {
   setTitle: (title: string) => void;
   status: CvSaveStatus;
   error: string | null;
+  /** Mark the current saved confirmation stale after draft edits. */
+  markUnsaved: () => void;
   /** Persist the current draft + answers: POST (create) when no cvId, else PUT (update). */
   save: (draft: GeneratedCvDraft, answers: CvQuestionnaireAnswers) => Promise<void>;
 }
@@ -39,6 +41,10 @@ export function useCvSave(init?: { cvId?: string; title?: string }): CvSaveContr
   const setTitle = useCallback((next: string) => {
     setTitleState(next);
     // Editing the title after a save means there are unsaved changes again.
+    setStatus((current) => (current === "saved" ? "idle" : current));
+  }, []);
+
+  const markUnsaved = useCallback(() => {
     setStatus((current) => (current === "saved" ? "idle" : current));
   }, []);
 
@@ -74,5 +80,5 @@ export function useCvSave(init?: { cvId?: string; title?: string }): CvSaveContr
     [cvId, title],
   );
 
-  return { cvId, title, setTitle, status, error, save };
+  return { cvId, title, setTitle, status, error, markUnsaved, save };
 }

@@ -413,22 +413,22 @@ This is the **first** migration in the repo; Supabase is already initialized (`s
 
 #### Automated
 
-- [x] 6.1 `npm run build` and `npm run lint` pass
+- [x] 6.1 `npm run build` and `npm run lint` pass — 9e67360
 
 #### Manual
 
-- [x] 6.2 Dashboard lists CVs newest-first; empty state when none
-- [x] 6.3 Open navigates to `/cv/[id]`; Delete confirms then removes card + row
-- [x] 6.4 Failed delete surfaces alert, card remains
+- [x] 6.2 Dashboard lists CVs newest-first; empty state when none — 9e67360
+- [x] 6.3 Open navigates to `/cv/[id]`; Delete confirms then removes card + row — 9e67360
+- [x] 6.4 Failed delete surfaces alert, card remains — 9e67360
 
 ### Testing & Gates
 
 #### Automated
 
-- [ ] T.1 Unit tests pass: schema accept/reject, `defaultCvTitle`, `source_snapshot` assembly
-- [ ] T.2 `npm run lint`, `npm run build`, `npm run test` all pass
+- [x] T.1 Unit tests pass: schema accept/reject, `defaultCvTitle`, `source_snapshot` assembly
+- [x] T.2 `npm run lint`, `npm run build`, `npm run test` all pass
 
 #### Manual
 
-- [ ] T.3 Full E2E walkthrough (generate → save → reopen → edit → delete)
-- [ ] T.4 RLS cross-account isolation verified (empty list + 404)
+- [x] T.3 Full E2E walkthrough (generate → save → reopen → edit → delete)
+- [x] T.4 RLS cross-account isolation verified (empty list + 404)

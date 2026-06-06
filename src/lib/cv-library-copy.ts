@@ -17,6 +17,8 @@ export const cvLibraryCopy = {
     description: "Open a saved CV to keep editing, or start a new one.",
     emptyTitle: "No saved CVs yet",
     emptyBody: "When you save a generated CV, it will appear here so you can reopen it later.",
+    loadErrorTitle: "Saved CVs could not be loaded",
+    loadErrorBody: "Your CVs are still safe. Refresh the page or try again in a little while.",
     startCta: "Start a new CV",
   },
 

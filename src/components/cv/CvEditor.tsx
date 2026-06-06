@@ -4,7 +4,7 @@ import type { GeneratedCvDraft } from "@/lib/cv-draft";
 import type { CvQuestionnaireAnswers } from "@/lib/cv-questionnaire";
 import { cvEditorCopy } from "@/lib/cv-editor-copy";
 import { cvLibraryCopy } from "@/lib/cv-library-copy";
-import type { CvDraftEditor } from "@/components/hooks/useCvDraftEditor";
+import type { CvDraftEditor, CvSectionKey } from "@/components/hooks/useCvDraftEditor";
 import type { CvSaveController } from "@/components/hooks/useCvSave";
 import ConfirmDialog from "@/components/cv/ConfirmDialog";
 import {
@@ -59,6 +59,11 @@ export default function CvEditor({
     } else {
       onEditAnswers();
     }
+  }
+
+  function commitSection<K extends CvSectionKey>(key: K, value: GeneratedCvDraft["sections"][K]) {
+    editor.commitSection(key, value);
+    save.markUnsaved();
   }
 
   return (
@@ -153,7 +158,7 @@ export default function CvEditor({
             <SummaryEditor
               summary={sections.summary}
               onSave={(value) => {
-                editor.commitSection("summary", value);
+                commitSection("summary", value);
               }}
               onCancel={editor.close}
             />
@@ -171,7 +176,7 @@ export default function CvEditor({
             <ExperienceEditor
               items={sections.experience}
               onSave={(value) => {
-                editor.commitSection("experience", value);
+                commitSection("experience", value);
               }}
               onCancel={editor.close}
             />
@@ -189,7 +194,7 @@ export default function CvEditor({
             <EducationEditor
               items={sections.education}
               onSave={(value) => {
-                editor.commitSection("education", value);
+                commitSection("education", value);
               }}
               onCancel={editor.close}
             />
@@ -207,7 +212,7 @@ export default function CvEditor({
             <SkillsEditor
               groups={sections.skills}
               onSave={(value) => {
-                editor.commitSection("skills", value);
+                commitSection("skills", value);
               }}
               onCancel={editor.close}
             />
@@ -225,7 +230,7 @@ export default function CvEditor({
             <LanguagesEditor
               languages={sections.languages}
               onSave={(value) => {
-                editor.commitSection("languages", value);
+                commitSection("languages", value);
               }}
               onCancel={editor.close}
             />

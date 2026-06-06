@@ -3,6 +3,7 @@ import { z } from "zod";
 import { createClient } from "@/lib/supabase";
 import { cvSaveSchema } from "@/lib/cv-answers.schema";
 import { cvSaveErrorMessages } from "@/lib/cv-save-messages";
+import { readBoundedJson } from "@/lib/request-body";
 import { deleteCv, getCv, updateCv } from "@/lib/services/cv-repository";
 import type { DeleteCvResponse, GetCvResponse, SaveCvResponse } from "@/types";
 
@@ -64,19 +65,12 @@ export const PUT: APIRoute = async (context) => {
     return json(404, { ok: false, error: "not_found", message: cvSaveErrorMessages.not_found });
   }
 
-  const contentLength = Number(context.request.headers.get("content-length"));
-  if (Number.isFinite(contentLength) && contentLength > MAX_REQUEST_BODY_BYTES) {
-    return json(413, { ok: false, error: "save_failed", message: cvSaveErrorMessages.save_failed });
+  const body = await readBoundedJson(context.request, MAX_REQUEST_BODY_BYTES);
+  if (!body.ok) {
+    return json(body.status, { ok: false, error: "save_failed", message: cvSaveErrorMessages.save_failed });
   }
 
-  let body: unknown;
-  try {
-    body = await context.request.json();
-  } catch {
-    return json(400, { ok: false, error: "save_failed", message: cvSaveErrorMessages.save_failed });
-  }
-
-  const parsed = cvSaveSchema.safeParse(body);
+  const parsed = cvSaveSchema.safeParse(body.body);
   if (!parsed.success) {
     return json(400, { ok: false, error: "save_failed", message: cvSaveErrorMessages.save_failed });
   }

@@ -11,6 +11,7 @@ const { user } = Astro.locals;
 // Route is auth-protected by middleware; load the owner's saved CVs for the library.
 const supabase = createClient(Astro.request.headers, Astro.cookies);
 let cvs: SavedCvSummary[] = [];
+let loadError = false;
 if (supabase) {
   const {
     data: { user: verifiedUser },
@@ -19,9 +20,13 @@ if (supabase) {
     try {
       cvs = await listCvs(supabase, verifiedUser.id);
     } catch {
-      cvs = [];
+      loadError = true;
     }
+  } else {
+    loadError = true;
   }
+} else {
+  loadError = true;
 }
 ---
 
@@ -84,7 +89,7 @@ if (supabase) {
             </div>
             <div>
               <dt class="font-medium text-slate-950">Saved CVs</dt>
-              <dd class="mt-1 text-slate-600">{cvs.length} saved</dd>
+              <dd class="mt-1 text-slate-600">{loadError ? "Unavailable" : `${cvs.length} saved`}</dd>
             </div>
           </dl>
         </aside>
@@ -104,7 +109,16 @@ if (supabase) {
           </a>
         </div>
         <div class="mt-6">
-          <SavedCvList client:load cvs={cvs} />
+          {
+            loadError ? (
+              <div class="rounded-lg border border-red-200 bg-red-50 p-6" role="alert">
+                <h3 class="text-base font-semibold text-red-950">{cvLibraryCopy.dashboard.loadErrorTitle}</h3>
+                <p class="mt-2 max-w-md text-sm leading-6 text-red-900">{cvLibraryCopy.dashboard.loadErrorBody}</p>
+              </div>
+            ) : (
+              <SavedCvList client:load cvs={cvs} />
+            )
+          }
         </div>
       </section>
     </div>
