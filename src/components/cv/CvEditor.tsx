@@ -1,8 +1,12 @@
-import { useEffect, useRef, useState, type ReactNode } from "react";
+import { useState, type ReactNode } from "react";
 
 import type { GeneratedCvDraft } from "@/lib/cv-draft";
+import type { CvQuestionnaireAnswers } from "@/lib/cv-questionnaire";
 import { cvEditorCopy } from "@/lib/cv-editor-copy";
-import type { CvDraftEditor } from "@/components/hooks/useCvDraftEditor";
+import { cvLibraryCopy } from "@/lib/cv-library-copy";
+import type { CvDraftEditor, CvSectionKey } from "@/components/hooks/useCvDraftEditor";
+import type { CvSaveController } from "@/components/hooks/useCvSave";
+import ConfirmDialog from "@/components/cv/ConfirmDialog";
 import {
   DraftSection,
   EducationContent,
@@ -30,11 +34,16 @@ import {
 export default function CvEditor({
   draft,
   editor,
+  save,
+  answers,
   onEditAnswers,
 }: {
   draft: GeneratedCvDraft;
   editor: CvDraftEditor;
-  onEditAnswers: () => void;
+  save: CvSaveController;
+  answers: CvQuestionnaireAnswers;
+  /** Omitted on the reopen flow (Phase 5), which hides the edit-answers/regenerate path. */
+  onEditAnswers?: () => void;
 }) {
   const { sections, assumptions, warnings } = draft;
   const canEdit = editor.openSection === null;
@@ -44,11 +53,17 @@ export default function CvEditor({
   // can still be cancelled locally, so it should not trigger the discard-edits prompt.
   const hasWorkToLose = editor.hasEdits;
   function requestEditAnswers() {
+    if (!onEditAnswers) return;
     if (hasWorkToLose) {
       setConfirmOpen(true);
     } else {
       onEditAnswers();
     }
+  }
+
+  function commitSection<K extends CvSectionKey>(key: K, value: GeneratedCvDraft["sections"][K]) {
+    editor.commitSection(key, value);
+    save.markUnsaved();
   }
 
   return (
@@ -62,13 +77,61 @@ export default function CvEditor({
           <h2 className="mt-2 text-2xl font-semibold text-slate-950">{cvEditorCopy.preview.title}</h2>
           <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-600">{cvEditorCopy.preview.description}</p>
         </div>
-        <button
-          type="button"
-          onClick={requestEditAnswers}
-          className="inline-flex min-h-11 shrink-0 items-center justify-center rounded-md border border-slate-300 bg-white px-5 py-3 text-sm font-semibold text-slate-900 transition-colors hover:border-slate-400 hover:bg-slate-100 focus-visible:ring-3 focus-visible:ring-slate-500/20 focus-visible:outline-none"
-        >
-          {cvEditorCopy.preview.editAnswers}
-        </button>
+        {onEditAnswers && (
+          <button
+            type="button"
+            onClick={requestEditAnswers}
+            className="inline-flex min-h-11 shrink-0 items-center justify-center rounded-md border border-slate-300 bg-white px-5 py-3 text-sm font-semibold text-slate-900 transition-colors hover:border-slate-400 hover:bg-slate-100 focus-visible:ring-3 focus-visible:ring-slate-500/20 focus-visible:outline-none"
+          >
+            {cvEditorCopy.preview.editAnswers}
+          </button>
+        )}
+      </div>
+
+      <div className="mt-5 rounded-md border border-slate-200 bg-slate-50 p-4">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+          <div className="flex-1">
+            <label htmlFor="cv-title" className="text-sm font-medium text-slate-700">
+              {cvLibraryCopy.saveBar.titleLabel}
+            </label>
+            <input
+              id="cv-title"
+              type="text"
+              value={save.title}
+              maxLength={200}
+              onChange={(event) => {
+                save.setTitle(event.target.value);
+              }}
+              placeholder={cvLibraryCopy.saveBar.titlePlaceholder}
+              className="mt-1 block w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 transition-colors focus-visible:border-emerald-600 focus-visible:ring-3 focus-visible:ring-emerald-700/20 focus-visible:outline-none"
+            />
+          </div>
+          <div className="flex items-center gap-3">
+            {save.status === "saved" && (
+              <span role="status" className="text-sm font-medium text-emerald-700">
+                {cvLibraryCopy.saveBar.saved}
+              </span>
+            )}
+            <button
+              type="button"
+              onClick={() => {
+                void save.save(draft, answers);
+              }}
+              disabled={save.status === "saving" || !canEdit}
+              className="inline-flex min-h-11 shrink-0 items-center justify-center rounded-md bg-emerald-700 px-5 py-3 text-sm font-semibold text-white transition-colors hover:bg-emerald-800 focus-visible:ring-3 focus-visible:ring-emerald-700/30 focus-visible:outline-none disabled:cursor-not-allowed disabled:bg-slate-300 disabled:text-slate-600"
+            >
+              {save.status === "saving" ? cvLibraryCopy.saveBar.saving : cvLibraryCopy.saveBar.save}
+            </button>
+          </div>
+        </div>
+        {save.status === "error" && save.error && (
+          <div
+            role="alert"
+            className="mt-3 rounded-md border border-red-200 bg-red-50 p-3 text-sm leading-6 text-red-900"
+          >
+            {save.error}
+          </div>
+        )}
       </div>
 
       {warnings.length > 0 && (
@@ -95,7 +158,7 @@ export default function CvEditor({
             <SummaryEditor
               summary={sections.summary}
               onSave={(value) => {
-                editor.commitSection("summary", value);
+                commitSection("summary", value);
               }}
               onCancel={editor.close}
             />
@@ -113,7 +176,7 @@ export default function CvEditor({
             <ExperienceEditor
               items={sections.experience}
               onSave={(value) => {
-                editor.commitSection("experience", value);
+                commitSection("experience", value);
               }}
               onCancel={editor.close}
             />
@@ -131,7 +194,7 @@ export default function CvEditor({
             <EducationEditor
               items={sections.education}
               onSave={(value) => {
-                editor.commitSection("education", value);
+                commitSection("education", value);
               }}
               onCancel={editor.close}
             />
@@ -149,7 +212,7 @@ export default function CvEditor({
             <SkillsEditor
               groups={sections.skills}
               onSave={(value) => {
-                editor.commitSection("skills", value);
+                commitSection("skills", value);
               }}
               onCancel={editor.close}
             />
@@ -167,7 +230,7 @@ export default function CvEditor({
             <LanguagesEditor
               languages={sections.languages}
               onSave={(value) => {
-                editor.commitSection("languages", value);
+                commitSection("languages", value);
               }}
               onCancel={editor.close}
             />
@@ -186,22 +249,28 @@ export default function CvEditor({
         </section>
       )}
 
-      <div className="mt-6 border-t border-slate-200 pt-5">
-        <button
-          type="button"
-          onClick={requestEditAnswers}
-          className="text-sm font-semibold text-emerald-700 underline-offset-4 hover:underline"
-        >
-          {cvEditorCopy.preview.regenerateLink}
-        </button>
-      </div>
+      {onEditAnswers && (
+        <div className="mt-6 border-t border-slate-200 pt-5">
+          <button
+            type="button"
+            onClick={requestEditAnswers}
+            className="text-sm font-semibold text-emerald-700 underline-offset-4 hover:underline"
+          >
+            {cvEditorCopy.preview.regenerateLink}
+          </button>
+        </div>
+      )}
 
       {confirmOpen && (
-        <ConfirmDiscardDialog
+        <ConfirmDialog
+          title={cvEditorCopy.regenerate.confirmTitle}
+          body={cvEditorCopy.regenerate.confirmBody}
+          confirmLabel={cvEditorCopy.regenerate.confirm}
+          cancelLabel={cvEditorCopy.regenerate.cancel}
           onConfirm={() => {
             setConfirmOpen(false);
             editor.reset();
-            onEditAnswers();
+            onEditAnswers?.();
           }}
           onCancel={() => {
             setConfirmOpen(false);
@@ -209,97 +278,6 @@ export default function CvEditor({
         />
       )}
     </section>
-  );
-}
-
-const focusableSelector =
-  'a[href], button:not([disabled]), textarea:not([disabled]), input:not([disabled]), select:not([disabled]), [tabindex]:not([tabindex="-1"])';
-
-function getFocusableElements(container: HTMLElement): HTMLElement[] {
-  return Array.from(container.querySelectorAll<HTMLElement>(focusableSelector));
-}
-
-function ConfirmDiscardDialog({ onConfirm, onCancel }: { onConfirm: () => void; onCancel: () => void }) {
-  const dialogRef = useRef<HTMLDivElement>(null);
-  const restoreFocusRef = useRef<HTMLElement | null>(null);
-
-  useEffect(() => {
-    restoreFocusRef.current = document.activeElement instanceof HTMLElement ? document.activeElement : null;
-    const firstFocusable = dialogRef.current ? getFocusableElements(dialogRef.current)[0] : null;
-    firstFocusable?.focus();
-
-    return () => {
-      restoreFocusRef.current?.focus();
-    };
-  }, []);
-
-  return (
-    <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/40 p-4"
-      onKeyDown={(event) => {
-        if (event.key === "Escape") {
-          onCancel();
-          return;
-        }
-
-        if (event.key !== "Tab" || !dialogRef.current) return;
-
-        const focusable = getFocusableElements(dialogRef.current);
-        if (focusable.length === 0) {
-          event.preventDefault();
-          return;
-        }
-
-        const first = focusable[0];
-        const last = focusable[focusable.length - 1];
-
-        if (event.shiftKey && document.activeElement === first) {
-          event.preventDefault();
-          last.focus();
-        } else if (!event.shiftKey && document.activeElement === last) {
-          event.preventDefault();
-          first.focus();
-        }
-      }}
-      role="presentation"
-      onClick={onCancel}
-    >
-      <div
-        ref={dialogRef}
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="cv-discard-title"
-        aria-describedby="cv-discard-body"
-        className="w-full max-w-md rounded-lg border border-slate-200 bg-white p-5 shadow-lg"
-        onClick={(event) => {
-          event.stopPropagation();
-        }}
-      >
-        <h2 id="cv-discard-title" className="text-lg font-semibold text-slate-950">
-          {cvEditorCopy.regenerate.confirmTitle}
-        </h2>
-        <p id="cv-discard-body" className="mt-2 text-sm leading-6 text-slate-600">
-          {cvEditorCopy.regenerate.confirmBody}
-        </p>
-        <div className="mt-5 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
-          <button
-            type="button"
-            autoFocus
-            onClick={onCancel}
-            className="inline-flex min-h-11 items-center justify-center rounded-md border border-slate-300 bg-white px-5 py-3 text-sm font-semibold text-slate-900 transition-colors hover:border-slate-400 hover:bg-slate-100 focus-visible:ring-3 focus-visible:ring-slate-500/20 focus-visible:outline-none"
-          >
-            {cvEditorCopy.regenerate.cancel}
-          </button>
-          <button
-            type="button"
-            onClick={onConfirm}
-            className="inline-flex min-h-11 items-center justify-center rounded-md bg-red-700 px-5 py-3 text-sm font-semibold text-white transition-colors hover:bg-red-800 focus-visible:ring-3 focus-visible:ring-red-700/30 focus-visible:outline-none"
-          >
-            {cvEditorCopy.regenerate.confirm}
-          </button>
-        </div>
-      </div>
-    </div>
   );
 }
 

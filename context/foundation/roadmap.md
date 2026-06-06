@@ -3,7 +3,7 @@ project: AI CV Builder
 version: 1
 status: draft
 created: 2026-06-01
-updated: 2026-06-05
+updated: 2026-06-06
 prd_version: 1
 main_goal: speed
 top_blocker: decisions
@@ -42,12 +42,12 @@ Here, north star means the smallest end-to-end slice whose successful delivery p
 | S-03 | guided-questionnaire-capture        | user can create a new CV by answering a simple guided questionnaire                                                                 | S-01, S-02                   | US-01, FR-004, FR-005                    | done    | -                |
 | S-04 | generated-cv-draft                  | user can receive a usable structured CV draft from questionnaire answers                                                            | F-01, S-03                   | US-01, FR-006, FR-012, FR-013, FR-014    | done    | -                |
 | S-05 | cv-template-section-editing         | user can review the draft in one clean template and edit named sections                                                             | S-04                         | US-01, FR-007, FR-008                    | done    | -                |
-| S-06 | saved-cv-library                    | user can save CV changes and reopen previous CVs from their account                                                                 | F-02, S-02                   | FR-009, FR-011                           | ready   | -                |
+| S-06 | saved-cv-library                    | user can save CV changes and reopen previous CVs from their account                                                                 | F-02, S-02                   | FR-009, FR-011                           | done    | -                |
 | S-07 | pdf-export                          | user can export the reviewed CV as a clean PDF and see export failure states                                                        | F-01, S-05                   | US-01, FR-010, FR-014                    | ready   | -                |
 | S-09 | interface-localization              | user can use the whole app interface (landing, auth, dashboard, questionnaire, review, error states) in English, Polish, or Russian | S-01, S-02, S-03             | US-01, FR-015                            | ready   | -                |
-| S-08 | full-saved-pdf-flow                 | user can complete the full saved PDF flow in English, Polish, or Russian                                                            | F-01, F-02, S-06, S-07, S-09 | US-01, FR-015                            | blocked | S-06, S-07, S-09 |
+| S-08 | full-saved-pdf-flow                 | user can complete the full saved PDF flow in English, Polish, or Russian                                                            | F-01, F-02, S-06, S-07, S-09 | US-01, FR-015                            | blocked | S-07, S-09       |
 
-**Ready now:** S-06 (`saved-cv-library`), S-07 (`pdf-export`), S-09 (`interface-localization`) - all have prerequisites met and can be planned in parallel.
+**Ready now:** S-07 (`pdf-export`), S-09 (`interface-localization`) - both have prerequisites met and can be planned in parallel.
 
 ## Streams
 
@@ -178,7 +178,7 @@ Foundations below assume these are present and do NOT re-scaffold them.
 - **Unknowns:**
   - F-02 and S-02 are resolved; keep the saved-CV library minimal and owner-only when planning this slice. - Owner: team. Block: no.
 - **Risk:** Saving and reopening are required for real usefulness, but the dashboard should stay minimal and not distract from finishing the first CV.
-- **Status:** ready
+- **Status:** done
 
 ### S-07: PDF export
 
@@ -199,9 +199,9 @@ Foundations below assume these are present and do NOT re-scaffold them.
 - **Outcome:** user can complete the full flow from starting a CV to exporting a saved PDF in English, Polish, or Russian.
 - **Change ID:** full-saved-pdf-flow
 - **PRD refs:** US-01, FR-015
-- **Prerequisites:** F-01 (done), F-02 (done), S-06, S-07, S-09
+- **Prerequisites:** F-01 (done), F-02 (done), S-06 (done), S-07, S-09
 - **Parallel with:** -
-- **Blocked by:** S-06, S-07, S-09 (save/reopen, PDF export, and interface localization not yet implemented)
+- **Blocked by:** S-07, S-09 (PDF export and interface localization not yet implemented)
 - **Unknowns:**
   - Interface translation is owned by S-09; this slice's remaining unknown is integration-only - verifying the full start -> save -> export flow renders correctly in each of English, Polish, and Russian once S-06, S-07, and S-09 land. - Owner: team. Block: no.
 - **Risk:** This is the chosen first full proof; it intentionally waits until generation, save/reopen, PDF export, and the multilingual UI can be exercised together.
@@ -233,7 +233,7 @@ Foundations below assume these are present and do NOT re-scaffold them.
 | S-03       | guided-questionnaire-capture        | Build guided questionnaire capture                          | no                    | Implemented; guided questionnaire and review are complete                                                        |
 | S-04       | generated-cv-draft                  | Generate usable CV draft from questionnaire answers         | no                    | Implemented; OpenAI generation service, API route, and questionnaire generation UI are complete                  |
 | S-05       | cv-template-section-editing         | Add CV template review and section editing                  | no                    | Implemented; clean template review and per-section editing are complete                                          |
-| S-06       | saved-cv-library                    | Save and reopen CVs from account                            | yes                   | F-02 and S-02 resolved; ready to plan                                                                            |
+| S-06       | saved-cv-library                    | Save and reopen CVs from account                            | no                    | Implemented; save/reopen library, owner-only API, and delete are complete                                        |
 | S-07       | pdf-export                          | Export reviewed CV as PDF                                   | yes                   | S-05 resolved (F-01 resolved); ready to plan                                                                     |
 | S-08       | full-saved-pdf-flow                 | Complete saved PDF flow with language support               | no                    | Blocked by S-06, S-07, and S-09 (F-01, F-02 resolved)                                                            |
 | S-09       | interface-localization              | Translate the app interface into English, Polish, Russian   | yes                   | S-01/S-02/S-03 resolved; ready to plan. UI language separate from CV output language; UI-string translation only |
@@ -264,3 +264,4 @@ Foundations below assume these are present and do NOT re-scaffold them.
 - **S-03 `guided-questionnaire-capture`** - Implemented on 2026-06-04. Protected `/cv/new` route, client-only guided questionnaire island, and read-only review end state are complete; questionnaire answer contract (`QUESTIONNAIRE_VERSION`, output language) unlocks S-04 planning.
 - **S-04 `generated-cv-draft`** - Implemented on 2026-06-05. OpenAI generation service (`src/lib/services/cv-generation.ts`), `/api/cv/generate` route with content-length validation, and the questionnaire-driven generation UI with loading/failure states are complete; the structured draft (`GeneratedCvDraft`) unlocks S-05 planning.
 - **S-05 `cv-template-section-editing`** - Implemented on 2026-06-05. Clean professional CV template review with per-section editing (Summary, Experience, Education, Skills, Languages), a regenerate-discard guard, and accessibility improvements are complete; the reviewed CV template unlocks S-07 (pdf-export) planning.
+- **S-06 `saved-cv-library`** - Implemented on 2026-06-06. First DB migration (`public.cvs` with owner-only RLS + `updated_at` trigger), typed Supabase client, owner-enforcing repository, saved-CV API (`/api/cv`, `/api/cv/[id]`), save bar in the creation flow, bookmarkable `/cv/[id]` reopen route, and dashboard library with delete are complete; questionnaire answers are persisted in `source_snapshot` and restored on reopen. Unblocks S-08 once S-07 and S-09 land.

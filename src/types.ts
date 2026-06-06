@@ -18,3 +18,53 @@ export type {
   GenerationErrorBucket,
   GenerateDraftResponse,
 } from "@/lib/cv-draft";
+
+import type { GeneratedCvDraft } from "@/lib/cv-draft";
+import type { CvOutputLanguage, CvQuestionnaireAnswers } from "@/lib/cv-questionnaire";
+import type { CvSaveErrorBucket } from "@/lib/cv-save-messages";
+
+/**
+ * Saved-CV entity and DTO types (F-02 persistence contract / S-06).
+ *
+ * `source_snapshot` captures the questionnaire answers that produced a draft —
+ * these live outside `GeneratedCvDraft`, so they are threaded separately on save
+ * and restored on reopen. Listable fields are kept flat (no draft) for the library.
+ */
+
+/** Snapshot of the inputs that produced a saved CV; stored as `cvs.source_snapshot`. */
+export interface SourceSnapshot {
+  questionnaireVersion: string;
+  answers: CvQuestionnaireAnswers;
+  capturedAt: string;
+}
+
+/** Library-listing shape — flat, content-free (no `draft`/`source_snapshot`). */
+export interface SavedCvSummary {
+  id: string;
+  title: string;
+  language: CvOutputLanguage;
+  createdAt: string;
+  updatedAt: string;
+}
+
+/** A fully-loaded saved CV, including the draft and its source snapshot. */
+export interface SavedCv extends SavedCvSummary {
+  draft: GeneratedCvDraft;
+  sourceSnapshot: SourceSnapshot;
+}
+
+/**
+ * Saved-CV API response envelopes (discriminated on `ok`), mirroring the
+ * generation route's `{ ok: true, ... } | { ok: false, error, message }` shape.
+ * Shared by the routes and the client islands that consume them.
+ */
+export interface CvErrorResponse {
+  ok: false;
+  error: CvSaveErrorBucket;
+  message: string;
+}
+export type ListCvsResponse = { ok: true; cvs: SavedCvSummary[] } | CvErrorResponse;
+export type GetCvResponse = { ok: true; cv: SavedCv } | CvErrorResponse;
+/** Create (POST) and update (PUT) both return the saved summary. */
+export type SaveCvResponse = { ok: true; cv: SavedCvSummary } | CvErrorResponse;
+export type DeleteCvResponse = { ok: true } | CvErrorResponse;

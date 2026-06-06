@@ -10,9 +10,11 @@ import {
 import type { GeneratedCvDraft, GenerateDraftResponse } from "@/lib/cv-draft";
 // Value import from the zod-free messages module so client and server share one source of error copy.
 import { generationErrorMessages } from "@/lib/cv-draft-messages";
+import { defaultCvTitle } from "@/lib/cv-library-copy";
 import CvEditor from "@/components/cv/CvEditor";
 import { TextAreaField, TextField } from "@/components/cv/CvFormFields";
 import { useCvDraftEditor } from "@/components/hooks/useCvDraftEditor";
+import { useCvSave } from "@/components/hooks/useCvSave";
 import { cn } from "@/lib/utils";
 
 type StepKey = "basics" | "experienceEducation" | "skillsLanguages" | "extraContext" | "review";
@@ -73,6 +75,7 @@ export default function QuestionnaireFlow() {
   const [draft, setDraft] = useState<GeneratedCvDraft | null>(null);
   const [generationError, setGenerationError] = useState<string | null>(null);
   const editor = useCvDraftEditor(setDraft);
+  const save = useCvSave();
 
   const activeStep = steps[activeStepIndex];
   const isFirstStep = activeStepIndex === 0;
@@ -93,6 +96,10 @@ export default function QuestionnaireFlow() {
       if (data.ok) {
         setDraft(data.draft);
         setStatus("success");
+        // Seed an editable default title now that the answers are final.
+        if (!save.title.trim()) {
+          save.setTitle(defaultCvTitle(answers, new Date()));
+        }
       } else {
         setGenerationError(data.message);
         setStatus("error");
@@ -148,7 +155,7 @@ export default function QuestionnaireFlow() {
   }
 
   if (status === "success" && draft) {
-    return <CvEditor draft={draft} editor={editor} onEditAnswers={handleEditAnswers} />;
+    return <CvEditor draft={draft} editor={editor} save={save} answers={answers} onEditAnswers={handleEditAnswers} />;
   }
 
   return (

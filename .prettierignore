@@ -1,0 +1,2 @@
+# Supabase-generated DB types use their own formatting.
+src/db/database.types.ts
