@@ -365,19 +365,19 @@ This is the **first** migration in the repo; Supabase is already initialized (`s
 
 #### Automated
 
-- [x] 2.1 `npm run build` passes (types/schemas/service; `generate.ts` imports extracted schema)
-- [x] 2.2 `npm run lint` passes
+- [x] 2.1 `npm run build` passes (types/schemas/service; `generate.ts` imports extracted schema) — 7732ce3
+- [x] 2.2 `npm run lint` passes — 7732ce3
 
 #### Manual
 
-- [ ] 2.3 Repository is the single owner-enforcement point (no client-supplied owner path)
+- [x] 2.3 Repository is the single owner-enforcement point (no client-supplied owner path) — 7732ce3
 
 ### Phase 3: API Routes
 
 #### Automated
 
-- [ ] 3.1 `npm run build` passes (routes typecheck against typed client)
-- [ ] 3.2 `npm run lint` passes
+- [x] 3.1 `npm run build` passes (routes typecheck against typed client)
+- [x] 3.2 `npm run lint` passes
 
 #### Manual
 

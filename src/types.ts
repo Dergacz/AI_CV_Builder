@@ -21,6 +21,7 @@ export type {
 
 import type { GeneratedCvDraft } from "@/lib/cv-draft";
 import type { CvOutputLanguage, CvQuestionnaireAnswers } from "@/lib/cv-questionnaire";
+import type { CvSaveErrorBucket } from "@/lib/cv-save-messages";
 
 /**
  * Saved-CV entity and DTO types (F-02 persistence contract / S-06).
@@ -51,3 +52,19 @@ export interface SavedCv extends SavedCvSummary {
   draft: GeneratedCvDraft;
   sourceSnapshot: SourceSnapshot;
 }
+
+/**
+ * Saved-CV API response envelopes (discriminated on `ok`), mirroring the
+ * generation route's `{ ok: true, ... } | { ok: false, error, message }` shape.
+ * Shared by the routes and the client islands that consume them.
+ */
+export interface CvErrorResponse {
+  ok: false;
+  error: CvSaveErrorBucket;
+  message: string;
+}
+export type ListCvsResponse = { ok: true; cvs: SavedCvSummary[] } | CvErrorResponse;
+export type GetCvResponse = { ok: true; cv: SavedCv } | CvErrorResponse;
+/** Create (POST) and update (PUT) both return the saved summary. */
+export type SaveCvResponse = { ok: true; cv: SavedCvSummary } | CvErrorResponse;
+export type DeleteCvResponse = { ok: true } | CvErrorResponse;
