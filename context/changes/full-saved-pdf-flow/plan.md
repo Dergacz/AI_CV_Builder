@@ -332,22 +332,22 @@ No database migration is planned for S-08. Existing `public.cvs` rows keep their
 
 #### Automated
 
-- [x] 1.1 `src/lib/cv-full-flow-contract.test.ts` exists and passes with `npm run test -- src/lib/cv-full-flow-contract.test.ts`
-- [x] 1.2 `npm run test` passes with the new contract test included
-- [x] 1.3 `npm run lint` passes after adding the test and checklist
+- [x] 1.1 `src/lib/cv-full-flow-contract.test.ts` exists and passes with `npm run test -- src/lib/cv-full-flow-contract.test.ts` — 073253a
+- [x] 1.2 `npm run test` passes with the new contract test included — 073253a
+- [x] 1.3 `npm run lint` passes after adding the test and checklist — 073253a
 
 #### Manual
 
-- [x] 1.4 `smoke-checklist.md` is specific enough for a human or agent to execute without reopening the planning thread
-- [x] 1.5 The checklist includes one full Chrome path, all three CV output languages, at least two UI/output mismatches, and the unsaved-edit export clarity check
+- [x] 1.4 `smoke-checklist.md` is specific enough for a human or agent to execute without reopening the planning thread — 073253a
+- [x] 1.5 The checklist includes one full Chrome path, all three CV output languages, at least two UI/output mismatches, and the unsaved-edit export clarity check — 073253a
 
 ### Phase 2: Full Flow Integration Proof
 
 #### Automated
 
-- [ ] 2.1 `npm run test` passes after any targeted fixes
-- [ ] 2.2 `npm run lint` passes after any targeted fixes
-- [ ] 2.3 Scope guard confirms no broad feature surfaces were introduced
+- [x] 2.1 `npm run test` passes after any targeted fixes
+- [x] 2.2 `npm run lint` passes after any targeted fixes
+- [x] 2.3 Scope guard confirms no broad feature surfaces were introduced
 
 #### Manual
 
@@ -361,17 +361,17 @@ No database migration is planned for S-08. Existing `public.cvs` rows keep their
 
 #### Automated
 
-- [ ] 3.1 `npm run test` passes
-- [ ] 3.2 `npm run lint` passes
-- [ ] 3.3 `npm run build` passes
-- [ ] 3.4 Build-output inspection confirms `@react-pdf/renderer` is absent from the server/SSR application bundle
+- [x] 3.1 `npm run test` passes
+- [x] 3.2 `npm run lint` passes
+- [x] 3.3 `npm run build` passes
+- [x] 3.4 Build-output inspection confirms `@react-pdf/renderer` is absent from the server/SSR application bundle
 
 #### Manual
 
-- [ ] 3.5 Generation unavailable, save failure, missing/non-owned reopen, and export failure states are checked and recorded
-- [ ] 3.6 Export failure keeps the edited CV visible and retryable
-- [ ] 3.7 Chrome full path plus Safari/Firefox/Edge/mobile targeted export checks are recorded
-- [ ] 3.8 English, Polish, and Russian PDF text renders correctly after the joined flow
+- [x] 3.5 Generation unavailable, save failure, missing/non-owned reopen, and export failure states are checked and recorded
+- [x] 3.6 Export failure keeps the edited CV visible and retryable
+- [x] 3.7 Chrome full path plus Safari/Firefox/Edge/mobile targeted export checks are recorded
+- [x] 3.8 English, Polish, and Russian PDF text renders correctly after the joined flow
 
 ### Phase 4: Closure Bundle
 
