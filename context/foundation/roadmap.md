@@ -45,9 +45,9 @@ Here, north star means the smallest end-to-end slice whose successful delivery p
 | S-06 | saved-cv-library                    | user can save CV changes and reopen previous CVs from their account                                                                 | F-02, S-02                   | FR-009, FR-011                           | done    | -          |
 | S-07 | pdf-export                          | user can export the reviewed CV as a clean PDF and see export failure states                                                        | F-01, S-05                   | US-01, FR-010, FR-014                    | done    | -          |
 | S-09 | interface-localization              | user can use the whole app interface (landing, auth, dashboard, questionnaire, review, error states) in English, Polish, or Russian | S-01, S-02, S-03             | US-01, FR-015                            | done    | -          |
-| S-08 | full-saved-pdf-flow                 | user can complete the full saved PDF flow in English, Polish, or Russian                                                            | F-01, F-02, S-06, S-07, S-09 | US-01, FR-015                            | ready   | -          |
+| S-08 | full-saved-pdf-flow                 | user can complete the full saved PDF flow in English, Polish, or Russian                                                            | F-01, F-02, S-06, S-07, S-09 | US-01, FR-015                            | done    | -          |
 
-**Ready now:** S-08 (`full-saved-pdf-flow`) - all prerequisites are complete; this is the north star integration slice.
+**Ready now:** none - S-08 (`full-saved-pdf-flow`) is implemented; the north star integration slice is complete and the roadmap MVP scope is fully delivered.
 
 ## Streams
 
@@ -205,7 +205,7 @@ Foundations below assume these are present and do NOT re-scaffold them.
 - **Unknowns:**
   - Interface translation is implemented by S-09; this slice's remaining unknown is integration-only - verifying the full start -> save -> export flow renders correctly in each of English, Polish, and Russian. - Owner: team. Block: no.
 - **Risk:** This is the chosen first full proof; it intentionally waits until generation, save/reopen, PDF export, and the multilingual UI can be exercised together.
-- **Status:** ready
+- **Status:** done (implemented 2026-06-07)
 
 ### S-09: Interface localization (multilingual UI)
 
@@ -235,7 +235,7 @@ Foundations below assume these are present and do NOT re-scaffold them.
 | S-05       | cv-template-section-editing         | Add CV template review and section editing                  | no                    | Implemented; clean template review and per-section editing are complete                                          |
 | S-06       | saved-cv-library                    | Save and reopen CVs from account                            | no                    | Implemented; save/reopen library, owner-only API, and delete are complete                                        |
 | S-07       | pdf-export                          | Export reviewed CV as PDF                                   | no                    | Implemented; browser-side @react-pdf/renderer export with bundled Noto Sans (en/pl/ru), failure states           |
-| S-08       | full-saved-pdf-flow                 | Complete saved PDF flow with language support               | yes                   | F-01, F-02, S-06, S-07, and S-09 resolved; ready for the north star integration slice                            |
+| S-08       | full-saved-pdf-flow                 | Complete saved PDF flow with language support               | no                    | Implemented; north star integration slice verified end to end (create -> save -> reopen -> export) in en/pl/ru   |
 | S-09       | interface-localization              | Translate the app interface into English, Polish, Russian   | no                    | Implemented; UI language is separate from CV output language; UI-string translation only                         |
 
 ## Open Roadmap Questions
@@ -267,3 +267,4 @@ Foundations below assume these are present and do NOT re-scaffold them.
 - **S-06 `saved-cv-library`** - Implemented on 2026-06-06. First DB migration (`public.cvs` with owner-only RLS + `updated_at` trigger), typed Supabase client, owner-enforcing repository, saved-CV API (`/api/cv`, `/api/cv/[id]`), save bar in the creation flow, bookmarkable `/cv/[id]` reopen route, and dashboard library with delete are complete; questionnaire answers are persisted in `source_snapshot` and restored on reopen. Unblocks S-08 once S-07 and S-09 land.
 - **S-07 `pdf-export`** - Implemented on 2026-06-07. Browser-side PDF export via lazily-loaded `@react-pdf/renderer` (`CvPdfDocument` over the structured draft + a name header), `useCvExport` state machine, and an Export button in the editor save bar with inline failure states (`export_failed` / `service_unavailable`, CV stays visible, retry). Bundled Noto Sans (Latin/Latin-Ext/Cyrillic) renders en/pl/ru correctly; the heavy lib is kept out of the SSR/Worker bundle by switching the `/cv/new` and `/cv/[id]` islands to `client:only`. Pure helpers (`cv-export-filename`, `cv-export-error`) are unit-tested; the render is manual QA per the F-01 spike. Leaves only S-09 before the S-08 north star.
 - **S-09 `interface-localization`** - Implemented on 2026-06-07. Lightweight cookie-backed UI locale selection (`en`, `pl`, `ru`) localizes landing, auth, dashboard, questionnaire, editor/review, saved-CV, export, and major error/empty states while keeping URLs unprefixed. CV output language, saved CV language, durable titles, and exported content remain independent from the interface locale. Review triage removed language switching from stateful CV edit screens for MVP, neutralized name-only saved-title fallback text, accepted deterministic client catalog selection as an implementation deviation, and added fallback handling for unknown API error buckets. Unblocks S-08.
+- **S-08 `full-saved-pdf-flow`** - Implemented on 2026-06-07. North star integration proof: a signed-in user creates a CV, generates a structured draft, edits named sections, saves, reopens from the dashboard, edits again, and exports the current on-screen draft as PDF, with the selected CV output language (en/pl/ru) preserved through generation, save/reopen, and export independently of the UI locale. Added a deterministic full-flow contract test (`src/lib/cv-full-flow-contract.test.ts`) and an executed smoke checklist (`context/changes/full-saved-pdf-flow/smoke-checklist.md`) covering the Chrome happy path, the representative language matrix with UI/output mismatches, the four joined failure states, focused Safari/Firefox/Edge/mobile export checks, and the S-07 bundle-isolation reconfirmation (`@react-pdf/renderer` stays out of the server bundle). No new feature surfaces and no DB migration; targeted verification only. Completes the roadmap MVP scope.
