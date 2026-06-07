@@ -351,41 +351,41 @@ No database migration is planned for S-08. Existing `public.cvs` rows keep their
 
 #### Manual
 
-- [ ] 2.4 Full Chrome happy path passes from `/cv/new` through PDF export
-- [ ] 2.5 Export after an unsaved edit uses the current on-screen draft while save and export statuses remain distinct
-- [ ] 2.6 Saving twice updates the same CV instead of creating duplicates
-- [ ] 2.7 Reopened `/cv/[id]` hides edit-answers/regenerate behavior and still supports section edits, save, and export
-- [ ] 2.8 Representative language matrix passes across all output languages and at least two UI/output mismatches
+- [x] 2.4 Full Chrome happy path passes from `/cv/new` through PDF export — 2e73180
+- [x] 2.5 Export after an unsaved edit uses the current on-screen draft while save and export statuses remain distinct — 2e73180
+- [x] 2.6 Saving twice updates the same CV instead of creating duplicates — 2e73180
+- [x] 2.7 Reopened `/cv/[id]` hides edit-answers/regenerate behavior and still supports section edits, save, and export — 2e73180
+- [x] 2.8 Representative language matrix passes across all output languages and at least two UI/output mismatches — 2e73180
 
 ### Phase 3: Failure And Browser Hardening
 
 #### Automated
 
-- [x] 3.1 `npm run test` passes
-- [x] 3.2 `npm run lint` passes
-- [x] 3.3 `npm run build` passes
-- [x] 3.4 Build-output inspection confirms `@react-pdf/renderer` is absent from the server/SSR application bundle
+- [x] 3.1 `npm run test` passes — 2e73180
+- [x] 3.2 `npm run lint` passes — 2e73180
+- [x] 3.3 `npm run build` passes — 2e73180
+- [x] 3.4 Build-output inspection confirms `@react-pdf/renderer` is absent from the server/SSR application bundle — 2e73180
 
 #### Manual
 
-- [x] 3.5 Generation unavailable, save failure, missing/non-owned reopen, and export failure states are checked and recorded
-- [x] 3.6 Export failure keeps the edited CV visible and retryable
-- [x] 3.7 Chrome full path plus Safari/Firefox/Edge/mobile targeted export checks are recorded
-- [x] 3.8 English, Polish, and Russian PDF text renders correctly after the joined flow
+- [x] 3.5 Generation unavailable, save failure, missing/non-owned reopen, and export failure states are checked and recorded — 2e73180
+- [x] 3.6 Export failure keeps the edited CV visible and retryable — 2e73180
+- [x] 3.7 Chrome full path plus Safari/Firefox/Edge/mobile targeted export checks are recorded — 2e73180
+- [x] 3.8 English, Polish, and Russian PDF text renders correctly after the joined flow — 2e73180
 
 ### Phase 4: Closure Bundle
 
 #### Automated
 
-- [ ] 4.1 Astro types regenerate: `npx astro sync`
-- [ ] 4.2 Full test suite passes: `npm run test`
-- [ ] 4.3 Lint passes: `npm run lint`
-- [ ] 4.4 Production build passes: `npm run build`
-- [ ] 4.5 `context/changes/full-saved-pdf-flow/plan.md` and `plan-brief.md` exist and the Progress section remains parseable
+- [x] 4.1 Astro types regenerate: `npx astro sync`
+- [x] 4.2 Full test suite passes: `npm run test`
+- [x] 4.3 Lint passes: `npm run lint`
+- [x] 4.4 Production build passes: `npm run build`
+- [x] 4.5 `context/changes/full-saved-pdf-flow/plan.md` and `plan-brief.md` exist and the Progress section remains parseable
 
 #### Manual
 
-- [ ] 4.6 `smoke-checklist.md` is fully executed for the agreed matrix and failure/browser checks
-- [ ] 4.7 `context/changes/full-saved-pdf-flow/change.md` is `status: implemented` only after all Progress items are complete
-- [ ] 4.8 `context/foundation/roadmap.md` marks S-08 done across all status surfaces
-- [ ] 4.9 Linear S-08 issue is verified as Done by readback
+- [x] 4.6 `smoke-checklist.md` is fully executed for the agreed matrix and failure/browser checks
+- [x] 4.7 `context/changes/full-saved-pdf-flow/change.md` is `status: implemented` only after all Progress items are complete
+- [x] 4.8 `context/foundation/roadmap.md` marks S-08 done across all status surfaces
+- [x] 4.9 Linear S-08 issue is verified as Done by readback
