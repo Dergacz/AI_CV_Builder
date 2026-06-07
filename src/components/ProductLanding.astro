@@ -1,7 +1,9 @@
 ---
+import LanguageSwitcher from "@/components/LanguageSwitcher.astro";
 import { landingContent as content } from "@/lib/landing-content";
 
 const { user } = Astro.locals;
+const { locale } = Astro.locals;
 const isSignedIn = Boolean(user);
 const primaryHref = isSignedIn ? "/dashboard" : "/auth/signup";
 const primaryLabel = isSignedIn ? content.hero.primaryCta.signedIn : content.hero.primaryCta.signedOut;
@@ -65,6 +67,7 @@ const secondaryLabel = isSignedIn ? content.hero.secondaryCta.signedIn : content
       <header class="flex items-center justify-between gap-4 py-2">
         <a href="/" class="text-base font-semibold text-slate-950">{content.nav.productName}</a>
         <nav class="flex items-center gap-3 text-sm" aria-label="Primary navigation">
+          <LanguageSwitcher locale={locale} />
           {
             isSignedIn ? (
               <a

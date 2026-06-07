@@ -1,17 +1,22 @@
 ---
 import "../styles/global.css";
 import Banner from "@/components/Banner.astro";
+import { getMessages } from "@/lib/i18n/messages";
+import type { UiLocale } from "@/lib/i18n/locales";
 import { missingConfigs } from "@/lib/config-status";
 
 interface Props {
+  locale?: UiLocale;
   title?: string;
 }
 
+const locale = Astro.props.locale ?? Astro.locals.locale;
+const messages = getMessages(locale);
 const { title = "AI CV Builder" } = Astro.props;
 ---
 
 <!doctype html>
-<html lang="en">
+<html lang={locale}>
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width" />
@@ -22,12 +27,13 @@ const { title = "AI CV Builder" } = Astro.props;
     {
       missingConfigs.map((cfg) => (
         <Banner variant="error">
-          <strong>Uwaga:</strong> {cfg.message}
+          <strong>{messages.shell.configBanner.warningPrefix}</strong>{" "}
+          {messages.shell.configBanner.messages[cfg.name] ?? cfg.message}
           {cfg.docsUrl && (
             <>
               {" "}
               <a href={cfg.docsUrl} target="_blank" rel="noopener noreferrer">
-                {cfg.docsLabel ?? "Dokumentacja"}
+                {cfg.docsLabel ?? messages.shell.configBanner.docsFallback}
               </a>
               .
             </>
