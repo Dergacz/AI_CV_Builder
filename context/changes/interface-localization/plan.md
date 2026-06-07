@@ -551,16 +551,16 @@ known false-positive class so reviewers do not chase legitimate matches.
 
 #### Automated
 
-- [x] 4.1 Astro types regenerate: `npx astro sync`
-- [x] 4.2 Full test suite passes: `npm run test`
-- [x] 4.3 Lint passes: `npm run lint`
-- [x] 4.4 Production build passes: `npm run build`
-- [x] 4.5 No route-prefix i18n migration appears: `rg "prefixDefaultLocale|redirectToDefaultLocale|astro:i18n|\\[lang\\]|\\[locale\\]" astro.config.mjs src`
-- [x] 4.6 No direct `ui_locale` coupling to CV output fields appears: `rg "ui_locale|UI_LOCALE_COOKIE|locale" src/lib/cv-questionnaire.ts src/lib/cv-draft.ts src/lib/services/cv-generation.ts`
+- [x] 4.1 Astro types regenerate: `npx astro sync` — 8ba5a64
+- [x] 4.2 Full test suite passes: `npm run test` — 8ba5a64
+- [x] 4.3 Lint passes: `npm run lint` — 8ba5a64
+- [x] 4.4 Production build passes: `npm run build` — 8ba5a64
+- [x] 4.5 No route-prefix i18n migration appears: `rg "prefixDefaultLocale|redirectToDefaultLocale|astro:i18n|\\[lang\\]|\\[locale\\]" astro.config.mjs src` — 8ba5a64
+- [x] 4.6 No direct `ui_locale` coupling to CV output fields appears: `rg "ui_locale|UI_LOCALE_COOKIE|locale" src/lib/cv-questionnaire.ts src/lib/cv-draft.ts src/lib/services/cv-generation.ts` — 8ba5a64
 
 #### Manual
 
-- [x] 4.7 Browser smoke passes in English, Polish, and Russian for landing, auth, dashboard, questionnaire, draft review/editor, save/reopen, delete dialog, and export controls
-- [x] 4.8 Switching UI language persists across refresh and navigation while URLs remain unprefixed
-- [x] 4.9 Major error states reachable without external service changes render localized user-facing copy
-- [x] 4.10 CV output language and exported/saved content do not change when only the UI language changes
+- [x] 4.7 Browser smoke passes in English, Polish, and Russian for landing, auth, dashboard, questionnaire, draft review/editor, save/reopen, delete dialog, and export controls — 8ba5a64
+- [x] 4.8 Switching UI language persists across refresh and navigation while URLs remain unprefixed — 8ba5a64
+- [x] 4.9 Major error states reachable without external service changes render localized user-facing copy — 8ba5a64
+- [x] 4.10 CV output language and exported/saved content do not change when only the UI language changes — 8ba5a64
