@@ -1,12 +1,12 @@
 ---
 project: AI CV Builder
 version: 1
-status: draft
+status: complete
 created: 2026-06-01
 updated: 2026-06-07
 prd_version: 1
 main_goal: speed
-top_blocker: decisions
+top_blocker: none
 ---
 
 # Roadmap: AI CV Builder
@@ -240,7 +240,7 @@ Foundations below assume these are present and do NOT re-scaffold them.
 
 ## Open Roadmap Questions
 
-1. **Which generation output contract is sufficient for the editable CV sections?** - Owner: team. Block: S-04.
+1. **Which generation output contract is sufficient for the editable CV sections?** - Resolved by F-01 + S-04: the structured `GeneratedCvDraft` contract (Summary, Experience, Education, Skills, Languages) drives both generation and section editing. Owner: team. Block: (closed).
 2. **Which PDF export approach can reliably produce a clean CV without delaying launch?** - Resolved by S-07: browser-side `@react-pdf/renderer` rendering the structured draft, with bundled Noto Sans (en/pl/ru) and the lib kept out of the SSR/Worker bundle via `client:only` islands. Owner: team. Block: (closed).
 3. **How should English, Polish, and Russian be selected for UI text and CV output without deep localization?** - Resolved by S-09: UI text uses a separate lightweight message catalog and cookie-backed interface language, chosen independently of each CV's output language; CV output language remains handled in S-03/S-04. Owner: team. Block: (closed).
 
@@ -268,3 +268,4 @@ Foundations below assume these are present and do NOT re-scaffold them.
 - **S-07 `pdf-export`** - Implemented on 2026-06-07. Browser-side PDF export via lazily-loaded `@react-pdf/renderer` (`CvPdfDocument` over the structured draft + a name header), `useCvExport` state machine, and an Export button in the editor save bar with inline failure states (`export_failed` / `service_unavailable`, CV stays visible, retry). Bundled Noto Sans (Latin/Latin-Ext/Cyrillic) renders en/pl/ru correctly; the heavy lib is kept out of the SSR/Worker bundle by switching the `/cv/new` and `/cv/[id]` islands to `client:only`. Pure helpers (`cv-export-filename`, `cv-export-error`) are unit-tested; the render is manual QA per the F-01 spike. Leaves only S-09 before the S-08 north star.
 - **S-09 `interface-localization`** - Implemented on 2026-06-07. Lightweight cookie-backed UI locale selection (`en`, `pl`, `ru`) localizes landing, auth, dashboard, questionnaire, editor/review, saved-CV, export, and major error/empty states while keeping URLs unprefixed. CV output language, saved CV language, durable titles, and exported content remain independent from the interface locale. Review triage removed language switching from stateful CV edit screens for MVP, neutralized name-only saved-title fallback text, accepted deterministic client catalog selection as an implementation deviation, and added fallback handling for unknown API error buckets. Unblocks S-08.
 - **S-08 `full-saved-pdf-flow`** - Implemented on 2026-06-07. North star integration proof: a signed-in user creates a CV, generates a structured draft, edits named sections, saves, reopens from the dashboard, edits again, and exports the current on-screen draft as PDF, with the selected CV output language (en/pl/ru) preserved through generation, save/reopen, and export independently of the UI locale. Added a deterministic full-flow contract test (`src/lib/cv-full-flow-contract.test.ts`) and an executed smoke checklist (`context/changes/full-saved-pdf-flow/smoke-checklist.md`) covering the Chrome happy path, the representative language matrix with UI/output mismatches, the four joined failure states, focused Safari/Firefox/Edge/mobile export checks, and the S-07 bundle-isolation reconfirmation (`@react-pdf/renderer` stays out of the server bundle). No new feature surfaces and no DB migration; targeted verification only. Completes the roadmap MVP scope.
+- **S-08: user can complete the full flow from starting a CV to exporting a saved PDF in English, Polish, or Russian.** — Archived 2026-06-07 → `context/archive/2026-06-07-full-saved-pdf-flow/`. Lesson: —.

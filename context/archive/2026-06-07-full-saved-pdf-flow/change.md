@@ -1,10 +1,10 @@
 ---
 change_id: full-saved-pdf-flow
 title: Full saved pdf flow
-status: implemented
+status: archived
 created: 2026-06-07
 updated: 2026-06-07
-archived_at: null
+archived_at: 2026-06-07T19:01:11Z
 ---
 
 ## Notes
