@@ -122,7 +122,7 @@ if (supabase) {
                 <p class="mt-2 max-w-md text-sm leading-6 text-red-900">{copy.library.loadErrorBody}</p>
               </div>
             ) : (
-              <SavedCvList client:load cvs={cvs} />
+              <SavedCvList client:load cvs={cvs} locale={locale} />
             )
           }
         </div>

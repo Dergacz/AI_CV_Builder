@@ -2,7 +2,8 @@ import { useCallback, useState } from "react";
 
 import type { GeneratedCvDraft } from "@/lib/cv-draft";
 import type { CvQuestionnaireAnswers } from "@/lib/cv-questionnaire";
-import { cvSaveErrorMessages } from "@/lib/cv-save-messages";
+import { getCvSaveErrorMessages } from "@/lib/cv-save-messages";
+import type { UiLocale } from "@/lib/i18n/locales";
 import type { SaveCvResponse } from "@/types";
 
 export type CvSaveStatus = "idle" | "saving" | "saved" | "error";
@@ -22,7 +23,6 @@ export interface CvSaveController {
 }
 
 const CV_ENDPOINT = "/api/cv";
-const NETWORK_FALLBACK = cvSaveErrorMessages.service_unavailable;
 
 /**
  * Owns saved-CV identity and persistence for the editor (S-06).
@@ -31,8 +31,14 @@ const NETWORK_FALLBACK = cvSaveErrorMessages.service_unavailable;
  * already an UPDATE. In the creation flow it starts empty and the title is seeded at
  * generation time from the answers. Same-origin `fetch` sends the Origin header, so
  * Astro's CSRF check passes without manual headers.
+ *
+ * S-09: error copy follows the interface `locale`. Server failures carry a stable `error`
+ * bucket which the client maps to localized copy; network failures fall back to the
+ * localized `service_unavailable` message.
  */
-export function useCvSave(init?: { cvId?: string; title?: string }): CvSaveController {
+export function useCvSave(init?: { cvId?: string; title?: string; locale?: UiLocale }): CvSaveController {
+  const locale = init?.locale ?? "en";
+  const errors = getCvSaveErrorMessages(locale);
   const [cvId, setCvId] = useState<string | undefined>(init?.cvId);
   const [title, setTitleState] = useState<string>(init?.title ?? "");
   const [status, setStatus] = useState<CvSaveStatus>("idle");
@@ -68,16 +74,17 @@ export function useCvSave(init?: { cvId?: string; title?: string }): CvSaveContr
           setTitleState(data.cv.title);
           setStatus("saved");
         } else {
-          setError(data.message);
+          // Localize the stable error bucket (server prose is ignored on the client).
+          setError(errors[data.error]);
           setStatus("error");
         }
       } catch {
         // Network failure or non-JSON response — temporary, not the user's fault.
-        setError(NETWORK_FALLBACK);
+        setError(errors.service_unavailable);
         setStatus("error");
       }
     },
-    [cvId, title],
+    [cvId, title, errors],
   );
 
   return { cvId, title, setTitle, status, error, markUnsaved, save };

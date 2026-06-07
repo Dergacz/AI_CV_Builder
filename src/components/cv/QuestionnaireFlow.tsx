@@ -3,14 +3,15 @@ import {
   QUESTIONNAIRE_VERSION,
   cvOutputLanguages,
   defaultCvQuestionnaireAnswers,
-  type CvOutputLanguage,
   type CvQuestionnaireAnswers,
 } from "@/lib/cv-questionnaire";
 // Type-only import: keeps zod (pulled in by cv-draft's runtime exports) out of this client island.
 import type { GeneratedCvDraft, GenerateDraftResponse } from "@/lib/cv-draft";
 // Value import from the zod-free messages module so client and server share one source of error copy.
-import { generationErrorMessages } from "@/lib/cv-draft-messages";
+import { getGenerationErrorMessages } from "@/lib/cv-draft-messages";
 import { defaultCvTitle } from "@/lib/cv-library-copy";
+import { getMessages } from "@/lib/i18n/messages";
+import type { UiLocale } from "@/lib/i18n/locales";
 import CvEditor from "@/components/cv/CvEditor";
 import { TextAreaField, TextField } from "@/components/cv/CvFormFields";
 import { useCvDraftEditor } from "@/components/hooks/useCvDraftEditor";
@@ -22,52 +23,17 @@ type RequiredErrors = Partial<Record<"fullName" | "targetRoleOrGoal", string>>;
 type GenerationStatus = "idle" | "loading" | "success" | "error";
 
 const GENERATE_ENDPOINT = "/api/cv/generate";
-const NETWORK_FALLBACK_MESSAGE = generationErrorMessages.service_unavailable;
 
-const steps: { key: StepKey; label: string; title: string; body: string }[] = [
-  {
-    key: "basics",
-    label: "Basics",
-    title: "Start with the essentials",
-    body: "Add only the anchors the future draft needs before everything else stays optional.",
-  },
-  {
-    key: "experienceEducation",
-    label: "Experience",
-    title: "Describe what you have done",
-    body: "Use everyday language. Informal, volunteer, school, or early work experience all count.",
-  },
-  {
-    key: "skillsLanguages",
-    label: "Skills",
-    title: "List skills, tools, and languages",
-    body: "Share practical abilities and spoken languages without worrying about CV formatting.",
-  },
-  {
-    key: "extraContext",
-    label: "Context",
-    title: "Add anything useful",
-    body: "Include details that did not fit elsewhere. The review step comes next.",
-  },
-  {
-    key: "review",
-    label: "Review",
-    title: "Review your answers",
-    body: "Check what you provided, then generate your CV draft.",
-  },
-];
-
-const outputLanguageLabels: Record<CvOutputLanguage, string> = {
-  en: "English",
-  pl: "Polish",
-  ru: "Russian",
-};
+const STEP_KEYS: StepKey[] = ["basics", "experienceEducation", "skillsLanguages", "extraContext", "review"];
 
 function isRequiredField(field: keyof CvQuestionnaireAnswers): field is keyof RequiredErrors {
   return field === "fullName" || field === "targetRoleOrGoal";
 }
 
-export default function QuestionnaireFlow() {
+export default function QuestionnaireFlow({ locale }: { locale: UiLocale }) {
+  const copy = getMessages(locale).questionnaire;
+  const genErrors = getGenerationErrorMessages(locale);
+
   const [answers, setAnswers] = useState<CvQuestionnaireAnswers>(defaultCvQuestionnaireAnswers);
   const [activeStepIndex, setActiveStepIndex] = useState(0);
   const [errors, setErrors] = useState<RequiredErrors>({});
@@ -75,13 +41,13 @@ export default function QuestionnaireFlow() {
   const [draft, setDraft] = useState<GeneratedCvDraft | null>(null);
   const [generationError, setGenerationError] = useState<string | null>(null);
   const editor = useCvDraftEditor(setDraft);
-  const save = useCvSave();
+  const save = useCvSave({ locale });
 
-  const activeStep = steps[activeStepIndex];
+  const activeStepKey = STEP_KEYS[activeStepIndex];
   const isFirstStep = activeStepIndex === 0;
-  const isLastStep = activeStepIndex === steps.length - 1;
+  const isLastStep = activeStepIndex === STEP_KEYS.length - 1;
   const isGenerating = status === "loading";
-  const sparseWarnings = useMemo(() => getSparseWarnings(answers), [answers]);
+  const sparseWarnings = useMemo(() => getSparseWarnings(answers, copy.sparseWarnings), [answers, copy.sparseWarnings]);
 
   async function handleGenerate() {
     setStatus("loading");
@@ -101,12 +67,13 @@ export default function QuestionnaireFlow() {
           save.setTitle(defaultCvTitle(answers, new Date()));
         }
       } else {
-        setGenerationError(data.message);
+        // Localize the stable error bucket (server prose is ignored on the client).
+        setGenerationError(genErrors[data.error]);
         setStatus("error");
       }
     } catch {
       // Network failure or non-JSON response — treat as a temporary service issue.
-      setGenerationError(NETWORK_FALLBACK_MESSAGE);
+      setGenerationError(genErrors.service_unavailable);
       setStatus("error");
     }
   }
@@ -114,7 +81,7 @@ export default function QuestionnaireFlow() {
   function handleEditAnswers() {
     setStatus("idle");
     setGenerationError(null);
-    setActiveStepIndex(steps.length - 1);
+    setActiveStepIndex(STEP_KEYS.length - 1);
   }
 
   function updateAnswer<Field extends keyof CvQuestionnaireAnswers>(
@@ -132,11 +99,11 @@ export default function QuestionnaireFlow() {
     const nextErrors: RequiredErrors = {};
 
     if (!answers.fullName.trim()) {
-      nextErrors.fullName = "Enter your name so the CV draft has a clear identity.";
+      nextErrors.fullName = copy.validation.fullNameRequired;
     }
 
     if (!answers.targetRoleOrGoal.trim()) {
-      nextErrors.targetRoleOrGoal = "Add a role, direction, or goal so the draft knows what to aim for.";
+      nextErrors.targetRoleOrGoal = copy.validation.targetRoleRequired;
     }
 
     setErrors(nextErrors);
@@ -144,7 +111,7 @@ export default function QuestionnaireFlow() {
   }
 
   function goNext() {
-    if (activeStep.key === "basics" && !validateBasics()) return;
+    if (activeStepKey === "basics" && !validateBasics()) return;
     if (isLastStep) return;
     setActiveStepIndex((current) => current + 1);
   }
@@ -155,30 +122,41 @@ export default function QuestionnaireFlow() {
   }
 
   if (status === "success" && draft) {
-    return <CvEditor draft={draft} editor={editor} save={save} answers={answers} onEditAnswers={handleEditAnswers} />;
+    return (
+      <CvEditor
+        draft={draft}
+        editor={editor}
+        save={save}
+        answers={answers}
+        locale={locale}
+        onEditAnswers={handleEditAnswers}
+      />
+    );
   }
 
+  const activeStep = copy.steps[activeStepKey];
+
   return (
-    <section className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm sm:p-6" aria-label="CV questionnaire">
+    <section className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm sm:p-6" aria-label={copy.ariaLabel}>
       <div className="flex flex-col gap-5 border-b border-slate-200 pb-5 lg:flex-row lg:items-start lg:justify-between">
         <div>
-          <p className="text-sm font-semibold text-teal-700">Questionnaire {QUESTIONNAIRE_VERSION}</p>
+          <p className="text-sm font-semibold text-teal-700">
+            {copy.versionLabel} {QUESTIONNAIRE_VERSION}
+          </p>
           <h2 className="mt-3 text-2xl font-semibold text-slate-950">{activeStep.title}</h2>
           <p className="mt-3 max-w-2xl text-sm leading-6 text-slate-600">{activeStep.body}</p>
         </div>
-        <p className="text-sm font-medium text-slate-500">
-          Step {activeStepIndex + 1} of {steps.length}
-        </p>
+        <p className="text-sm font-medium text-slate-500">{copy.stepProgress(activeStepIndex + 1, STEP_KEYS.length)}</p>
       </div>
 
-      <ol className="mt-5 grid gap-2 sm:grid-cols-4" aria-label="Questionnaire progress">
-        {steps.map((step, index) => (
-          <li key={step.key}>
+      <ol className="mt-5 grid gap-2 sm:grid-cols-4" aria-label={copy.progressAriaLabel}>
+        {STEP_KEYS.map((stepKey, index) => (
+          <li key={stepKey}>
             <button
               type="button"
               disabled={isGenerating}
               onClick={() => {
-                if (activeStep.key === "basics" && index > activeStepIndex && !validateBasics()) return;
+                if (activeStepKey === "basics" && index > activeStepIndex && !validateBasics()) return;
                 setActiveStepIndex(index);
               }}
               className={cn(
@@ -188,37 +166,37 @@ export default function QuestionnaireFlow() {
                   : "border-slate-200 bg-white text-slate-600 hover:border-slate-300 hover:bg-slate-50",
               )}
             >
-              {step.label}
+              {copy.steps[stepKey].label}
             </button>
           </li>
         ))}
       </ol>
 
       <div className="mt-6 min-h-[28rem]">
-        {activeStep.key === "basics" && (
+        {activeStepKey === "basics" && (
           <div className="space-y-5">
             <TextField
               id="fullName"
-              label="What name should appear on your CV?"
+              label={copy.basics.fullNameLabel}
               value={answers.fullName}
               onChange={(value) => {
                 updateAnswer("fullName", value);
               }}
-              placeholder="e.g. Anna Kowalska"
+              placeholder={copy.basics.fullNamePlaceholder}
               error={errors.fullName}
             />
             <TextAreaField
               id="targetRoleOrGoal"
-              label="What role, job, or direction are you aiming for?"
+              label={copy.basics.targetRoleLabel}
               value={answers.targetRoleOrGoal}
               onChange={(value) => {
                 updateAnswer("targetRoleOrGoal", value);
               }}
-              placeholder="e.g. I want an entry-level customer support role where I can use English and help people."
+              placeholder={copy.basics.targetRolePlaceholder}
               error={errors.targetRoleOrGoal}
             />
             <fieldset>
-              <legend className="text-sm font-medium text-slate-700">CV output language</legend>
+              <legend className="text-sm font-medium text-slate-700">{copy.basics.outputLanguageLegend}</legend>
               <div className="mt-2 grid gap-2 sm:grid-cols-3">
                 {cvOutputLanguages.map((language) => (
                   <label
@@ -240,7 +218,7 @@ export default function QuestionnaireFlow() {
                       }}
                       className="size-4 accent-emerald-700"
                     />
-                    {outputLanguageLabels[language]}
+                    {copy.outputLanguageNames[language]}
                   </label>
                 ))}
               </div>
@@ -248,74 +226,73 @@ export default function QuestionnaireFlow() {
           </div>
         )}
 
-        {activeStep.key === "experienceEducation" && (
+        {activeStepKey === "experienceEducation" && (
           <div className="grid gap-5 lg:grid-cols-2">
             <TextAreaField
               id="experience"
-              label="What work, volunteering, projects, or responsibilities have you had?"
+              label={copy.experienceStep.experienceLabel}
               value={answers.experience}
               onChange={(value) => {
                 updateAnswer("experience", value);
               }}
-              placeholder="Write short notes. Dates, places, and exact job titles are optional."
+              placeholder={copy.experienceStep.experiencePlaceholder}
             />
             <TextAreaField
               id="education"
-              label="What education, courses, certificates, or training should be included?"
+              label={copy.experienceStep.educationLabel}
               value={answers.education}
               onChange={(value) => {
                 updateAnswer("education", value);
               }}
-              placeholder="Mention schools, programs, courses, certificates, or what you studied."
+              placeholder={copy.experienceStep.educationPlaceholder}
             />
           </div>
         )}
 
-        {activeStep.key === "skillsLanguages" && (
+        {activeStepKey === "skillsLanguages" && (
           <div className="grid gap-5 lg:grid-cols-2">
             <TextAreaField
               id="skillsAndTools"
-              label="What skills, tools, or strengths should the CV mention?"
+              label={copy.skillsStep.skillsLabel}
               value={answers.skillsAndTools}
               onChange={(value) => {
                 updateAnswer("skillsAndTools", value);
               }}
-              placeholder="e.g. customer communication, spreadsheets, Canva, teamwork, organizing tasks."
+              placeholder={copy.skillsStep.skillsPlaceholder}
             />
             <TextAreaField
               id="spokenLanguages"
-              label="Which languages do you know?"
+              label={copy.skillsStep.spokenLanguagesLabel}
               value={answers.spokenLanguages}
               onChange={(value) => {
                 updateAnswer("spokenLanguages", value);
               }}
-              placeholder="e.g. Polish native, English B1/B2, Russian conversational."
+              placeholder={copy.skillsStep.spokenLanguagesPlaceholder}
             />
           </div>
         )}
 
-        {activeStep.key === "extraContext" && (
+        {activeStepKey === "extraContext" && (
           <div className="space-y-5">
             <TextAreaField
               id="additionalContext"
-              label="Anything else we should know before creating your draft?"
+              label={copy.extraContext.label}
               value={answers.additionalContext}
               onChange={(value) => {
                 updateAnswer("additionalContext", value);
               }}
-              placeholder="Add preferences, achievements, constraints, career change context, or anything that feels relevant."
+              placeholder={copy.extraContext.placeholder}
             />
             <div className="rounded-md border border-emerald-200 bg-emerald-50 p-4 text-sm leading-6 text-emerald-950">
-              Next, you will review these answers. They stay only in this page while you move between steps.
+              {copy.extraContext.note}
             </div>
           </div>
         )}
 
-        {activeStep.key === "review" && (
+        {activeStepKey === "review" && (
           <div className="space-y-6">
             <div className="rounded-md border border-emerald-200 bg-emerald-50 p-4 text-sm leading-6 text-emerald-950">
-              Review your answers below, then generate your CV draft. You can edit each section, save it, and export a
-              PDF next.
+              {copy.review.intro}
             </div>
 
             {isGenerating && (
@@ -325,7 +302,7 @@ export default function QuestionnaireFlow() {
                 className="flex items-center gap-3 rounded-md border border-slate-200 bg-slate-50 p-4 text-sm font-medium text-slate-700"
               >
                 <Spinner />
-                Building your draft… this can take up to 30 seconds.
+                {copy.loadingText}
               </div>
             )}
 
@@ -334,13 +311,17 @@ export default function QuestionnaireFlow() {
                 role="alert"
                 className="rounded-md border border-red-200 bg-red-50 p-4 text-sm leading-6 text-red-900"
               >
-                {generationError} You can try again — your answers are kept.
+                {generationError}
+                {copy.errorRetrySuffix}
               </div>
             )}
 
             {sparseWarnings.length > 0 && (
-              <section className="rounded-md border border-amber-200 bg-amber-50 p-4" aria-label="Sparse answer notes">
-                <h3 className="text-sm font-semibold text-amber-950">Before generation, keep in mind</h3>
+              <section
+                className="rounded-md border border-amber-200 bg-amber-50 p-4"
+                aria-label={copy.review.sparseNotesAriaLabel}
+              >
+                <h3 className="text-sm font-semibold text-amber-950">{copy.review.sparseTitle}</h3>
                 <ul className="mt-3 space-y-2 text-sm leading-6 text-amber-900">
                   {sparseWarnings.map((warning) => (
                     <li key={warning}>- {warning}</li>
@@ -351,57 +332,73 @@ export default function QuestionnaireFlow() {
 
             <div className="grid gap-4 lg:grid-cols-2">
               <ReviewItem
-                label="Name"
+                label={copy.review.labels.name}
                 value={answers.fullName}
+                editLabel={copy.review.editButton}
+                emptyLabel={copy.review.emptyValue}
                 onEdit={() => {
                   setActiveStepIndex(0);
                 }}
               />
               <ReviewItem
-                label="Target role or goal"
+                label={copy.review.labels.targetRole}
                 value={answers.targetRoleOrGoal}
+                editLabel={copy.review.editButton}
+                emptyLabel={copy.review.emptyValue}
                 onEdit={() => {
                   setActiveStepIndex(0);
                 }}
               />
               <ReviewItem
-                label="CV output language"
-                value={outputLanguageLabels[answers.outputLanguage]}
+                label={copy.review.labels.outputLanguage}
+                value={copy.outputLanguageNames[answers.outputLanguage]}
+                editLabel={copy.review.editButton}
+                emptyLabel={copy.review.emptyValue}
                 onEdit={() => {
                   setActiveStepIndex(0);
                 }}
               />
               <ReviewItem
-                label="Experience"
+                label={copy.review.labels.experience}
                 value={answers.experience}
+                editLabel={copy.review.editButton}
+                emptyLabel={copy.review.emptyValue}
                 onEdit={() => {
                   setActiveStepIndex(1);
                 }}
               />
               <ReviewItem
-                label="Education"
+                label={copy.review.labels.education}
                 value={answers.education}
+                editLabel={copy.review.editButton}
+                emptyLabel={copy.review.emptyValue}
                 onEdit={() => {
                   setActiveStepIndex(1);
                 }}
               />
               <ReviewItem
-                label="Skills and tools"
+                label={copy.review.labels.skills}
                 value={answers.skillsAndTools}
+                editLabel={copy.review.editButton}
+                emptyLabel={copy.review.emptyValue}
                 onEdit={() => {
                   setActiveStepIndex(2);
                 }}
               />
               <ReviewItem
-                label="Spoken languages"
+                label={copy.review.labels.spokenLanguages}
                 value={answers.spokenLanguages}
+                editLabel={copy.review.editButton}
+                emptyLabel={copy.review.emptyValue}
                 onEdit={() => {
                   setActiveStepIndex(2);
                 }}
               />
               <ReviewItem
-                label="Additional context"
+                label={copy.review.labels.additionalContext}
                 value={answers.additionalContext}
+                editLabel={copy.review.editButton}
+                emptyLabel={copy.review.emptyValue}
                 onEdit={() => {
                   setActiveStepIndex(3);
                 }}
@@ -418,7 +415,7 @@ export default function QuestionnaireFlow() {
           disabled={isFirstStep || isGenerating}
           className="inline-flex min-h-11 items-center justify-center rounded-md border border-slate-300 bg-white px-5 py-3 text-sm font-semibold text-slate-900 transition-colors hover:border-slate-400 hover:bg-slate-100 focus-visible:ring-3 focus-visible:ring-slate-500/20 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50"
         >
-          Back
+          {copy.buttons.back}
         </button>
         {isLastStep ? (
           <button
@@ -429,7 +426,7 @@ export default function QuestionnaireFlow() {
             disabled={isGenerating}
             className="inline-flex min-h-11 items-center justify-center rounded-md bg-emerald-700 px-5 py-3 text-sm font-semibold text-white transition-colors hover:bg-emerald-800 focus-visible:ring-3 focus-visible:ring-emerald-700/30 focus-visible:outline-none disabled:cursor-not-allowed disabled:bg-slate-300 disabled:text-slate-600"
           >
-            {isGenerating ? "Building your draft…" : status === "error" ? "Try again" : "Generate draft"}
+            {isGenerating ? copy.buttons.building : status === "error" ? copy.buttons.tryAgain : copy.buttons.generate}
           </button>
         ) : (
           <button
@@ -437,7 +434,7 @@ export default function QuestionnaireFlow() {
             onClick={goNext}
             className="inline-flex min-h-11 items-center justify-center rounded-md bg-emerald-700 px-5 py-3 text-sm font-semibold text-white transition-colors hover:bg-emerald-800 focus-visible:ring-3 focus-visible:ring-emerald-700/30 focus-visible:outline-none disabled:cursor-not-allowed disabled:bg-slate-300 disabled:text-slate-600"
           >
-            {activeStepIndex === steps.length - 2 ? "Review answers" : "Next"}
+            {activeStepIndex === STEP_KEYS.length - 2 ? copy.buttons.reviewAnswers : copy.buttons.next}
           </button>
         )}
       </div>
@@ -445,27 +442,26 @@ export default function QuestionnaireFlow() {
   );
 }
 
-function getSparseWarnings(answers: CvQuestionnaireAnswers) {
+function getSparseWarnings(
+  answers: CvQuestionnaireAnswers,
+  warningsCopy: { experience: string; education: string; skills: string; spokenLanguages: string },
+) {
   const warnings: string[] = [];
 
   if (!answers.experience.trim()) {
-    warnings.push(
-      "Experience is empty, so the future draft may keep that section conservative or ask you to review it.",
-    );
+    warnings.push(warningsCopy.experience);
   }
 
   if (!answers.education.trim()) {
-    warnings.push("Education is empty; the future draft should not invent schools, courses, or dates.");
+    warnings.push(warningsCopy.education);
   }
 
   if (!answers.skillsAndTools.trim()) {
-    warnings.push("Skills and tools are empty, so the future draft may have fewer concrete strengths to work with.");
+    warnings.push(warningsCopy.skills);
   }
 
   if (!answers.spokenLanguages.trim()) {
-    warnings.push(
-      "Spoken languages are empty; the selected CV output language will not be treated as a claimed skill.",
-    );
+    warnings.push(warningsCopy.spokenLanguages);
   }
 
   return warnings;
@@ -474,10 +470,12 @@ function getSparseWarnings(answers: CvQuestionnaireAnswers) {
 interface ReviewItemProps {
   label: string;
   value: string;
+  editLabel: string;
+  emptyLabel: string;
   onEdit: () => void;
 }
 
-function ReviewItem({ label, value, onEdit }: ReviewItemProps) {
+function ReviewItem({ label, value, editLabel, emptyLabel, onEdit }: ReviewItemProps) {
   const hasValue = Boolean(value.trim());
 
   return (
@@ -489,11 +487,11 @@ function ReviewItem({ label, value, onEdit }: ReviewItemProps) {
           onClick={onEdit}
           className="text-sm font-semibold text-emerald-700 underline-offset-4 hover:underline"
         >
-          Edit
+          {editLabel}
         </button>
       </div>
       <p className={cn("mt-3 text-sm leading-6 whitespace-pre-wrap", hasValue ? "text-slate-700" : "text-slate-400")}>
-        {hasValue ? value : "Skipped for now"}
+        {hasValue ? value : emptyLabel}
       </p>
     </section>
   );

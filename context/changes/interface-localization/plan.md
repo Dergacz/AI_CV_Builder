@@ -481,10 +481,10 @@ Auth redirect query params change from raw prose to stable codes. During impleme
 
 #### Automated
 
-- [x] 2.1 Auth error code tests pass: `npm run test -- src/lib/i18n/auth-errors.test.ts`
-- [x] 2.2 Existing auth pages and API routes lint cleanly: `npm run lint`
-- [x] 2.3 Production build passes: `npm run build`
-- [x] 2.4 Scope guard finds no raw auth prose in query redirects: `rg "encodeURIComponent\\((AUTH_|SIGNIN_|SIGNUP_|RATE_).*MESSAGE|getSign(In|Up)ErrorMessage" src/pages/api/auth` returns no stale raw-message redirect pattern
+- [x] 2.1 Auth error code tests pass: `npm run test -- src/lib/i18n/auth-errors.test.ts` — e7626ca
+- [x] 2.2 Existing auth pages and API routes lint cleanly: `npm run lint` — e7626ca
+- [x] 2.3 Production build passes: `npm run build` — e7626ca
+- [x] 2.4 Scope guard finds no raw auth prose in query redirects: `rg "encodeURIComponent\\((AUTH_|SIGNIN_|SIGNUP_|RATE_).*MESSAGE|getSign(In|Up)ErrorMessage" src/pages/api/auth` returns no stale raw-message redirect pattern — e7626ca
 
 #### Manual
 
@@ -497,19 +497,19 @@ Auth redirect query params change from raw prose to stable codes. During impleme
 
 #### Automated
 
-- [ ] 3.1 Catalog coverage tests pass: `npm run test -- src/lib/i18n/messages.test.ts`
-- [ ] 3.2 CV language boundary tests pass: `npm run test -- src/lib/i18n/cv-language-boundary.test.ts`
-- [ ] 3.3 Existing CV save/export/generation tests pass: `npm run test`
-- [ ] 3.4 Lint passes: `npm run lint`
-- [ ] 3.5 Production build passes: `npm run build`
-- [ ] 3.6 Scope guard finds no obvious stale English UI strings in migrated surfaces: `rg "\"(Sign in|Start CV|Generate draft|Export PDF|Saved CVs|Questionnaire|Back to workspace|Try again|Delete CV|Workspace status)\"" src`
+- [x] 3.1 Catalog coverage tests pass: `npm run test -- src/lib/i18n/messages.test.ts`
+- [x] 3.2 CV language boundary tests pass: `npm run test -- src/lib/i18n/cv-language-boundary.test.ts`
+- [x] 3.3 Existing CV save/export/generation tests pass: `npm run test`
+- [x] 3.4 Lint passes: `npm run lint`
+- [x] 3.5 Production build passes: `npm run build`
+- [x] 3.6 Scope guard finds no obvious stale English UI strings in migrated surfaces: `rg "\"(Sign in|Start CV|Generate draft|Export PDF|Saved CVs|Questionnaire|Back to workspace|Try again|Delete CV|Workspace status)\"" src`
 
 #### Manual
 
-- [ ] 3.7 Questionnaire flow renders steps, labels, validation, review, sparse warnings, loading, and retry states in English, Polish, and Russian
-- [ ] 3.8 Generated draft editor renders section UI, edit controls, save/export controls, dialogs, and empty states in the selected UI language
-- [ ] 3.9 Saved CV list and reopened CV view render localized actions and errors while preserving each saved CV's output language label
-- [ ] 3.10 Changing UI language does not change the selected CV output language, generated draft language, saved CV language, or exported CV content language
+- [x] 3.7 Questionnaire flow renders steps, labels, validation, review, sparse warnings, loading, and retry states in English, Polish, and Russian
+- [x] 3.8 Generated draft editor renders section UI, edit controls, save/export controls, dialogs, and empty states in the selected UI language
+- [x] 3.9 Saved CV list and reopened CV view render localized actions and errors while preserving each saved CV's output language label
+- [x] 3.10 Changing UI language does not change the selected CV output language, generated draft language, saved CV language, or exported CV content language
 
 ### Phase 4: Boundary Protection, Tests, And Browser Smoke
 

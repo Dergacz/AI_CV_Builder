@@ -48,6 +48,89 @@ interface ConfirmEmailStateCopy {
   linkText: string;
 }
 
+interface QuestionnaireStepCopy {
+  label: string;
+  title: string;
+  body: string;
+}
+
+export interface QuestionnaireCopy {
+  ariaLabel: string;
+  progressAriaLabel: string;
+  versionLabel: string;
+  stepProgress: (current: number, total: number) => string;
+  steps: {
+    basics: QuestionnaireStepCopy;
+    experienceEducation: QuestionnaireStepCopy;
+    skillsLanguages: QuestionnaireStepCopy;
+    extraContext: QuestionnaireStepCopy;
+    review: QuestionnaireStepCopy;
+  };
+  basics: {
+    fullNameLabel: string;
+    fullNamePlaceholder: string;
+    targetRoleLabel: string;
+    targetRolePlaceholder: string;
+    outputLanguageLegend: string;
+  };
+  experienceStep: {
+    experienceLabel: string;
+    experiencePlaceholder: string;
+    educationLabel: string;
+    educationPlaceholder: string;
+  };
+  skillsStep: {
+    skillsLabel: string;
+    skillsPlaceholder: string;
+    spokenLanguagesLabel: string;
+    spokenLanguagesPlaceholder: string;
+  };
+  extraContext: {
+    label: string;
+    placeholder: string;
+    note: string;
+  };
+  /** Display names of the CV output languages, expressed in the interface locale. */
+  outputLanguageNames: Record<UiLocale, string>;
+  review: {
+    intro: string;
+    sparseNotesAriaLabel: string;
+    sparseTitle: string;
+    editButton: string;
+    emptyValue: string;
+    labels: {
+      name: string;
+      targetRole: string;
+      outputLanguage: string;
+      experience: string;
+      education: string;
+      skills: string;
+      spokenLanguages: string;
+      additionalContext: string;
+    };
+  };
+  loadingText: string;
+  errorRetrySuffix: string;
+  validation: {
+    fullNameRequired: string;
+    targetRoleRequired: string;
+  };
+  sparseWarnings: {
+    experience: string;
+    education: string;
+    skills: string;
+    spokenLanguages: string;
+  };
+  buttons: {
+    back: string;
+    next: string;
+    reviewAnswers: string;
+    generate: string;
+    building: string;
+    tryAgain: string;
+  };
+}
+
 export interface UiMessages {
   shell: {
     primaryNavLabel: string;
@@ -122,6 +205,7 @@ export interface UiMessages {
       description: string;
     };
   };
+  questionnaire: QuestionnaireCopy;
 }
 
 export const messagesByLocale = {
@@ -278,6 +362,106 @@ export const messagesByLocale = {
         description: "Edit any section and save your changes. Updates overwrite this saved CV.",
       },
     },
+    questionnaire: {
+      ariaLabel: "CV questionnaire",
+      progressAriaLabel: "Questionnaire progress",
+      versionLabel: "Questionnaire",
+      stepProgress: (current, total) => `Step ${current} of ${total}`,
+      steps: {
+        basics: {
+          label: "Basics",
+          title: "Start with the essentials",
+          body: "Add only the anchors the future draft needs before everything else stays optional.",
+        },
+        experienceEducation: {
+          label: "Experience",
+          title: "Describe what you have done",
+          body: "Use everyday language. Informal, volunteer, school, or early work experience all count.",
+        },
+        skillsLanguages: {
+          label: "Skills",
+          title: "List skills, tools, and languages",
+          body: "Share practical abilities and spoken languages without worrying about CV formatting.",
+        },
+        extraContext: {
+          label: "Context",
+          title: "Add anything useful",
+          body: "Include details that did not fit elsewhere. The review step comes next.",
+        },
+        review: {
+          label: "Review",
+          title: "Review your answers",
+          body: "Check what you provided, then generate your CV draft.",
+        },
+      },
+      basics: {
+        fullNameLabel: "What name should appear on your CV?",
+        fullNamePlaceholder: "e.g. Anna Kowalska",
+        targetRoleLabel: "What role, job, or direction are you aiming for?",
+        targetRolePlaceholder:
+          "e.g. I want an entry-level customer support role where I can use English and help people.",
+        outputLanguageLegend: "CV output language",
+      },
+      experienceStep: {
+        experienceLabel: "What work, volunteering, projects, or responsibilities have you had?",
+        experiencePlaceholder: "Write short notes. Dates, places, and exact job titles are optional.",
+        educationLabel: "What education, courses, certificates, or training should be included?",
+        educationPlaceholder: "Mention schools, programs, courses, certificates, or what you studied.",
+      },
+      skillsStep: {
+        skillsLabel: "What skills, tools, or strengths should the CV mention?",
+        skillsPlaceholder: "e.g. customer communication, spreadsheets, Canva, teamwork, organizing tasks.",
+        spokenLanguagesLabel: "Which languages do you know?",
+        spokenLanguagesPlaceholder: "e.g. Polish native, English B1/B2, Russian conversational.",
+      },
+      extraContext: {
+        label: "Anything else we should know before creating your draft?",
+        placeholder:
+          "Add preferences, achievements, constraints, career change context, or anything that feels relevant.",
+        note: "Next, you will review these answers. They stay only in this page while you move between steps.",
+      },
+      outputLanguageNames: { en: "English", pl: "Polish", ru: "Russian" },
+      review: {
+        intro:
+          "Review your answers below, then generate your CV draft. You can edit each section, save it, and export a PDF next.",
+        sparseNotesAriaLabel: "Sparse answer notes",
+        sparseTitle: "Before generation, keep in mind",
+        editButton: "Edit",
+        emptyValue: "Skipped for now",
+        labels: {
+          name: "Name",
+          targetRole: "Target role or goal",
+          outputLanguage: "CV output language",
+          experience: "Experience",
+          education: "Education",
+          skills: "Skills and tools",
+          spokenLanguages: "Spoken languages",
+          additionalContext: "Additional context",
+        },
+      },
+      loadingText: "Building your draft… this can take up to 30 seconds.",
+      errorRetrySuffix: " You can try again — your answers are kept.",
+      validation: {
+        fullNameRequired: "Enter your name so the CV draft has a clear identity.",
+        targetRoleRequired: "Add a role, direction, or goal so the draft knows what to aim for.",
+      },
+      sparseWarnings: {
+        experience:
+          "Experience is empty, so the future draft may keep that section conservative or ask you to review it.",
+        education: "Education is empty; the future draft should not invent schools, courses, or dates.",
+        skills: "Skills and tools are empty, so the future draft may have fewer concrete strengths to work with.",
+        spokenLanguages:
+          "Spoken languages are empty; the selected CV output language will not be treated as a claimed skill.",
+      },
+      buttons: {
+        back: "Back",
+        next: "Next",
+        reviewAnswers: "Review answers",
+        generate: "Generate draft",
+        building: "Building your draft…",
+        tryAgain: "Try again",
+      },
+    },
   },
   pl: {
     shell: {
@@ -432,6 +616,106 @@ export const messagesByLocale = {
         description: "Edytuj dowolną sekcję i zapisz zmiany. Aktualizacje nadpiszą to zapisane CV.",
       },
     },
+    questionnaire: {
+      ariaLabel: "Ankieta CV",
+      progressAriaLabel: "Postęp ankiety",
+      versionLabel: "Ankieta",
+      stepProgress: (current, total) => `Krok ${current} z ${total}`,
+      steps: {
+        basics: {
+          label: "Podstawy",
+          title: "Zacznij od najważniejszego",
+          body: "Dodaj tylko niezbędne podstawy, których potrzebuje przyszły szkic; reszta pozostaje opcjonalna.",
+        },
+        experienceEducation: {
+          label: "Doświadczenie",
+          title: "Opisz, czym się zajmowałeś",
+          body: "Używaj codziennego języka. Liczy się także doświadczenie nieformalne, wolontariat, szkoła i pierwsze prace.",
+        },
+        skillsLanguages: {
+          label: "Umiejętności",
+          title: "Wypisz umiejętności, narzędzia i języki",
+          body: "Podaj praktyczne umiejętności i znane języki, nie martwiąc się o formatowanie CV.",
+        },
+        extraContext: {
+          label: "Kontekst",
+          title: "Dodaj cokolwiek przydatnego",
+          body: "Dodaj szczegóły, które nie pasowały gdzie indziej. Następny jest krok przeglądu.",
+        },
+        review: {
+          label: "Przegląd",
+          title: "Przejrzyj swoje odpowiedzi",
+          body: "Sprawdź, co podałeś, a następnie wygeneruj szkic CV.",
+        },
+      },
+      basics: {
+        fullNameLabel: "Jakie imię i nazwisko ma pojawić się w Twoim CV?",
+        fullNamePlaceholder: "np. Anna Kowalska",
+        targetRoleLabel: "O jakie stanowisko, pracę lub kierunek się starasz?",
+        targetRolePlaceholder:
+          "np. Chcę pracy na poziomie podstawowym w obsłudze klienta, gdzie wykorzystam angielski i pomogę ludziom.",
+        outputLanguageLegend: "Język CV",
+      },
+      experienceStep: {
+        experienceLabel: "Jaką pracę, wolontariat, projekty lub obowiązki miałeś?",
+        experiencePlaceholder: "Pisz krótkie notatki. Daty, miejsca i dokładne nazwy stanowisk są opcjonalne.",
+        educationLabel: "Jakie wykształcenie, kursy, certyfikaty lub szkolenia należy uwzględnić?",
+        educationPlaceholder: "Wymień szkoły, kierunki, kursy, certyfikaty lub to, czego się uczyłeś.",
+      },
+      skillsStep: {
+        skillsLabel: "Jakie umiejętności, narzędzia lub mocne strony powinno wymienić CV?",
+        skillsPlaceholder:
+          "np. komunikacja z klientem, arkusze kalkulacyjne, Canva, praca zespołowa, organizacja zadań.",
+        spokenLanguagesLabel: "Jakie języki znasz?",
+        spokenLanguagesPlaceholder: "np. polski ojczysty, angielski B1/B2, rosyjski komunikatywny.",
+      },
+      extraContext: {
+        label: "Czy jest coś jeszcze, co powinniśmy wiedzieć przed utworzeniem szkicu?",
+        placeholder:
+          "Dodaj preferencje, osiągnięcia, ograniczenia, kontekst zmiany kariery lub cokolwiek, co wydaje się istotne.",
+        note: "Następnie przejrzysz te odpowiedzi. Pozostają tylko na tej stronie, gdy przechodzisz między krokami.",
+      },
+      outputLanguageNames: { en: "angielski", pl: "polski", ru: "rosyjski" },
+      review: {
+        intro:
+          "Przejrzyj swoje odpowiedzi poniżej, a następnie wygeneruj szkic CV. Następnie możesz edytować każdą sekcję, zapisać ją i wyeksportować PDF.",
+        sparseNotesAriaLabel: "Uwagi o brakujących odpowiedziach",
+        sparseTitle: "Przed wygenerowaniem pamiętaj",
+        editButton: "Edytuj",
+        emptyValue: "Pominięte na razie",
+        labels: {
+          name: "Imię i nazwisko",
+          targetRole: "Docelowe stanowisko lub cel",
+          outputLanguage: "Język CV",
+          experience: "Doświadczenie",
+          education: "Wykształcenie",
+          skills: "Umiejętności i narzędzia",
+          spokenLanguages: "Znane języki",
+          additionalContext: "Dodatkowy kontekst",
+        },
+      },
+      loadingText: "Tworzenie szkicu… to może potrwać do 30 sekund.",
+      errorRetrySuffix: " Możesz spróbować ponownie — Twoje odpowiedzi są zachowane.",
+      validation: {
+        fullNameRequired: "Podaj swoje imię i nazwisko, aby szkic CV miał wyraźną tożsamość.",
+        targetRoleRequired: "Dodaj stanowisko, kierunek lub cel, aby szkic wiedział, do czego dążyć.",
+      },
+      sparseWarnings: {
+        experience:
+          "Doświadczenie jest puste, więc przyszły szkic może zachować tę sekcję ostrożnie lub poprosić o jej przejrzenie.",
+        education: "Wykształcenie jest puste; przyszły szkic nie powinien wymyślać szkół, kursów ani dat.",
+        skills: "Umiejętności i narzędzia są puste, więc przyszły szkic może mieć mniej konkretnych mocnych stron.",
+        spokenLanguages: "Znane języki są puste; wybrany język CV nie będzie traktowany jako deklarowana umiejętność.",
+      },
+      buttons: {
+        back: "Wstecz",
+        next: "Dalej",
+        reviewAnswers: "Przejrzyj odpowiedzi",
+        generate: "Wygeneruj szkic",
+        building: "Tworzenie szkicu…",
+        tryAgain: "Spróbuj ponownie",
+      },
+    },
   },
   ru: {
     shell: {
@@ -584,6 +868,104 @@ export const messagesByLocale = {
         backToWorkspace: "Вернуться в пространство",
         eyebrow: "Сохранённое CV",
         description: "Редактируйте любой раздел и сохраняйте изменения. Обновления перезапишут это CV.",
+      },
+    },
+    questionnaire: {
+      ariaLabel: "Анкета CV",
+      progressAriaLabel: "Ход анкеты",
+      versionLabel: "Анкета",
+      stepProgress: (current, total) => `Шаг ${current} из ${total}`,
+      steps: {
+        basics: {
+          label: "Основное",
+          title: "Начните с главного",
+          body: "Добавьте только то основное, что нужно будущему черновику; остальное остаётся необязательным.",
+        },
+        experienceEducation: {
+          label: "Опыт",
+          title: "Опишите, чем вы занимались",
+          body: "Используйте обычный язык. Подходят и неформальный опыт, волонтёрство, учёба и первая работа.",
+        },
+        skillsLanguages: {
+          label: "Навыки",
+          title: "Перечислите навыки, инструменты и языки",
+          body: "Укажите практические умения и языки, не заботясь о форматировании CV.",
+        },
+        extraContext: {
+          label: "Контекст",
+          title: "Добавьте всё полезное",
+          body: "Добавьте детали, которые не подошли в другие разделы. Дальше — шаг проверки.",
+        },
+        review: {
+          label: "Проверка",
+          title: "Проверьте свои ответы",
+          body: "Проверьте указанное, затем сгенерируйте черновик CV.",
+        },
+      },
+      basics: {
+        fullNameLabel: "Какое имя должно появиться в вашем CV?",
+        fullNamePlaceholder: "напр. Анна Ковальская",
+        targetRoleLabel: "На какую должность, работу или направление вы нацелены?",
+        targetRolePlaceholder:
+          "напр. Хочу начальную должность в поддержке клиентов, где смогу использовать английский и помогать людям.",
+        outputLanguageLegend: "Язык CV",
+      },
+      experienceStep: {
+        experienceLabel: "Какую работу, волонтёрство, проекты или обязанности вы выполняли?",
+        experiencePlaceholder: "Пишите короткие заметки. Даты, места и точные названия должностей необязательны.",
+        educationLabel: "Какое образование, курсы, сертификаты или обучение нужно включить?",
+        educationPlaceholder: "Упомяните учебные заведения, программы, курсы, сертификаты или что вы изучали.",
+      },
+      skillsStep: {
+        skillsLabel: "Какие навыки, инструменты или сильные стороны должно упомянуть CV?",
+        skillsPlaceholder: "напр. общение с клиентами, таблицы, Canva, работа в команде, организация задач.",
+        spokenLanguagesLabel: "Какими языками вы владеете?",
+        spokenLanguagesPlaceholder: "напр. польский родной, английский B1/B2, русский разговорный.",
+      },
+      extraContext: {
+        label: "Что ещё нам следует знать перед созданием черновика?",
+        placeholder: "Добавьте предпочтения, достижения, ограничения, контекст смены карьеры или что-либо важное.",
+        note: "Дальше вы проверите эти ответы. Они остаются только на этой странице, пока вы переходите между шагами.",
+      },
+      outputLanguageNames: { en: "английский", pl: "польский", ru: "русский" },
+      review: {
+        intro:
+          "Проверьте свои ответы ниже, затем сгенерируйте черновик CV. Далее можно редактировать каждый раздел, сохранить его и экспортировать PDF.",
+        sparseNotesAriaLabel: "Заметки о неполных ответах",
+        sparseTitle: "Перед генерацией учтите",
+        editButton: "Изменить",
+        emptyValue: "Пока пропущено",
+        labels: {
+          name: "Имя",
+          targetRole: "Целевая должность или цель",
+          outputLanguage: "Язык CV",
+          experience: "Опыт",
+          education: "Образование",
+          skills: "Навыки и инструменты",
+          spokenLanguages: "Языки",
+          additionalContext: "Дополнительный контекст",
+        },
+      },
+      loadingText: "Создание черновика… это может занять до 30 секунд.",
+      errorRetrySuffix: " Можно попробовать снова — ваши ответы сохранены.",
+      validation: {
+        fullNameRequired: "Укажите своё имя, чтобы у черновика CV была чёткая идентичность.",
+        targetRoleRequired: "Добавьте должность, направление или цель, чтобы черновик знал, к чему стремиться.",
+      },
+      sparseWarnings: {
+        experience:
+          "Раздел опыта пуст, поэтому будущий черновик может оставить его сдержанным или попросить вас его проверить.",
+        education: "Раздел образования пуст; будущий черновик не должен придумывать учебные заведения, курсы или даты.",
+        skills: "Навыки и инструменты пусты, поэтому у будущего черновика будет меньше конкретных сильных сторон.",
+        spokenLanguages: "Раздел языков пуст; выбранный язык CV не будет считаться заявленным навыком.",
+      },
+      buttons: {
+        back: "Назад",
+        next: "Далее",
+        reviewAnswers: "Проверить ответы",
+        generate: "Сгенерировать черновик",
+        building: "Создание черновика…",
+        tryAgain: "Попробовать снова",
       },
     },
   },

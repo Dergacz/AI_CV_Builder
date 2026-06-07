@@ -2,7 +2,8 @@ import { type ReactNode } from "react";
 
 // Type-only import keeps zod (pulled in by cv-draft's runtime exports) out of this client island.
 import type { GeneratedCvDraft } from "@/lib/cv-draft";
-import { cvEditorCopy } from "@/lib/cv-editor-copy";
+import { getCvEditorCopy } from "@/lib/cv-editor-copy";
+import type { UiLocale } from "@/lib/i18n/locales";
 
 type Sections = GeneratedCvDraft["sections"];
 
@@ -13,26 +14,30 @@ type Sections = GeneratedCvDraft["sections"];
  * be rendered in one place — S-05 editing reuses the per-section `*Content` renderers below,
  * and S-07 PDF export reuses this whole component. Renders only the five CV sections;
  * warnings/assumptions are editorial guidance and stay in the surrounding preview.
+ *
+ * S-09: section headings and empty-state copy are selected by the passed `locale`. On screen
+ * this is the interface locale; the PDF export selects the same copy by the CV output language.
  */
-export default function CvTemplate({ draft }: { draft: GeneratedCvDraft }) {
+export default function CvTemplate({ draft, locale }: { draft: GeneratedCvDraft; locale: UiLocale }) {
   const { sections } = draft;
+  const copy = getCvEditorCopy(locale);
 
   return (
     <div className="mt-6 space-y-6">
-      <DraftSection title={cvEditorCopy.sections.summary}>
+      <DraftSection title={copy.sections.summary}>
         <SummaryContent summary={sections.summary} />
       </DraftSection>
-      <DraftSection title={cvEditorCopy.sections.experience}>
-        <ExperienceContent items={sections.experience} />
+      <DraftSection title={copy.sections.experience}>
+        <ExperienceContent items={sections.experience} locale={locale} />
       </DraftSection>
-      <DraftSection title={cvEditorCopy.sections.education}>
-        <EducationContent items={sections.education} />
+      <DraftSection title={copy.sections.education}>
+        <EducationContent items={sections.education} locale={locale} />
       </DraftSection>
-      <DraftSection title={cvEditorCopy.sections.skills}>
-        <SkillsContent groups={sections.skills} />
+      <DraftSection title={copy.sections.skills}>
+        <SkillsContent groups={sections.skills} locale={locale} />
       </DraftSection>
-      <DraftSection title={cvEditorCopy.sections.languages}>
-        <LanguagesContent languages={sections.languages} />
+      <DraftSection title={copy.sections.languages}>
+        <LanguagesContent languages={sections.languages} locale={locale} />
       </DraftSection>
     </div>
   );
@@ -47,18 +52,19 @@ export function SummaryContent({ summary }: { summary: Sections["summary"] }) {
   );
 }
 
-export function ExperienceContent({ items }: { items: Sections["experience"] }) {
+export function ExperienceContent({ items, locale }: { items: Sections["experience"]; locale: UiLocale }) {
+  const copy = getCvEditorCopy(locale);
   if (items.length === 0) {
-    return <EmptyNote>{cvEditorCopy.emptyStates.experience}</EmptyNote>;
+    return <EmptyNote>{copy.emptyStates.experience}</EmptyNote>;
   }
   return (
     <ul className="space-y-4">
       {items.map((item, index) => {
         const heading = [item.role, item.organization].filter(Boolean).join(" · ");
-        const meta = [item.location, formatExperienceDates(item)].filter(Boolean).join(" · ");
+        const meta = [item.location, formatExperienceDates(item, locale)].filter(Boolean).join(" · ");
         return (
           <li key={index} className="rounded-md border border-slate-100 bg-slate-50/60 p-3">
-            <p className="font-medium text-slate-900">{heading || cvEditorCopy.labels.experienceItemFallback}</p>
+            <p className="font-medium text-slate-900">{heading || copy.labels.experienceItemFallback}</p>
             {meta && <p className="text-xs text-slate-500">{meta}</p>}
             <p className="mt-1 text-sm leading-6 whitespace-pre-wrap text-slate-700">{item.description}</p>
             {item.highlights.length > 0 && (
@@ -75,9 +81,10 @@ export function ExperienceContent({ items }: { items: Sections["experience"] }) 
   );
 }
 
-export function EducationContent({ items }: { items: Sections["education"] }) {
+export function EducationContent({ items, locale }: { items: Sections["education"]; locale: UiLocale }) {
+  const copy = getCvEditorCopy(locale);
   if (items.length === 0) {
-    return <EmptyNote>{cvEditorCopy.emptyStates.education}</EmptyNote>;
+    return <EmptyNote>{copy.emptyStates.education}</EmptyNote>;
   }
   return (
     <ul className="space-y-4">
@@ -86,7 +93,7 @@ export function EducationContent({ items }: { items: Sections["education"] }) {
         const meta = [item.location, item.startDate, item.endDate].filter(Boolean).join(" · ");
         return (
           <li key={index} className="rounded-md border border-slate-100 bg-slate-50/60 p-3">
-            <p className="font-medium text-slate-900">{heading || cvEditorCopy.labels.educationItemFallback}</p>
+            <p className="font-medium text-slate-900">{heading || copy.labels.educationItemFallback}</p>
             {meta && <p className="text-xs text-slate-500">{meta}</p>}
             {item.description && (
               <p className="mt-1 text-sm leading-6 whitespace-pre-wrap text-slate-700">{item.description}</p>
@@ -98,9 +105,10 @@ export function EducationContent({ items }: { items: Sections["education"] }) {
   );
 }
 
-export function SkillsContent({ groups }: { groups: Sections["skills"] }) {
+export function SkillsContent({ groups, locale }: { groups: Sections["skills"]; locale: UiLocale }) {
+  const copy = getCvEditorCopy(locale);
   if (groups.length === 0) {
-    return <EmptyNote>{cvEditorCopy.emptyStates.skills}</EmptyNote>;
+    return <EmptyNote>{copy.emptyStates.skills}</EmptyNote>;
   }
   return (
     <ul className="space-y-2">
@@ -113,9 +121,10 @@ export function SkillsContent({ groups }: { groups: Sections["skills"] }) {
   );
 }
 
-export function LanguagesContent({ languages }: { languages: Sections["languages"] }) {
+export function LanguagesContent({ languages, locale }: { languages: Sections["languages"]; locale: UiLocale }) {
+  const copy = getCvEditorCopy(locale);
   if (languages.length === 0) {
-    return <EmptyNote>{cvEditorCopy.emptyStates.languages}</EmptyNote>;
+    return <EmptyNote>{copy.emptyStates.languages}</EmptyNote>;
   }
   return (
     <ul className="space-y-1">
@@ -129,8 +138,8 @@ export function LanguagesContent({ languages }: { languages: Sections["languages
   );
 }
 
-function formatExperienceDates(item: Sections["experience"][number]): string {
-  const end = item.endDate ?? (item.isCurrent ? cvEditorCopy.labels.present : undefined);
+function formatExperienceDates(item: Sections["experience"][number], locale: UiLocale): string {
+  const end = item.endDate ?? (item.isCurrent ? getCvEditorCopy(locale).labels.present : undefined);
   if (item.startDate && end) return `${item.startDate} – ${end}`;
   return item.startDate ?? end ?? "";
 }
