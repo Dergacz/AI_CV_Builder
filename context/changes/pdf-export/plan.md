@@ -289,20 +289,20 @@ None — no schema, data, or persistence changes. Purely additive client feature
 - [x] 2.7 Button disabled while editing and while exporting; label reflects exporting state — edcc847
 - [x] 2.8 Edits are reflected in the exported PDF — edcc847
 - [x] 2.9 Reopened saved CV (`/cv/[id]`) exports correctly — edcc847
-- [x] 2.10 Forced export error keeps CV visible with inline banner; retry works
+- [x] 2.10 Forced export error keeps CV visible with inline banner; retry works — b065353
 
 ### Phase 3: Cross-language & cross-browser QA hardening
 
 #### Automated
 
-- [x] 3.1 Linting/type-checking passes: `npm run lint`
-- [x] 3.2 Unit tests pass: `npm run test`
-- [x] 3.3 Production build passes: `npm run build`
+- [x] 3.1 Linting/type-checking passes: `npm run lint` — b065353
+- [x] 3.2 Unit tests pass: `npm run test` — b065353
+- [x] 3.3 Production build passes: `npm run build` — b065353
 
 #### Manual
 
-- [x] 3.4 Polish diacritics and Russian Cyrillic render correctly; English unaffected
-- [x] 3.5 Sparse draft exports without broken layout (empty-state text shown)
-- [x] 3.6 Works on desktop + mobile across Chrome, Safari, Firefox, Edge
-- [x] 3.7 Render failure → `export_failed`; font/asset fetch failure → `service_unavailable`; CV stays visible in both
-- [x] 3.8 First-export lib load cost acceptable on a normal connection
+- [x] 3.4 Polish diacritics and Russian Cyrillic render correctly; English unaffected — b065353
+- [x] 3.5 Sparse draft exports without broken layout (empty-state text shown) — b065353
+- [x] 3.6 Works on desktop + mobile across Chrome, Safari, Firefox, Edge — b065353
+- [x] 3.7 Render failure → `export_failed`; font/asset fetch failure → `service_unavailable`; CV stays visible in both — b065353
+- [x] 3.8 First-export lib load cost acceptable on a normal connection — b065353
