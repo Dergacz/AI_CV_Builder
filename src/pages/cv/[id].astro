@@ -1,12 +1,16 @@
 ---
 import Layout from "@/layouts/Layout.astro";
+import LanguageSwitcher from "@/components/LanguageSwitcher.astro";
 import SavedCvView from "@/components/cv/SavedCvView";
 import { createClient } from "@/lib/supabase";
+import { getMessages } from "@/lib/i18n/messages";
 import { getCv } from "@/lib/services/cv-repository";
 
 // Route is already auth-protected by middleware (PROTECTED_ROUTES includes "/cv").
 // We still resolve the verified user here and load only an owned CV; RLS is the guard.
 const { id } = Astro.params;
+const locale = Astro.locals.locale;
+const copy = getMessages(locale).cvPages.saved;
 const supabase = createClient(Astro.request.headers, Astro.cookies);
 
 if (!supabase || !id) {
@@ -33,18 +37,21 @@ if (!cv) {
 }
 ---
 
-<Layout title={cv.title}>
+<Layout locale={locale} title={cv.title}>
   <main class="min-h-screen bg-slate-50 px-5 py-6 text-slate-950 sm:px-8">
     <div class="mx-auto max-w-4xl">
       <header class="border-b border-slate-200 pb-5">
-        <a href="/dashboard" class="text-sm font-semibold text-emerald-700 hover:underline">Back to workspace</a>
-        <p class="mt-8 text-sm font-semibold text-teal-700">Saved CV</p>
+        <div class="flex flex-wrap items-center justify-between gap-3">
+          <a href="/dashboard" class="text-sm font-semibold text-emerald-700 hover:underline">
+            {copy.backToWorkspace}
+          </a>
+          <LanguageSwitcher locale={locale} />
+        </div>
+        <p class="mt-8 text-sm font-semibold text-teal-700">{copy.eyebrow}</p>
         <h1 class="mt-4 text-4xl leading-tight font-semibold text-slate-950 sm:text-5xl">
           {cv.title}
         </h1>
-        <p class="mt-5 max-w-2xl text-base leading-7 text-slate-700">
-          Edit any section and save your changes. Updates overwrite this saved CV.
-        </p>
+        <p class="mt-5 max-w-2xl text-base leading-7 text-slate-700">{copy.description}</p>
       </header>
 
       <div class="py-8">

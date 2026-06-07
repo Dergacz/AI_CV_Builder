@@ -466,25 +466,25 @@ Auth redirect query params change from raw prose to stable codes. During impleme
 
 #### Automated
 
-- [x] 1.1 Astro types regenerate: `npx astro sync`
-- [x] 1.2 Locale resolver tests pass: `npm run test -- src/lib/i18n/locales.test.ts`
-- [x] 1.3 Type/lint gate passes for Phase 1 files: `npm run lint`
-- [x] 1.4 Production build passes: `npm run build`
+- [x] 1.1 Astro types regenerate: `npx astro sync` — 441224b
+- [x] 1.2 Locale resolver tests pass: `npm run test -- src/lib/i18n/locales.test.ts` — 441224b
+- [x] 1.3 Type/lint gate passes for Phase 1 files: `npm run lint` — 441224b
+- [x] 1.4 Production build passes: `npm run build` — 441224b
 
 #### Manual
 
-- [x] 1.5 Switching language writes `ui_locale` and stays on the same unprefixed route
-- [x] 1.6 `<html lang>` changes between `en`, `pl`, and `ru`
-- [x] 1.7 Existing auth protection for `/dashboard` and `/cv` still redirects signed-out users to `/auth/signin`
+- [x] 1.5 Switching language writes `ui_locale` and stays on the same unprefixed route — 441224b
+- [x] 1.6 `<html lang>` changes between `en`, `pl`, and `ru` — 441224b
+- [x] 1.7 Existing auth protection for `/dashboard` and `/cv` still redirects signed-out users to `/auth/signin` — 441224b
 
 ### Phase 2: Astro Pages, Auth, And Server Error Codes
 
 #### Automated
 
-- [ ] 2.1 Auth error code tests pass: `npm run test -- src/lib/i18n/auth-errors.test.ts`
-- [ ] 2.2 Existing auth pages and API routes lint cleanly: `npm run lint`
-- [ ] 2.3 Production build passes: `npm run build`
-- [ ] 2.4 Scope guard finds no raw auth prose in query redirects: `rg "encodeURIComponent\\((AUTH_|SIGNIN_|SIGNUP_|RATE_).*MESSAGE|getSign(In|Up)ErrorMessage" src/pages/api/auth` returns no stale raw-message redirect pattern
+- [x] 2.1 Auth error code tests pass: `npm run test -- src/lib/i18n/auth-errors.test.ts`
+- [x] 2.2 Existing auth pages and API routes lint cleanly: `npm run lint`
+- [x] 2.3 Production build passes: `npm run build`
+- [x] 2.4 Scope guard finds no raw auth prose in query redirects: `rg "encodeURIComponent\\((AUTH_|SIGNIN_|SIGNUP_|RATE_).*MESSAGE|getSign(In|Up)ErrorMessage" src/pages/api/auth` returns no stale raw-message redirect pattern
 
 #### Manual
 
