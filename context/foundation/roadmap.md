@@ -1,12 +1,12 @@
 ---
 project: AI CV Builder
 version: 1
-status: draft
+status: complete
 created: 2026-06-01
 updated: 2026-06-07
 prd_version: 1
 main_goal: speed
-top_blocker: decisions
+top_blocker: none
 ---
 
 # Roadmap: AI CV Builder
@@ -240,7 +240,7 @@ Foundations below assume these are present and do NOT re-scaffold them.
 
 ## Open Roadmap Questions
 
-1. **Which generation output contract is sufficient for the editable CV sections?** - Owner: team. Block: S-04.
+1. **Which generation output contract is sufficient for the editable CV sections?** - Resolved by F-01 + S-04: the structured `GeneratedCvDraft` contract (Summary, Experience, Education, Skills, Languages) drives both generation and section editing. Owner: team. Block: (closed).
 2. **Which PDF export approach can reliably produce a clean CV without delaying launch?** - Resolved by S-07: browser-side `@react-pdf/renderer` rendering the structured draft, with bundled Noto Sans (en/pl/ru) and the lib kept out of the SSR/Worker bundle via `client:only` islands. Owner: team. Block: (closed).
 3. **How should English, Polish, and Russian be selected for UI text and CV output without deep localization?** - Resolved by S-09: UI text uses a separate lightweight message catalog and cookie-backed interface language, chosen independently of each CV's output language; CV output language remains handled in S-03/S-04. Owner: team. Block: (closed).
 
