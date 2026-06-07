@@ -377,15 +377,15 @@ No database migration is planned for S-08. Existing `public.cvs` rows keep their
 
 #### Automated
 
-- [x] 4.1 Astro types regenerate: `npx astro sync`
-- [x] 4.2 Full test suite passes: `npm run test`
-- [x] 4.3 Lint passes: `npm run lint`
-- [x] 4.4 Production build passes: `npm run build`
-- [x] 4.5 `context/changes/full-saved-pdf-flow/plan.md` and `plan-brief.md` exist and the Progress section remains parseable
+- [x] 4.1 Astro types regenerate: `npx astro sync` — b3b92aa
+- [x] 4.2 Full test suite passes: `npm run test` — b3b92aa
+- [x] 4.3 Lint passes: `npm run lint` — b3b92aa
+- [x] 4.4 Production build passes: `npm run build` — b3b92aa
+- [x] 4.5 `context/changes/full-saved-pdf-flow/plan.md` and `plan-brief.md` exist and the Progress section remains parseable — b3b92aa
 
 #### Manual
 
-- [x] 4.6 `smoke-checklist.md` is fully executed for the agreed matrix and failure/browser checks
-- [x] 4.7 `context/changes/full-saved-pdf-flow/change.md` is `status: implemented` only after all Progress items are complete
-- [x] 4.8 `context/foundation/roadmap.md` marks S-08 done across all status surfaces
-- [x] 4.9 Linear S-08 issue is verified as Done by readback
+- [x] 4.6 `smoke-checklist.md` is fully executed for the agreed matrix and failure/browser checks — b3b92aa
+- [x] 4.7 `context/changes/full-saved-pdf-flow/change.md` is `status: implemented` only after all Progress items are complete — b3b92aa
+- [x] 4.8 `context/foundation/roadmap.md` marks S-08 done across all status surfaces — b3b92aa
+- [x] 4.9 Linear S-08 issue is verified as Done by readback — b3b92aa
