@@ -140,6 +140,11 @@ export default function CvEditor({
             </button>
           </div>
         </div>
+        {isExporting && (
+          <p role="status" aria-live="polite" className="mt-3 text-sm font-medium text-slate-600">
+            {cvExportCopy.action.exporting}
+          </p>
+        )}
         {exporter.status === "done" && (
           <p role="status" aria-live="polite" className="mt-3 text-sm font-medium text-emerald-700">
             {cvExportCopy.action.exported}

@@ -314,7 +314,8 @@ export default function QuestionnaireFlow() {
         {activeStep.key === "review" && (
           <div className="space-y-6">
             <div className="rounded-md border border-emerald-200 bg-emerald-50 p-4 text-sm leading-6 text-emerald-950">
-              Review your answers below, then generate your CV draft. Saving and PDF export come in later steps.
+              Review your answers below, then generate your CV draft. You can edit each section, save it, and export a
+              PDF next.
             </div>
 
             {isGenerating && (

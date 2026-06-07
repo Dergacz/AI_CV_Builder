@@ -65,7 +65,7 @@ const styles = StyleSheet.create({
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
-    <View style={styles.section} wrap={false}>
+    <View style={styles.section}>
       <Text style={styles.sectionTitle}>{title}</Text>
       {children}
     </View>
@@ -104,7 +104,7 @@ export default function CvPdfDocument({ draft, fullName }: { draft: GeneratedCvD
               const heading = [item.role, item.organization].filter(Boolean).join(" · ");
               const meta = [item.location, formatExperienceDates(item)].filter(Boolean).join(" · ");
               return (
-                <View key={index} style={styles.item} wrap={false}>
+                <View key={index} style={styles.item}>
                   <Text style={styles.itemHeading}>{heading || cvEditorCopy.labels.experienceItemFallback}</Text>
                   {meta ? <Text style={styles.itemMeta}>{meta}</Text> : null}
                   <Text style={styles.body}>{item.description}</Text>
@@ -127,7 +127,7 @@ export default function CvPdfDocument({ draft, fullName }: { draft: GeneratedCvD
               const heading = [item.program, item.institution].filter(Boolean).join(" · ");
               const meta = [item.location, item.startDate, item.endDate].filter(Boolean).join(" · ");
               return (
-                <View key={index} style={styles.item} wrap={false}>
+                <View key={index} style={styles.item}>
                   <Text style={styles.itemHeading}>{heading || cvEditorCopy.labels.educationItemFallback}</Text>
                   {meta ? <Text style={styles.itemMeta}>{meta}</Text> : null}
                   {item.description ? <Text style={styles.body}>{item.description}</Text> : null}
