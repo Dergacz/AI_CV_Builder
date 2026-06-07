@@ -53,14 +53,14 @@ export const generatedCvDraftSchema = z.object({
     modelName: z.string().optional(),
   }),
   sections: z.object({
-    summary: summarySectionSchema,        // { headline?: string; body: <non-empty> }
+    summary: summarySectionSchema, // { headline?: string; body: <non-empty> }
     experience: z.array(experienceItemSchema),
     education: z.array(educationItemSchema),
-    skills: z.array(skillGroupSchema),     // { label; items: min(1) }
+    skills: z.array(skillGroupSchema), // { label; items: min(1) }
     languages: z.array(languageItemSchema),
   }),
   assumptions: z.array(draftAssumptionSchema),
-  warnings: z.array(draftWarningSchema),   // code ∈ minimal_input|missing_*|low_confidence
+  warnings: z.array(draftWarningSchema), // code ∈ minimal_input|missing_*|low_confidence
 });
 export type GeneratedCvDraft = z.infer<typeof generatedCvDraftSchema>;
 ```
@@ -86,8 +86,14 @@ export const QUESTIONNAIRE_VERSION = "mvp-v1";
 export const cvOutputLanguages = ["en", "pl", "ru"] as const;
 export type CvOutputLanguage = (typeof cvOutputLanguages)[number];
 export interface CvQuestionnaireAnswers {
-  fullName; targetRoleOrGoal; outputLanguage: CvOutputLanguage;
-  experience; education; skillsAndTools; spokenLanguages; additionalContext;  // all string
+  fullName;
+  targetRoleOrGoal;
+  outputLanguage: CvOutputLanguage;
+  experience;
+  education;
+  skillsAndTools;
+  spokenLanguages;
+  additionalContext; // all string
 }
 ```
 
@@ -98,6 +104,7 @@ These answers are held in `QuestionnaireFlow` client state and submitted to `/ap
 `src/lib/services/cv-generation.ts` calls OpenAI via `fetch` (Workers-compatible), stamps `schemaVersion`/`language`/`source` server-side (`:284-294`), and re-validates with zod before returning (`:296-302`). It documents the F-02 privacy rule: never log raw answers, prompt, model response, or draft content (`:13-14`).
 
 `src/pages/api/cv/generate.ts` is the **template S-06 routes should follow**:
+
 - `export const prerender = false;` (`:8`)
 - Auth gate: `if (!context.locals.user) return json(401, ...)` (`:35-41`)
 - Body-size guard via `content-length` → 413 (`:43-46`)
@@ -115,7 +122,7 @@ Auth routes (`src/pages/api/auth/signin.ts`) use **form + redirect** rather than
 
 ```ts
 export function createClient(requestHeaders: Headers, cookies: AstroCookies) {
-  if (!SUPABASE_URL || !SUPABASE_KEY) return null;          // null when unconfigured
+  if (!SUPABASE_URL || !SUPABASE_KEY) return null; // null when unconfigured
   return createServerClient(SUPABASE_URL, SUPABASE_KEY, { cookies: { getAll, setAll } });
 }
 ```

@@ -5,7 +5,7 @@
 
 ## What & Why
 
-Roadmap slice **S-06** (PRD FR-009 *save changes* + FR-011 *access previous CVs*) lets a signed-in user save a generated/edited CV and reopen it later. Today the draft lives only in React state and is lost on reload — there is no persistence at all. This plan implements the already-decided F-02 persistence/privacy contract end-to-end.
+Roadmap slice **S-06** (PRD FR-009 _save changes_ + FR-011 _access previous CVs_) lets a signed-in user save a generated/edited CV and reopen it later. Today the draft lives only in React state and is lost on reload — there is no persistence at all. This plan implements the already-decided F-02 persistence/privacy contract end-to-end.
 
 ## Starting Point
 
@@ -17,15 +17,15 @@ A user can generate a CV, save it (editable default title `"{role} — {date}"`)
 
 ## Key Decisions Made
 
-| Decision | Choice | Why | Source |
-| --- | --- | --- | --- |
+| Decision            | Choice                                                                            | Why                                                              | Source        |
+| ------------------- | --------------------------------------------------------------------------------- | ---------------------------------------------------------------- | ------------- |
 | Answers persistence | Thread `CvQuestionnaireAnswers` into `source_snapshot.answers`; restore on reopen | Answers live outside the draft; needed to fully reconstruct a CV | Research/User |
-| Typed client | Generate DB types right after the first migration | Type-checks all `.from("cvs")` calls upfront | User |
-| Reopen route | New `/cv/[id]` page | Bookmarkable; keeps `/cv/new` creation-only | User |
-| Save identity | Carry `cvId` in editor state → INSERT first, UPDATE after | Simple explicit-save semantics, no duplicates | User |
-| Delete in v1 | Include it, reusing the existing confirm dialog | Dialog already built — nearly free | User |
-| Reopen scope | Section-edit + save + delete only (no regenerate) | Regenerate would discard edits — against minimal-MVP guardrail | Plan |
-| `updated_at` | DB trigger, not route-set | Keeps update writes honest | Plan |
+| Typed client        | Generate DB types right after the first migration                                 | Type-checks all `.from("cvs")` calls upfront                     | User          |
+| Reopen route        | New `/cv/[id]` page                                                               | Bookmarkable; keeps `/cv/new` creation-only                      | User          |
+| Save identity       | Carry `cvId` in editor state → INSERT first, UPDATE after                         | Simple explicit-save semantics, no duplicates                    | User          |
+| Delete in v1        | Include it, reusing the existing confirm dialog                                   | Dialog already built — nearly free                               | User          |
+| Reopen scope        | Section-edit + save + delete only (no regenerate)                                 | Regenerate would discard edits — against minimal-MVP guardrail   | Plan          |
+| `updated_at`        | DB trigger, not route-set                                                         | Keeps update writes honest                                       | Plan          |
 
 ## Scope
 
@@ -39,15 +39,15 @@ Bottom-up, phase-by-phase: **data layer → types/schemas/services/copy → API 
 
 ## Phases at a Glance
 
-| Phase | What it delivers | Key risk |
-| --- | --- | --- |
-| 1. Data layer | Migration + RLS + trigger, typed client, db scripts | Needs Docker for `--local` type gen (fallback: `--project-id`) |
+| Phase                          | What it delivers                                                 | Key risk                                                           |
+| ------------------------------ | ---------------------------------------------------------------- | ------------------------------------------------------------------ |
+| 1. Data layer                  | Migration + RLS + trigger, typed client, db scripts              | Needs Docker for `--local` type gen (fallback: `--project-id`)     |
 | 2. Types/schemas/services/copy | Shared types, extracted answers + save schemas, repository, copy | Schema drift if `generate.ts` not switched to the extracted schema |
-| 3. API routes | `/api/cv` + `/api/cv/[id]` CRUD with envelope + auth | Accidentally logging raw `draft`/`answers` |
-| 4. Save UI | `useCvSave` + save bar threaded through the flow | INSERT-vs-UPDATE identity bug → duplicate rows |
-| 5. Reopen route | `/cv/[id]` page + `SavedCvView` island | Restoring answers without exposing regenerate |
-| 6. Dashboard + delete | Extracted `ConfirmDialog`, library list island | Optimistic delete vs failure handling |
-| 7. Tests & gates | Schema/title/snapshot unit tests + E2E + RLS check | — |
+| 3. API routes                  | `/api/cv` + `/api/cv/[id]` CRUD with envelope + auth             | Accidentally logging raw `draft`/`answers`                         |
+| 4. Save UI                     | `useCvSave` + save bar threaded through the flow                 | INSERT-vs-UPDATE identity bug → duplicate rows                     |
+| 5. Reopen route                | `/cv/[id]` page + `SavedCvView` island                           | Restoring answers without exposing regenerate                      |
+| 6. Dashboard + delete          | Extracted `ConfirmDialog`, library list island                   | Optimistic delete vs failure handling                              |
+| 7. Tests & gates               | Schema/title/snapshot unit tests + E2E + RLS check               | —                                                                  |
 
 **Prerequisites:** F-02 contract (done), S-02 account access (done); local Supabase + Docker for migration/type-gen.
 **Estimated effort:** ~3–5 sessions across 7 phases.

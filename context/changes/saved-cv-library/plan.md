@@ -2,13 +2,13 @@
 
 ## Overview
 
-Roadmap slice **S-06 `saved-cv-library`** (PRD FR-009 *save changes* + FR-011 *access previous CVs*) lets a signed-in user save a generated/edited CV and reopen it later. This plan implements the already-decided **F-02 persistence/privacy contract** (`context/changes/cv-persistence-privacy-contract/persistence-privacy-contract.md`) end-to-end: the first DB migration, a typed Supabase client, repository + API layer, save UI in the creation flow, a bookmarkable `/cv/[id]` reopen route, and a dashboard library with delete.
+Roadmap slice **S-06 `saved-cv-library`** (PRD FR-009 _save changes_ + FR-011 _access previous CVs_) lets a signed-in user save a generated/edited CV and reopen it later. This plan implements the already-decided **F-02 persistence/privacy contract** (`context/changes/cv-persistence-privacy-contract/persistence-privacy-contract.md`) end-to-end: the first DB migration, a typed Supabase client, repository + API layer, save UI in the creation flow, a bookmarkable `/cv/[id]` reopen route, and a dashboard library with delete.
 
 ## Current State Analysis
 
 - The generated draft lives **only in React state** in `QuestionnaireFlow` and is lost on reload — there is **no persistence layer at all**: no `supabase/migrations/`, no `cvs` table, no generated DB types (`src/db/` absent), and `createClient` in `src/lib/supabase.ts` is untyped.
 - Supabase **is** initialized (`supabase/config.toml` exists), so `npx supabase start` works without `init`.
-- The dashboard (`src/pages/dashboard.astro:64-67`) shows a literal placeholder: *"Saved CVs — Planned for the saved-library slice."*
+- The dashboard (`src/pages/dashboard.astro:64-67`) shows a literal placeholder: _"Saved CVs — Planned for the saved-library slice."_
 - `/cv` is already auth-protected (`src/middleware.ts` `PROTECTED_ROUTES = ["/dashboard", "/cv"]`), so `/cv/[id]` inherits protection.
 - Strong reusable foundations exist: `generatedCvDraftSchema`/`GeneratedCvDraft` (`src/lib/cv-draft.ts`), the API-route template (`src/pages/api/cv/generate.ts` — `prerender=false`, `json()` helper, auth gate, discriminated-union envelope, status mapping), per-request client (`src/lib/supabase.ts` + `signin.ts`), a focus-trapped confirm dialog (`CvEditor.tsx:222-304`), status/alert feedback (`QuestionnaireFlow.tsx:313-330`), and copy-module precedent (`cv-editor-copy.ts`, `cv-draft-messages.ts`).
 - Test runner is vitest via `npm run test` (`= vitest run`); contract fixture `context/changes/generation-export-decision-contract/cv-contract.fixture.json` exists for schema tests.
@@ -122,7 +122,7 @@ Define shared saved-CV types, extract/define zod schemas, build the typed reposi
 
 **Intent**: Centralize the default title rule and all user-facing strings/error buckets, English-only, for later localization.
 
-**Contract**: `defaultCvTitle(answers, date)` → trimmed/truncated (~60 chars) `targetRoleOrGoal` + ` — ` + `YYYY-MM-DD`; fallback to a `fullName`-based title when role is empty. `cv-library-copy.ts` — dashboard list, empty state, save bar, delete-dialog strings. `cv-save-messages.ts` — error buckets `save_failed | load_failed | delete_failed | not_found | service_unavailable` + a success string. Mirror `cv-editor-copy.ts` / `cv-draft-messages.ts` shape (zod-free).
+**Contract**: `defaultCvTitle(answers, date)` → trimmed/truncated (~60 chars) `targetRoleOrGoal` + `—` + `YYYY-MM-DD`; fallback to a `fullName`-based title when role is empty. `cv-library-copy.ts` — dashboard list, empty state, save bar, delete-dialog strings. `cv-save-messages.ts` — error buckets `save_failed | load_failed | delete_failed | not_found | service_unavailable` + a success string. Mirror `cv-editor-copy.ts` / `cv-draft-messages.ts` shape (zod-free).
 
 ### Success Criteria
 

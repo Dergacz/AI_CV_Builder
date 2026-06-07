@@ -48,7 +48,13 @@ if (!cv) {
       </header>
 
       <div class="py-8">
-        <SavedCvView client:load cvId={cv.id} title={cv.title} draft={cv.draft} answers={cv.sourceSnapshot.answers} />
+        <SavedCvView
+          client:only="react"
+          cvId={cv.id}
+          title={cv.title}
+          draft={cv.draft}
+          answers={cv.sourceSnapshot.answers}
+        />
       </div>
     </div>
   </main>
