@@ -277,32 +277,32 @@ None — no schema, data, or persistence changes. Purely additive client feature
 
 #### Automated
 
-- [x] 2.1 Linting/type-checking passes: `npm run lint`
-- [x] 2.2 Unit tests pass: `npm run test`
-- [x] 2.3 Production build passes: `npm run build`
-- [x] 2.4 Formatting clean: `npm run format`
-- [x] 2.5 `@react-pdf/renderer` absent from the server/SSR bundle (client-only chunk)
+- [x] 2.1 Linting/type-checking passes: `npm run lint` — edcc847
+- [x] 2.2 Unit tests pass: `npm run test` — edcc847
+- [x] 2.3 Production build passes: `npm run build` — edcc847
+- [x] 2.4 Formatting clean: `npm run format` — edcc847
+- [x] 2.5 `@react-pdf/renderer` absent from the server/SSR bundle (client-only chunk) — edcc847
 
 #### Manual
 
-- [x] 2.6 Export button appears in save bar; click downloads a PDF with all five sections legible
-- [x] 2.7 Button disabled while editing and while exporting; label reflects exporting state
-- [x] 2.8 Edits are reflected in the exported PDF
-- [x] 2.9 Reopened saved CV (`/cv/[id]`) exports correctly
-- [ ] 2.10 Forced export error keeps CV visible with inline banner; retry works
+- [x] 2.6 Export button appears in save bar; click downloads a PDF with all five sections legible — edcc847
+- [x] 2.7 Button disabled while editing and while exporting; label reflects exporting state — edcc847
+- [x] 2.8 Edits are reflected in the exported PDF — edcc847
+- [x] 2.9 Reopened saved CV (`/cv/[id]`) exports correctly — edcc847
+- [x] 2.10 Forced export error keeps CV visible with inline banner; retry works
 
 ### Phase 3: Cross-language & cross-browser QA hardening
 
 #### Automated
 
-- [ ] 3.1 Linting/type-checking passes: `npm run lint`
-- [ ] 3.2 Unit tests pass: `npm run test`
-- [ ] 3.3 Production build passes: `npm run build`
+- [x] 3.1 Linting/type-checking passes: `npm run lint`
+- [x] 3.2 Unit tests pass: `npm run test`
+- [x] 3.3 Production build passes: `npm run build`
 
 #### Manual
 
-- [ ] 3.4 Polish diacritics and Russian Cyrillic render correctly; English unaffected
-- [ ] 3.5 Sparse draft exports without broken layout (empty-state text shown)
-- [ ] 3.6 Works on desktop + mobile across Chrome, Safari, Firefox, Edge
-- [ ] 3.7 Render failure → `export_failed`; font/asset fetch failure → `service_unavailable`; CV stays visible in both
-- [ ] 3.8 First-export lib load cost acceptable on a normal connection
+- [x] 3.4 Polish diacritics and Russian Cyrillic render correctly; English unaffected
+- [x] 3.5 Sparse draft exports without broken layout (empty-state text shown)
+- [x] 3.6 Works on desktop + mobile across Chrome, Safari, Firefox, Edge
+- [x] 3.7 Render failure → `export_failed`; font/asset fetch failure → `service_unavailable`; CV stays visible in both
+- [x] 3.8 First-export lib load cost acceptable on a normal connection

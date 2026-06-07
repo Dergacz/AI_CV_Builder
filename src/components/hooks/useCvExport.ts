@@ -1,7 +1,7 @@
 import { createElement, useCallback, useState } from "react";
 
 import type { GeneratedCvDraft } from "@/lib/cv-draft";
-import { generationErrorMessages } from "@/lib/cv-draft-messages";
+import { cvExportCopy } from "@/lib/cv-export-copy";
 import { buildCvPdfFilename } from "@/lib/cv-export-filename";
 import { classifyExportError } from "@/lib/cv-export-error";
 
@@ -50,7 +50,7 @@ export function useCvExport(): CvExportController {
       triggerDownload(blob, buildCvPdfFilename(meta));
       setStatus("done");
     } catch (caught) {
-      setError(generationErrorMessages[classifyExportError(caught)]);
+      setError(cvExportCopy.errors[classifyExportError(caught)]);
       setStatus("error");
     }
   }, []);
