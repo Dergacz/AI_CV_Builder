@@ -19,7 +19,7 @@ describe("CV language boundary", () => {
     expect(defaultCvTitle(answers, date)).toBe("Barista — 2026-01-02");
 
     const named = { ...defaultCvQuestionnaireAnswers, fullName: "Anna Kowalska" };
-    expect(defaultCvTitle(named, date)).toBe("Anna Kowalska's CV — 2026-01-02");
+    expect(defaultCvTitle(named, date)).toBe("Anna Kowalska — 2026-01-02");
 
     // No answers → neutral "CV" fallback (not interface copy).
     expect(defaultCvTitle(defaultCvQuestionnaireAnswers, date)).toBe("CV — 2026-01-02");

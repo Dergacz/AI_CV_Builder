@@ -68,7 +68,12 @@ export default function QuestionnaireFlow({ locale }: { locale: UiLocale }) {
         }
       } else {
         // Localize the stable error bucket (server prose is ignored on the client).
-        setGenerationError(genErrors[data.error]);
+        const bucket = data.error as string;
+        setGenerationError(
+          Object.prototype.hasOwnProperty.call(genErrors, bucket)
+            ? genErrors[bucket as keyof typeof genErrors]
+            : genErrors.service_unavailable,
+        );
         setStatus("error");
       }
     } catch {

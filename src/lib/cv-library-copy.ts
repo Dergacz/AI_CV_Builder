@@ -153,7 +153,7 @@ function isoDate(date: Date): string {
  *
  * Intentionally interface-locale-independent: a saved title is durable data and must
  * not change when the UI language changes (S-09 CV-language boundary). The literal
- * "CV" suffix is a neutral fallback, not interface copy.
+ * "CV" label is a neutral fallback, not interface copy.
  */
 export function defaultCvTitle(answers: CvQuestionnaireAnswers, date: Date): string {
   const datePart = isoDate(date);
@@ -164,7 +164,7 @@ export function defaultCvTitle(answers: CvQuestionnaireAnswers, date: Date): str
   }
   const name = answers.fullName.trim();
   if (name) {
-    return `${name}'s CV — ${datePart}`;
+    return `${name} — ${datePart}`;
   }
   return `CV — ${datePart}`;
 }

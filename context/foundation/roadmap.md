@@ -44,10 +44,10 @@ Here, north star means the smallest end-to-end slice whose successful delivery p
 | S-05 | cv-template-section-editing         | user can review the draft in one clean template and edit named sections                                                             | S-04                         | US-01, FR-007, FR-008                    | done    | -          |
 | S-06 | saved-cv-library                    | user can save CV changes and reopen previous CVs from their account                                                                 | F-02, S-02                   | FR-009, FR-011                           | done    | -          |
 | S-07 | pdf-export                          | user can export the reviewed CV as a clean PDF and see export failure states                                                        | F-01, S-05                   | US-01, FR-010, FR-014                    | done    | -          |
-| S-09 | interface-localization              | user can use the whole app interface (landing, auth, dashboard, questionnaire, review, error states) in English, Polish, or Russian | S-01, S-02, S-03             | US-01, FR-015                            | ready   | -          |
-| S-08 | full-saved-pdf-flow                 | user can complete the full saved PDF flow in English, Polish, or Russian                                                            | F-01, F-02, S-06, S-07, S-09 | US-01, FR-015                            | blocked | S-09       |
+| S-09 | interface-localization              | user can use the whole app interface (landing, auth, dashboard, questionnaire, review, error states) in English, Polish, or Russian | S-01, S-02, S-03             | US-01, FR-015                            | done    | -          |
+| S-08 | full-saved-pdf-flow                 | user can complete the full saved PDF flow in English, Polish, or Russian                                                            | F-01, F-02, S-06, S-07, S-09 | US-01, FR-015                            | ready   | -          |
 
-**Ready now:** S-09 (`interface-localization`) - prerequisites met; the last slice before the S-08 north star.
+**Ready now:** S-08 (`full-saved-pdf-flow`) - all prerequisites are complete; this is the north star integration slice.
 
 ## Streams
 
@@ -199,13 +199,13 @@ Foundations below assume these are present and do NOT re-scaffold them.
 - **Outcome:** user can complete the full flow from starting a CV to exporting a saved PDF in English, Polish, or Russian.
 - **Change ID:** full-saved-pdf-flow
 - **PRD refs:** US-01, FR-015
-- **Prerequisites:** F-01 (done), F-02 (done), S-06 (done), S-07 (done), S-09
+- **Prerequisites:** F-01 (done), F-02 (done), S-06 (done), S-07 (done), S-09 (done)
 - **Parallel with:** -
-- **Blocked by:** S-09 (interface localization not yet implemented)
+- **Blocked by:** - (all prerequisites met)
 - **Unknowns:**
-  - Interface translation is owned by S-09; this slice's remaining unknown is integration-only - verifying the full start -> save -> export flow renders correctly in each of English, Polish, and Russian once S-06, S-07, and S-09 land. - Owner: team. Block: no.
+  - Interface translation is implemented by S-09; this slice's remaining unknown is integration-only - verifying the full start -> save -> export flow renders correctly in each of English, Polish, and Russian. - Owner: team. Block: no.
 - **Risk:** This is the chosen first full proof; it intentionally waits until generation, save/reopen, PDF export, and the multilingual UI can be exercised together.
-- **Status:** blocked
+- **Status:** ready
 
 ### S-09: Interface localization (multilingual UI)
 
@@ -220,7 +220,7 @@ Foundations below assume these are present and do NOT re-scaffold them.
   - How interface language is persisted and switched (cookie or session vs. account preference), and whether routes stay unprefixed or move to `/[lang]/`. - Owner: team. Block: no.
 - **Convention:** UI language is a separate preference from per-CV output language; the existing `CvOutputLanguage` selection (`src/lib/cv-questionnaire.ts`) is unchanged. Later UI-bearing slices (S-05, S-07) register their user-facing strings into the en/pl/ru message catalog as part of their own implementation, so no string is left English-only when S-08 runs.
 - **Risk:** If scope drifts into deep localization (date/number/currency formats, country-specific resume norms), it pulls a parked non-goal onto the launch path and threatens the `speed` goal. Keep to UI-string translation only.
-- **Status:** ready
+- **Status:** done
 
 ## Backlog Handoff
 
@@ -235,14 +235,14 @@ Foundations below assume these are present and do NOT re-scaffold them.
 | S-05       | cv-template-section-editing         | Add CV template review and section editing                  | no                    | Implemented; clean template review and per-section editing are complete                                          |
 | S-06       | saved-cv-library                    | Save and reopen CVs from account                            | no                    | Implemented; save/reopen library, owner-only API, and delete are complete                                        |
 | S-07       | pdf-export                          | Export reviewed CV as PDF                                   | no                    | Implemented; browser-side @react-pdf/renderer export with bundled Noto Sans (en/pl/ru), failure states           |
-| S-08       | full-saved-pdf-flow                 | Complete saved PDF flow with language support               | no                    | Blocked by S-09 only (F-01, F-02, S-06, S-07 resolved)                                                           |
-| S-09       | interface-localization              | Translate the app interface into English, Polish, Russian   | yes                   | S-01/S-02/S-03 resolved; ready to plan. UI language separate from CV output language; UI-string translation only |
+| S-08       | full-saved-pdf-flow                 | Complete saved PDF flow with language support               | yes                   | F-01, F-02, S-06, S-07, and S-09 resolved; ready for the north star integration slice                            |
+| S-09       | interface-localization              | Translate the app interface into English, Polish, Russian   | no                    | Implemented; UI language is separate from CV output language; UI-string translation only                         |
 
 ## Open Roadmap Questions
 
 1. **Which generation output contract is sufficient for the editable CV sections?** - Owner: team. Block: S-04.
 2. **Which PDF export approach can reliably produce a clean CV without delaying launch?** - Resolved by S-07: browser-side `@react-pdf/renderer` rendering the structured draft, with bundled Noto Sans (en/pl/ru) and the lib kept out of the SSR/Worker bundle via `client:only` islands. Owner: team. Block: (closed).
-3. **How should English, Polish, and Russian be selected for UI text and CV output without deep localization?** - UI-text selection is now owned by S-09 (separate lightweight UI message catalog, interface language chosen independently of CV output); CV output language is already handled in S-03/S-04. Owner: team. Block: S-09.
+3. **How should English, Polish, and Russian be selected for UI text and CV output without deep localization?** - Resolved by S-09: UI text uses a separate lightweight message catalog and cookie-backed interface language, chosen independently of each CV's output language; CV output language remains handled in S-03/S-04. Owner: team. Block: (closed).
 
 ## Parked
 
@@ -266,3 +266,4 @@ Foundations below assume these are present and do NOT re-scaffold them.
 - **S-05 `cv-template-section-editing`** - Implemented on 2026-06-05. Clean professional CV template review with per-section editing (Summary, Experience, Education, Skills, Languages), a regenerate-discard guard, and accessibility improvements are complete; the reviewed CV template unlocks S-07 (pdf-export) planning.
 - **S-06 `saved-cv-library`** - Implemented on 2026-06-06. First DB migration (`public.cvs` with owner-only RLS + `updated_at` trigger), typed Supabase client, owner-enforcing repository, saved-CV API (`/api/cv`, `/api/cv/[id]`), save bar in the creation flow, bookmarkable `/cv/[id]` reopen route, and dashboard library with delete are complete; questionnaire answers are persisted in `source_snapshot` and restored on reopen. Unblocks S-08 once S-07 and S-09 land.
 - **S-07 `pdf-export`** - Implemented on 2026-06-07. Browser-side PDF export via lazily-loaded `@react-pdf/renderer` (`CvPdfDocument` over the structured draft + a name header), `useCvExport` state machine, and an Export button in the editor save bar with inline failure states (`export_failed` / `service_unavailable`, CV stays visible, retry). Bundled Noto Sans (Latin/Latin-Ext/Cyrillic) renders en/pl/ru correctly; the heavy lib is kept out of the SSR/Worker bundle by switching the `/cv/new` and `/cv/[id]` islands to `client:only`. Pure helpers (`cv-export-filename`, `cv-export-error`) are unit-tested; the render is manual QA per the F-01 spike. Leaves only S-09 before the S-08 north star.
+- **S-09 `interface-localization`** - Implemented on 2026-06-07. Lightweight cookie-backed UI locale selection (`en`, `pl`, `ru`) localizes landing, auth, dashboard, questionnaire, editor/review, saved-CV, export, and major error/empty states while keeping URLs unprefixed. CV output language, saved CV language, durable titles, and exported content remain independent from the interface locale. Review triage removed language switching from stateful CV edit screens for MVP, neutralized name-only saved-title fallback text, accepted deterministic client catalog selection as an implementation deviation, and added fallback handling for unknown API error buckets. Unblocks S-08.

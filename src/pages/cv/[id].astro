@@ -1,6 +1,5 @@
 ---
 import Layout from "@/layouts/Layout.astro";
-import LanguageSwitcher from "@/components/LanguageSwitcher.astro";
 import SavedCvView from "@/components/cv/SavedCvView";
 import { createClient } from "@/lib/supabase";
 import { getMessages } from "@/lib/i18n/messages";
@@ -45,7 +44,6 @@ if (!cv) {
           <a href="/dashboard" class="text-sm font-semibold text-emerald-700 hover:underline">
             {copy.backToWorkspace}
           </a>
-          <LanguageSwitcher locale={locale} />
         </div>
         <p class="mt-8 text-sm font-semibold text-teal-700">{copy.eyebrow}</p>
         <h1 class="mt-4 text-4xl leading-tight font-semibold text-slate-950 sm:text-5xl">

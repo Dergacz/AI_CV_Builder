@@ -75,7 +75,12 @@ export function useCvSave(init?: { cvId?: string; title?: string; locale?: UiLoc
           setStatus("saved");
         } else {
           // Localize the stable error bucket (server prose is ignored on the client).
-          setError(errors[data.error]);
+          const bucket = data.error as string;
+          setError(
+            Object.prototype.hasOwnProperty.call(errors, bucket)
+              ? errors[bucket as keyof typeof errors]
+              : errors.service_unavailable,
+          );
           setStatus("error");
         }
       } catch {
