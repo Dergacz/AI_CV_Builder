@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="32" height="32">
+  <rect width="32" height="32" rx="7" fill="#171717"/>
+  <!-- document -->
+  <rect x="8" y="6" width="16" height="20" rx="2.5" fill="#fafafa"/>
+  <!-- avatar head -->
+  <circle cx="13" cy="12" r="2" fill="#171717"/>
+  <!-- avatar shoulders -->
+  <path d="M10.5 16.5a2.5 2.5 0 0 1 5 0z" fill="#171717"/>
+  <!-- text lines -->
+  <rect x="17" y="10.5" width="4.5" height="1.6" rx="0.8" fill="#a3a3a3"/>
+  <rect x="17" y="13.5" width="4.5" height="1.6" rx="0.8" fill="#d4d4d4"/>
+  <rect x="10.5" y="19" width="11" height="1.6" rx="0.8" fill="#d4d4d4"/>
+  <rect x="10.5" y="22" width="8" height="1.6" rx="0.8" fill="#d4d4d4"/>
+</svg>
