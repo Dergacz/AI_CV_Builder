@@ -3,8 +3,10 @@ import { useState, type ReactNode } from "react";
 import type { GeneratedCvDraft } from "@/lib/cv-draft";
 import type { CvQuestionnaireAnswers } from "@/lib/cv-questionnaire";
 import { cvEditorCopy } from "@/lib/cv-editor-copy";
+import { cvExportCopy } from "@/lib/cv-export-copy";
 import { cvLibraryCopy } from "@/lib/cv-library-copy";
 import type { CvDraftEditor, CvSectionKey } from "@/components/hooks/useCvDraftEditor";
+import { useCvExport } from "@/components/hooks/useCvExport";
 import type { CvSaveController } from "@/components/hooks/useCvSave";
 import ConfirmDialog from "@/components/cv/ConfirmDialog";
 import {
@@ -48,6 +50,8 @@ export default function CvEditor({
   const { sections, assumptions, warnings } = draft;
   const canEdit = editor.openSection === null;
   const [confirmOpen, setConfirmOpen] = useState(false);
+  const exporter = useCvExport();
+  const isExporting = exporter.status === "exporting";
 
   // Guard the regenerate path only after a committed edit. Opening a section without saving
   // can still be cancelled locally, so it should not trigger the discard-edits prompt.
@@ -115,6 +119,18 @@ export default function CvEditor({
             <button
               type="button"
               onClick={() => {
+                void exporter.export(draft, { title: save.title, fullName: answers.fullName });
+              }}
+              disabled={isExporting || !canEdit}
+              aria-busy={isExporting}
+              className="inline-flex min-h-11 shrink-0 items-center justify-center gap-2 rounded-md border border-slate-300 bg-white px-5 py-3 text-sm font-semibold text-slate-900 transition-colors hover:border-slate-400 hover:bg-slate-100 focus-visible:ring-3 focus-visible:ring-slate-500/20 focus-visible:outline-none disabled:cursor-not-allowed disabled:border-slate-200 disabled:bg-slate-100 disabled:text-slate-400"
+            >
+              {isExporting && <Spinner />}
+              {isExporting ? cvExportCopy.action.exporting : cvExportCopy.action.export}
+            </button>
+            <button
+              type="button"
+              onClick={() => {
                 void save.save(draft, answers);
               }}
               disabled={save.status === "saving" || !canEdit}
@@ -124,12 +140,25 @@ export default function CvEditor({
             </button>
           </div>
         </div>
+        {exporter.status === "done" && (
+          <p role="status" aria-live="polite" className="mt-3 text-sm font-medium text-emerald-700">
+            {cvExportCopy.action.exported}
+          </p>
+        )}
         {save.status === "error" && save.error && (
           <div
             role="alert"
             className="mt-3 rounded-md border border-red-200 bg-red-50 p-3 text-sm leading-6 text-red-900"
           >
             {save.error}
+          </div>
+        )}
+        {exporter.status === "error" && exporter.error && (
+          <div
+            role="alert"
+            className="mt-3 rounded-md border border-red-200 bg-red-50 p-3 text-sm leading-6 text-red-900"
+          >
+            {exporter.error}
           </div>
         )}
       </div>
@@ -143,6 +172,12 @@ export default function CvEditor({
             ))}
           </ul>
         </section>
+      )}
+
+      {answers.fullName.trim() && (
+        <header className="mt-6 border-b-2 border-slate-900 pb-3">
+          <h3 className="text-2xl font-semibold tracking-tight text-slate-950">{answers.fullName}</h3>
+        </header>
       )}
 
       <div className="mt-6 space-y-6">
@@ -313,5 +348,14 @@ function EditableSection({
     >
       {read}
     </DraftSection>
+  );
+}
+
+function Spinner() {
+  return (
+    <span
+      className="inline-block size-4 animate-spin rounded-full border-2 border-slate-300 border-t-emerald-700"
+      aria-hidden="true"
+    />
   );
 }

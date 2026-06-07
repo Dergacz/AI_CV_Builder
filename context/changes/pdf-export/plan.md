@@ -263,32 +263,32 @@ None — no schema, data, or persistence changes. Purely additive client feature
 
 #### Automated
 
-- [x] 1.1 Linting/type-checking passes: `npm run lint`
-- [x] 1.2 Unit tests pass: `npm run test`
-- [x] 1.3 Production build passes: `npm run build`
-- [x] 1.4 Formatting clean: `npm run format`
+- [x] 1.1 Linting/type-checking passes: `npm run lint` — 6df28a1
+- [x] 1.2 Unit tests pass: `npm run test` — 6df28a1
+- [x] 1.3 Production build passes: `npm run build` — 6df28a1
+- [x] 1.4 Formatting clean: `npm run format` — 6df28a1
 
 #### Manual
 
-- [x] 1.5 `@react-pdf/renderer` installed without peer-dependency errors
-- [x] 1.6 Both Noto Sans TTFs reachable at `/fonts/NotoSans-{Regular,Bold}.ttf`
+- [x] 1.5 `@react-pdf/renderer` installed without peer-dependency errors — 6df28a1
+- [x] 1.6 Both Noto Sans TTFs reachable at `/fonts/NotoSans-{Regular,Bold}.ttf` — 6df28a1
 
 ### Phase 2: PDF document + export action in CvEditor
 
 #### Automated
 
-- [ ] 2.1 Linting/type-checking passes: `npm run lint`
-- [ ] 2.2 Unit tests pass: `npm run test`
-- [ ] 2.3 Production build passes: `npm run build`
-- [ ] 2.4 Formatting clean: `npm run format`
-- [ ] 2.5 `@react-pdf/renderer` absent from the server/SSR bundle (client-only chunk)
+- [x] 2.1 Linting/type-checking passes: `npm run lint`
+- [x] 2.2 Unit tests pass: `npm run test`
+- [x] 2.3 Production build passes: `npm run build`
+- [x] 2.4 Formatting clean: `npm run format`
+- [x] 2.5 `@react-pdf/renderer` absent from the server/SSR bundle (client-only chunk)
 
 #### Manual
 
-- [ ] 2.6 Export button appears in save bar; click downloads a PDF with all five sections legible
-- [ ] 2.7 Button disabled while editing and while exporting; label reflects exporting state
-- [ ] 2.8 Edits are reflected in the exported PDF
-- [ ] 2.9 Reopened saved CV (`/cv/[id]`) exports correctly
+- [x] 2.6 Export button appears in save bar; click downloads a PDF with all five sections legible
+- [x] 2.7 Button disabled while editing and while exporting; label reflects exporting state
+- [x] 2.8 Edits are reflected in the exported PDF
+- [x] 2.9 Reopened saved CV (`/cv/[id]`) exports correctly
 - [ ] 2.10 Forced export error keeps CV visible with inline banner; retry works
 
 ### Phase 3: Cross-language & cross-browser QA hardening
