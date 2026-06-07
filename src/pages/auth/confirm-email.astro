@@ -1,29 +1,25 @@
 ---
 import Layout from "@/layouts/Layout.astro";
+import LanguageSwitcher from "@/components/LanguageSwitcher.astro";
+import { getMessages } from "@/lib/i18n/messages";
 
 const isAutoConfirmed = import.meta.env.DEV;
-
+const locale = Astro.locals.locale;
+const messages = getMessages(locale);
 const content = isAutoConfirmed
-  ? {
-      heading: "Registration successful",
-      eyebrow: "Account ready",
-      description: "Your account is ready. Sign in to open your CV workspace.",
-      linkText: "Go to sign in",
-    }
-  : {
-      heading: "Check your email",
-      eyebrow: "Confirm your account",
-      description: "We've sent a confirmation link to your email address. Open it to activate your CV workspace.",
-      linkText: "Back to sign in",
-    };
+  ? messages.auth.confirmEmail.autoConfirmed
+  : messages.auth.confirmEmail.emailConfirmation;
 ---
 
-<Layout title={content.heading}>
+<Layout locale={locale} title={content.title}>
   <main class="flex min-h-screen items-center justify-center bg-slate-50 px-5 py-10 text-slate-950 sm:px-8">
     <section class="w-full max-w-md rounded-lg border border-slate-200 bg-white p-6 text-center shadow-lg sm:p-8">
-      <a href="/" class="text-base font-semibold text-slate-950">AI CV Builder</a>
+      <div class="flex items-center justify-between gap-4">
+        <a href="/" class="text-base font-semibold text-slate-950">{messages.auth.brand}</a>
+        <LanguageSwitcher locale={locale} />
+      </div>
       <p class="mt-8 text-sm font-semibold text-teal-700">{content.eyebrow}</p>
-      <h1 class="mt-3 text-3xl font-semibold text-slate-950">{content.heading}</h1>
+      <h1 class="mt-3 text-3xl font-semibold text-slate-950">{content.title}</h1>
       <p class="mt-4 text-sm leading-6 text-slate-600">{content.description}</p>
       <a
         href="/auth/signin"

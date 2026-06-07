@@ -1,30 +1,39 @@
 ---
 import Layout from "@/layouts/Layout.astro";
+import LanguageSwitcher from "@/components/LanguageSwitcher.astro";
 import SignInForm from "@/components/auth/SignInForm";
+import { getAuthErrorMessage, resolveAuthErrorCode } from "@/lib/i18n/auth-errors";
+import { getMessages } from "@/lib/i18n/messages";
 
+const locale = Astro.locals.locale;
+const messages = getMessages(locale);
+const content = messages.auth.signin;
 const error = Astro.url.searchParams.get("error");
+const serverError = error ? getAuthErrorMessage(locale, resolveAuthErrorCode(error, "signin_failed")) : null;
 ---
 
-<Layout title="Sign in">
+<Layout locale={locale} title={content.title}>
   <main class="flex min-h-screen items-center justify-center bg-slate-50 px-5 py-10 text-slate-950 sm:px-8">
     <section class="grid w-full max-w-5xl gap-8 lg:grid-cols-[minmax(0,0.95fr)_24rem] lg:items-center">
       <div class="max-w-2xl">
-        <a href="/" class="text-base font-semibold text-slate-950">AI CV Builder</a>
-        <p class="mt-8 text-sm font-semibold text-teal-700">Account access</p>
+        <div class="flex items-center justify-between gap-4">
+          <a href="/" class="text-base font-semibold text-slate-950">{messages.auth.brand}</a>
+          <LanguageSwitcher locale={locale} />
+        </div>
+        <p class="mt-8 text-sm font-semibold text-teal-700">{content.eyebrow}</p>
         <h1 class="mt-4 text-4xl leading-tight font-semibold text-slate-950 sm:text-5xl">
-          Sign in to your CV workspace
+          {content.heading}
         </h1>
-        <p class="mt-5 text-base leading-7 text-slate-700">
-          Continue from your protected workspace and prepare for the guided CV flow.
-        </p>
+        <p class="mt-5 text-base leading-7 text-slate-700">{content.description}</p>
       </div>
 
       <div class="w-full rounded-lg border border-slate-200 bg-white p-6 text-slate-950 shadow-xl sm:p-8">
-        <h2 class="mb-2 text-2xl font-semibold text-slate-950">Sign in</h2>
-        <p class="mb-6 text-sm leading-6 text-slate-600">Use the email and password for your AI CV Builder account.</p>
-        <SignInForm serverError={error} client:load />
+        <h2 class="mb-2 text-2xl font-semibold text-slate-950">{content.formTitle}</h2>
+        <p class="mb-6 text-sm leading-6 text-slate-600">{content.formDescription}</p>
+        <SignInForm locale={locale} serverError={serverError} client:only="react" />
         <p class="mt-4 text-center text-sm text-slate-600">
-          Don't have an account? <a href="/auth/signup" class="font-medium text-emerald-700 hover:underline">Sign up</a>
+          {content.alternatePrompt}{" "}
+          <a href="/auth/signup" class="font-medium text-emerald-700 hover:underline">{content.alternateLink}</a>
         </p>
       </div>
     </section>

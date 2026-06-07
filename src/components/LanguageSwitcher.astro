@@ -1,0 +1,40 @@
+---
+import { getMessages } from "@/lib/i18n/messages";
+import { localeLabels, uiLocales, type UiLocale } from "@/lib/i18n/locales";
+
+interface Props {
+  locale?: UiLocale;
+  returnTo?: string;
+}
+
+const locale = Astro.props.locale ?? Astro.locals.locale;
+const copy = getMessages(locale).shell.languageSwitcher;
+const returnTo = Astro.props.returnTo ?? `${Astro.url.pathname}${Astro.url.search}`;
+---
+
+<form method="POST" action="/api/locale" class="flex items-center gap-1" aria-label={copy.label}>
+  <input type="hidden" name="returnTo" value={returnTo} />
+  <div class="flex rounded-md border border-slate-300 bg-white p-1 shadow-sm">
+    {
+      uiLocales.map((item) => {
+        const selected = item === locale;
+        return (
+          <button
+            type="submit"
+            name="locale"
+            value={item}
+            aria-label={selected ? copy.current : copy.switchTo[item]}
+            aria-pressed={selected ? "true" : "false"}
+            class:list={[
+              "min-h-8 rounded px-2.5 text-xs font-semibold transition-colors focus-visible:ring-3 focus-visible:ring-emerald-700/20 focus-visible:outline-none",
+              selected ? "bg-emerald-700 text-white" : "text-slate-600 hover:bg-slate-100 hover:text-slate-950",
+            ]}
+          >
+            <span aria-hidden="true">{localeLabels[item].code}</span>
+            <span class="sr-only">{localeLabels[item].name}</span>
+          </button>
+        );
+      })
+    }
+  </div>
+</form>

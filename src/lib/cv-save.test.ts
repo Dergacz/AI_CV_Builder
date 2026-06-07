@@ -85,7 +85,7 @@ describe("defaultCvTitle", () => {
   });
 
   it("falls back to the full name when the role is empty", () => {
-    expect(defaultCvTitle({ ...validAnswers, targetRoleOrGoal: "  " }, date)).toBe("Ada Lovelace's CV — 2026-06-06");
+    expect(defaultCvTitle({ ...validAnswers, targetRoleOrGoal: "  " }, date)).toBe("Ada Lovelace — 2026-06-06");
   });
 
   it("falls back to a bare label when role and name are empty", () => {

@@ -1,12 +1,15 @@
 ---
 import Layout from "@/layouts/Layout.astro";
+import LanguageSwitcher from "@/components/LanguageSwitcher.astro";
 import SavedCvList from "@/components/cv/SavedCvList";
 import { createClient } from "@/lib/supabase";
 import { listCvs } from "@/lib/services/cv-repository";
 import type { SavedCvSummary } from "@/types";
-import { cvLibraryCopy } from "@/lib/cv-library-copy";
+import { getMessages } from "@/lib/i18n/messages";
 
 const { user } = Astro.locals;
+const locale = Astro.locals.locale;
+const copy = getMessages(locale).dashboard;
 
 // Route is auth-protected by middleware; load the owner's saved CVs for the library.
 const supabase = createClient(Astro.request.headers, Astro.cookies);
@@ -30,93 +33,96 @@ if (supabase) {
 }
 ---
 
-<Layout title="CV Workspace">
+<Layout locale={locale} title={copy.title}>
   <main class="min-h-screen bg-slate-50 px-5 py-6 text-slate-950 sm:px-8">
     <div class="mx-auto flex min-h-[calc(100vh-3rem)] max-w-6xl flex-col">
       <header class="flex flex-col gap-4 border-b border-slate-200 pb-5 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <a href="/" class="text-base font-semibold text-slate-950">AI CV Builder</a>
+          <a href="/" class="text-base font-semibold text-slate-950">{copy.brand}</a>
           <p class="mt-2 text-sm text-slate-600">
-            Signed in as <span class="font-medium text-slate-950">{user?.email}</span>
+            {copy.signedInAs}
+            <span class="font-medium text-slate-950">{user?.email}</span>
           </p>
         </div>
-        <form method="POST" action="/api/auth/signout">
-          <button
-            type="submit"
-            class="inline-flex min-h-10 items-center justify-center rounded-md border border-slate-300 bg-white px-4 text-sm font-semibold text-slate-900 transition-colors hover:border-slate-400 hover:bg-slate-100 focus-visible:ring-3 focus-visible:ring-slate-500/20 focus-visible:outline-none"
-          >
-            Sign out
-          </button>
-        </form>
+        <div class="flex flex-wrap items-center gap-3">
+          <LanguageSwitcher locale={locale} />
+          <form method="POST" action="/api/auth/signout">
+            <button
+              type="submit"
+              class="inline-flex min-h-10 items-center justify-center rounded-md border border-slate-300 bg-white px-4 text-sm font-semibold text-slate-900 transition-colors hover:border-slate-400 hover:bg-slate-100 focus-visible:ring-3 focus-visible:ring-slate-500/20 focus-visible:outline-none"
+            >
+              {copy.signOut}
+            </button>
+          </form>
+        </div>
       </header>
 
       <section class="grid flex-1 items-center gap-8 py-10 lg:grid-cols-[minmax(0,0.9fr)_minmax(18rem,0.45fr)]">
         <div class="max-w-3xl">
-          <p class="text-sm font-semibold text-teal-700">Your CV workspace</p>
+          <p class="text-sm font-semibold text-teal-700">{copy.hero.eyebrow}</p>
           <h1 class="mt-4 text-4xl leading-tight font-semibold text-slate-950 sm:text-5xl">
-            Start from a calm place, then build the CV step by step
+            {copy.hero.heading}
           </h1>
-          <p class="mt-5 max-w-2xl text-base leading-7 text-slate-700">
-            This protected workspace is ready for your CV flow. Start with the guided questionnaire, then save and
-            reopen your CVs from the library below.
-          </p>
+          <p class="mt-5 max-w-2xl text-base leading-7 text-slate-700">{copy.hero.description}</p>
           <div class="mt-8 flex flex-col gap-3 sm:flex-row">
             <a
               href="/cv/new"
               class="inline-flex min-h-11 items-center justify-center rounded-md bg-emerald-700 px-5 py-3 text-sm font-semibold text-white transition-colors hover:bg-emerald-800 focus-visible:ring-3 focus-visible:ring-emerald-700/30 focus-visible:outline-none"
             >
-              Start CV
+              {copy.hero.startCta}
             </a>
             <a
               href="/"
               class="inline-flex min-h-11 items-center justify-center rounded-md border border-slate-300 bg-white px-5 py-3 text-sm font-semibold text-slate-900 transition-colors hover:border-slate-400 hover:bg-slate-100 focus-visible:ring-3 focus-visible:ring-slate-500/20 focus-visible:outline-none"
             >
-              Back to overview
+              {copy.hero.overviewCta}
             </a>
           </div>
         </div>
 
-        <aside class="rounded-lg border border-slate-200 bg-white p-5 shadow-sm" aria-label="Workspace status">
-          <h2 class="text-base font-semibold text-slate-950">Workspace status</h2>
+        <aside class="rounded-lg border border-slate-200 bg-white p-5 shadow-sm" aria-label={copy.status.ariaLabel}>
+          <h2 class="text-base font-semibold text-slate-950">{copy.status.title}</h2>
           <dl class="mt-5 space-y-4 text-sm">
             <div>
-              <dt class="font-medium text-slate-950">Account access</dt>
-              <dd class="mt-1 text-slate-600">Active</dd>
+              <dt class="font-medium text-slate-950">{copy.status.accountAccess}</dt>
+              <dd class="mt-1 text-slate-600">{copy.status.accountActive}</dd>
             </div>
             <div>
-              <dt class="font-medium text-slate-950">Guided questionnaire</dt>
-              <dd class="mt-1 text-slate-600">Ready to start</dd>
+              <dt class="font-medium text-slate-950">{copy.status.questionnaire}</dt>
+              <dd class="mt-1 text-slate-600">{copy.status.questionnaireReady}</dd>
             </div>
             <div>
-              <dt class="font-medium text-slate-950">Saved CVs</dt>
-              <dd class="mt-1 text-slate-600">{loadError ? "Unavailable" : `${cvs.length} saved`}</dd>
+              <dt class="font-medium text-slate-950">{copy.status.savedCvs}</dt>
+              <dd class="mt-1 text-slate-600">
+                {loadError ? copy.status.unavailable : copy.status.savedCount(cvs.length)}
+              </dd>
             </div>
           </dl>
         </aside>
       </section>
 
-      <section class="border-t border-slate-200 py-10" aria-label="Saved CV library">
+      <section class="border-t border-slate-200 py-10" aria-label={copy.library.ariaLabel}>
         <div class="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
           <div>
-            <h2 class="text-2xl font-semibold text-slate-950">{cvLibraryCopy.dashboard.title}</h2>
-            <p class="mt-2 max-w-2xl text-sm leading-6 text-slate-600">{cvLibraryCopy.dashboard.description}</p>
+            <h2 class="text-2xl font-semibold text-slate-950">{copy.library.title}</h2>
+            <p class="mt-2 max-w-2xl text-sm leading-6 text-slate-600">{copy.library.description}</p>
           </div>
           <a
             href="/cv/new"
             class="inline-flex min-h-10 shrink-0 items-center justify-center rounded-md border border-slate-300 bg-white px-4 text-sm font-semibold text-slate-900 transition-colors hover:border-slate-400 hover:bg-slate-100 focus-visible:ring-3 focus-visible:ring-slate-500/20 focus-visible:outline-none"
           >
-            {cvLibraryCopy.dashboard.startCta}
+            {copy.library.startCta}
           </a>
         </div>
         <div class="mt-6">
           {
             loadError ? (
               <div class="rounded-lg border border-red-200 bg-red-50 p-6" role="alert">
-                <h3 class="text-base font-semibold text-red-950">{cvLibraryCopy.dashboard.loadErrorTitle}</h3>
-                <p class="mt-2 max-w-md text-sm leading-6 text-red-900">{cvLibraryCopy.dashboard.loadErrorBody}</p>
+                <h3 class="text-base font-semibold text-red-950">{copy.library.loadErrorTitle}</h3>
+                <p class="mt-2 max-w-md text-sm leading-6 text-red-900">{copy.library.loadErrorBody}</p>
               </div>
             ) : (
-              <SavedCvList client:load cvs={cvs} />
+              <SavedCvList client:load cvs={cvs} locale={locale} />
             )
           }
         </div>

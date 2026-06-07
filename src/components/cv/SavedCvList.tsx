@@ -1,8 +1,9 @@
 import { useState } from "react";
 
-import type { CvOutputLanguage } from "@/lib/cv-questionnaire";
-import { cvLibraryCopy } from "@/lib/cv-library-copy";
-import { cvSaveErrorMessages } from "@/lib/cv-save-messages";
+import { getCvLibraryCopy } from "@/lib/cv-library-copy";
+import { getCvSaveErrorMessages } from "@/lib/cv-save-messages";
+import { getMessages } from "@/lib/i18n/messages";
+import type { UiLocale } from "@/lib/i18n/locales";
 import type { DeleteCvResponse, SavedCvSummary } from "@/types";
 import ConfirmDialog from "@/components/cv/ConfirmDialog";
 
@@ -12,13 +13,10 @@ import ConfirmDialog from "@/components/cv/ConfirmDialog";
  * Hydrates from the server-rendered summary list; each card opens the reopen route or
  * deletes via the shared confirm dialog. A successful DELETE removes the card in place;
  * failures surface a `role="alert"` message and leave the card untouched.
+ *
+ * S-09: all chrome follows the interface `locale`. The per-card language pill localizes the
+ * label for the CV's output language while leaving the stored `cv.language` value untouched.
  */
-
-const languageLabels: Record<CvOutputLanguage, string> = {
-  en: "English",
-  pl: "Polish",
-  ru: "Russian",
-};
 
 // Deterministic YYYY-MM-DD: `toLocaleDateString()` differs between the SSR (workerd)
 // and browser locales, which would cause a hydration mismatch on this client:load island.
@@ -26,7 +24,10 @@ function formatUpdated(iso: string): string {
   return Number.isNaN(new Date(iso).getTime()) ? iso : iso.slice(0, 10);
 }
 
-export default function SavedCvList({ cvs: initialCvs }: { cvs: SavedCvSummary[] }) {
+export default function SavedCvList({ cvs: initialCvs, locale }: { cvs: SavedCvSummary[]; locale: UiLocale }) {
+  const copy = getCvLibraryCopy(locale);
+  const saveErrors = getCvSaveErrorMessages(locale);
+  const languageLabels = getMessages(locale).questionnaire.outputLanguageNames;
   const [cvs, setCvs] = useState(initialCvs);
   const [pendingDelete, setPendingDelete] = useState<SavedCvSummary | null>(null);
   const [deleting, setDeleting] = useState(false);
@@ -44,10 +45,10 @@ export default function SavedCvList({ cvs: initialCvs }: { cvs: SavedCvSummary[]
         setCvs((current) => current.filter((cv) => cv.id !== target.id));
         setPendingDelete(null);
       } else {
-        setError(data.message);
+        setError(saveErrors[data.error]);
       }
     } catch {
-      setError(cvSaveErrorMessages.delete_failed);
+      setError(saveErrors.delete_failed);
     } finally {
       setDeleting(false);
     }
@@ -56,8 +57,8 @@ export default function SavedCvList({ cvs: initialCvs }: { cvs: SavedCvSummary[]
   if (cvs.length === 0) {
     return (
       <div className="rounded-lg border border-dashed border-slate-300 bg-white p-6 text-center">
-        <h3 className="text-base font-semibold text-slate-950">{cvLibraryCopy.dashboard.emptyTitle}</h3>
-        <p className="mx-auto mt-2 max-w-md text-sm leading-6 text-slate-600">{cvLibraryCopy.dashboard.emptyBody}</p>
+        <h3 className="text-base font-semibold text-slate-950">{copy.dashboard.emptyTitle}</h3>
+        <p className="mx-auto mt-2 max-w-md text-sm leading-6 text-slate-600">{copy.dashboard.emptyBody}</p>
       </div>
     );
   }
@@ -81,7 +82,7 @@ export default function SavedCvList({ cvs: initialCvs }: { cvs: SavedCvSummary[]
             <div className="min-w-0">
               <h3 className="truncate text-sm font-semibold text-slate-950">{cv.title}</h3>
               <p className="mt-1 text-xs text-slate-500">
-                {languageLabels[cv.language]} · {cvLibraryCopy.card.updatedPrefix} {formatUpdated(cv.updatedAt)}
+                {languageLabels[cv.language]} · {copy.card.updatedPrefix} {formatUpdated(cv.updatedAt)}
               </p>
             </div>
             <div className="flex shrink-0 items-center gap-2">
@@ -89,7 +90,7 @@ export default function SavedCvList({ cvs: initialCvs }: { cvs: SavedCvSummary[]
                 href={`/cv/${cv.id}`}
                 className="inline-flex min-h-10 items-center justify-center rounded-md bg-emerald-700 px-4 text-sm font-semibold text-white transition-colors hover:bg-emerald-800 focus-visible:ring-3 focus-visible:ring-emerald-700/30 focus-visible:outline-none"
               >
-                {cvLibraryCopy.card.open}
+                {copy.card.open}
               </a>
               <button
                 type="button"
@@ -99,7 +100,7 @@ export default function SavedCvList({ cvs: initialCvs }: { cvs: SavedCvSummary[]
                 }}
                 className="inline-flex min-h-10 items-center justify-center rounded-md border border-slate-300 bg-white px-4 text-sm font-semibold text-slate-900 transition-colors hover:border-red-300 hover:bg-red-50 hover:text-red-800 focus-visible:ring-3 focus-visible:ring-red-700/20 focus-visible:outline-none"
               >
-                {cvLibraryCopy.card.delete}
+                {copy.card.delete}
               </button>
             </div>
           </li>
@@ -108,10 +109,10 @@ export default function SavedCvList({ cvs: initialCvs }: { cvs: SavedCvSummary[]
 
       {pendingDelete && (
         <ConfirmDialog
-          title={cvLibraryCopy.delete.confirmTitle}
-          body={cvLibraryCopy.delete.confirmBody}
-          confirmLabel={deleting ? cvLibraryCopy.saveBar.saving : cvLibraryCopy.delete.confirm}
-          cancelLabel={cvLibraryCopy.delete.cancel}
+          title={copy.delete.confirmTitle}
+          body={copy.delete.confirmBody}
+          confirmLabel={deleting ? copy.saveBar.saving : copy.delete.confirm}
+          cancelLabel={copy.delete.cancel}
           confirmDisabled={deleting}
           onConfirm={() => {
             void confirmDelete();

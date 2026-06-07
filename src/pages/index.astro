@@ -1,8 +1,12 @@
 ---
 import ProductLanding from "@/components/ProductLanding.astro";
 import Layout from "@/layouts/Layout.astro";
+import { getLandingContent } from "@/lib/landing-content";
+
+const locale = Astro.locals.locale;
+const content = getLandingContent(locale);
 ---
 
-<Layout title="AI CV Builder">
-  <ProductLanding />
+<Layout locale={locale} title={content.nav.productName}>
+  <ProductLanding locale={locale} content={content} />
 </Layout>

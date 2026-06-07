@@ -1,7 +1,8 @@
 import { useState, type ReactNode } from "react";
 
 import type { EducationItem, ExperienceItem, LanguageItem, SkillGroup, SummarySection } from "@/lib/cv-draft";
-import { cvEditorCopy } from "@/lib/cv-editor-copy";
+import { getCvEditorCopy } from "@/lib/cv-editor-copy";
+import type { UiLocale } from "@/lib/i18n/locales";
 import {
   isClean,
   validateLanguage,
@@ -21,6 +22,9 @@ import { cn } from "@/lib/utils";
  * runs the zod-free validation guards on Save (blocking only on schema-required fields), and
  * commits via `onSave`. Cancel discards the working copy. The draft is never mutated until a
  * validated Save, so the committed `GeneratedCvDraft` always stays schema-valid.
+ *
+ * S-09: every editor takes the interface `locale` and selects its UI chrome from
+ * `getCvEditorCopy(locale)`. The localized labels flow down to the presentational helpers.
  */
 
 const hasText = (value: string | undefined): boolean => Boolean(value && value.trim().length > 0);
@@ -44,25 +48,31 @@ const removeButtonClass =
 
 function SectionEditFrame({
   title,
+  ariaLabel,
+  saveLabel,
+  cancelLabel,
   onSave,
   onCancel,
   children,
 }: {
   title: string;
+  ariaLabel: string;
+  saveLabel: string;
+  cancelLabel: string;
   onSave: () => void;
   onCancel: () => void;
   children: ReactNode;
 }) {
   return (
-    <section aria-label={`Edit ${title}`}>
+    <section aria-label={ariaLabel}>
       <h3 className="text-xs font-semibold tracking-wide text-slate-500 uppercase">{title}</h3>
       <div className="mt-3 space-y-4">{children}</div>
       <div className="mt-4 flex flex-wrap gap-2">
         <button type="button" onClick={onSave} className={saveButtonClass}>
-          {cvEditorCopy.actions.save}
+          {saveLabel}
         </button>
         <button type="button" onClick={onCancel} className={cancelButtonClass}>
-          {cvEditorCopy.actions.cancel}
+          {cancelLabel}
         </button>
       </div>
     </section>
@@ -70,10 +80,12 @@ function SectionEditFrame({
 }
 
 function ItemCard({
+  removeAriaLabel,
   removeLabel,
   onRemove,
   children,
 }: {
+  removeAriaLabel: string;
   removeLabel: string;
   onRemove: () => void;
   children: ReactNode;
@@ -81,8 +93,8 @@ function ItemCard({
   return (
     <div className="rounded-md border border-slate-200 bg-slate-50/60 p-3">
       <div className="flex justify-end">
-        <button type="button" onClick={onRemove} className={removeButtonClass} aria-label={removeLabel}>
-          {cvEditorCopy.actions.remove}
+        <button type="button" onClick={onRemove} className={removeButtonClass} aria-label={removeAriaLabel}>
+          {removeLabel}
         </button>
       </div>
       <div className="mt-2 space-y-3">{children}</div>
@@ -95,6 +107,7 @@ function StringListField({
   items,
   itemNoun,
   addLabel,
+  removeLabel,
   error,
   onChange,
 }: {
@@ -102,6 +115,7 @@ function StringListField({
   items: string[];
   itemNoun: string;
   addLabel: string;
+  removeLabel: string;
   error?: string;
   onChange: (next: string[]) => void;
 }) {
@@ -126,9 +140,9 @@ function StringListField({
                   onChange(removeAt(items, index));
                 }}
                 className={removeButtonClass}
-                aria-label={`${cvEditorCopy.actions.remove} ${itemNoun.toLowerCase()} ${index + 1}`}
+                aria-label={`${removeLabel} ${itemNoun} ${index + 1}`}
               >
-                {cvEditorCopy.actions.remove}
+                {removeLabel}
               </button>
             </div>
           ))}
@@ -154,13 +168,16 @@ function StringListField({
 
 export function SummaryEditor({
   summary,
+  locale,
   onSave,
   onCancel,
 }: {
   summary: SummarySection;
+  locale: UiLocale;
   onSave: (value: SummarySection) => void;
   onCancel: () => void;
 }) {
+  const copy = getCvEditorCopy(locale);
   const [value, setValue] = useState<SummarySection>(summary);
   const [errors, setErrors] = useState<SummaryErrors>({});
 
@@ -172,10 +189,17 @@ export function SummaryEditor({
   }
 
   return (
-    <SectionEditFrame title={cvEditorCopy.sections.summary} onSave={handleSave} onCancel={onCancel}>
+    <SectionEditFrame
+      title={copy.sections.summary}
+      ariaLabel={`${copy.actions.edit} ${copy.sections.summary}`}
+      saveLabel={copy.actions.save}
+      cancelLabel={copy.actions.cancel}
+      onSave={handleSave}
+      onCancel={onCancel}
+    >
       <TextField
         id="cv-summary-headline"
-        label={cvEditorCopy.fields.summaryHeadline}
+        label={copy.fields.summaryHeadline}
         value={value.headline ?? ""}
         onChange={(headline) => {
           setValue((current) => ({ ...current, headline }));
@@ -183,10 +207,10 @@ export function SummaryEditor({
       />
       <TextAreaField
         id="cv-summary-body"
-        label={cvEditorCopy.fields.summaryBody}
+        label={copy.fields.summaryBody}
         rows={5}
         value={value.body}
-        error={errors.body}
+        error={errors.body ? copy.validation.summaryBodyRequired : undefined}
         onChange={(body) => {
           setValue((current) => ({ ...current, body }));
           if (errors.body) setErrors({});
@@ -198,13 +222,16 @@ export function SummaryEditor({
 
 export function ExperienceEditor({
   items,
+  locale,
   onSave,
   onCancel,
 }: {
   items: ExperienceItem[];
+  locale: UiLocale;
   onSave: (value: ExperienceItem[]) => void;
   onCancel: () => void;
 }) {
+  const copy = getCvEditorCopy(locale);
   const [list, setList] = useState<ExperienceItem[]>(items);
 
   function update(index: number, patch: Partial<ExperienceItem>) {
@@ -217,18 +244,26 @@ export function ExperienceEditor({
   }
 
   return (
-    <SectionEditFrame title={cvEditorCopy.sections.experience} onSave={handleSave} onCancel={onCancel}>
+    <SectionEditFrame
+      title={copy.sections.experience}
+      ariaLabel={`${copy.actions.edit} ${copy.sections.experience}`}
+      saveLabel={copy.actions.save}
+      cancelLabel={copy.actions.cancel}
+      onSave={handleSave}
+      onCancel={onCancel}
+    >
       {list.map((item, index) => (
         <ItemCard
           key={index}
-          removeLabel={`${cvEditorCopy.actions.remove} experience ${index + 1}`}
+          removeLabel={copy.actions.remove}
+          removeAriaLabel={`${copy.actions.remove} ${copy.nouns.experience} ${index + 1}`}
           onRemove={() => {
             setList((current) => removeAt(current, index));
           }}
         >
           <TextField
             id={`cv-exp-role-${index}`}
-            label={cvEditorCopy.fields.role}
+            label={copy.fields.role}
             value={item.role ?? ""}
             onChange={(role) => {
               update(index, { role });
@@ -236,7 +271,7 @@ export function ExperienceEditor({
           />
           <TextField
             id={`cv-exp-org-${index}`}
-            label={cvEditorCopy.fields.organization}
+            label={copy.fields.organization}
             value={item.organization ?? ""}
             onChange={(organization) => {
               update(index, { organization });
@@ -244,7 +279,7 @@ export function ExperienceEditor({
           />
           <TextField
             id={`cv-exp-location-${index}`}
-            label={cvEditorCopy.fields.location}
+            label={copy.fields.location}
             value={item.location ?? ""}
             onChange={(location) => {
               update(index, { location });
@@ -253,7 +288,7 @@ export function ExperienceEditor({
           <div className="grid gap-3 sm:grid-cols-2">
             <TextField
               id={`cv-exp-start-${index}`}
-              label={cvEditorCopy.fields.startDate}
+              label={copy.fields.startDate}
               value={item.startDate ?? ""}
               onChange={(startDate) => {
                 update(index, { startDate });
@@ -261,7 +296,7 @@ export function ExperienceEditor({
             />
             <TextField
               id={`cv-exp-end-${index}`}
-              label={cvEditorCopy.fields.endDate}
+              label={copy.fields.endDate}
               value={item.endDate ?? ""}
               onChange={(endDate) => {
                 update(index, { endDate });
@@ -277,11 +312,11 @@ export function ExperienceEditor({
               }}
               className="size-4 accent-emerald-700"
             />
-            {cvEditorCopy.fields.isCurrent}
+            {copy.fields.isCurrent}
           </label>
           <TextAreaField
             id={`cv-exp-description-${index}`}
-            label={cvEditorCopy.fields.experienceDescription}
+            label={copy.fields.experienceDescription}
             rows={4}
             value={item.description}
             onChange={(description) => {
@@ -289,10 +324,11 @@ export function ExperienceEditor({
             }}
           />
           <StringListField
-            label={cvEditorCopy.fields.highlights}
+            label={copy.fields.highlights}
             items={item.highlights}
-            itemNoun="Highlight"
-            addLabel={cvEditorCopy.actions.addHighlight}
+            itemNoun={copy.nouns.highlight}
+            addLabel={copy.actions.addHighlight}
+            removeLabel={copy.actions.remove}
             onChange={(highlights) => {
               update(index, { highlights });
             }}
@@ -306,7 +342,7 @@ export function ExperienceEditor({
         }}
         className={addButtonClass}
       >
-        {cvEditorCopy.actions.addExperience}
+        {copy.actions.addExperience}
       </button>
     </SectionEditFrame>
   );
@@ -314,13 +350,16 @@ export function ExperienceEditor({
 
 export function EducationEditor({
   items,
+  locale,
   onSave,
   onCancel,
 }: {
   items: EducationItem[];
+  locale: UiLocale;
   onSave: (value: EducationItem[]) => void;
   onCancel: () => void;
 }) {
+  const copy = getCvEditorCopy(locale);
   const [list, setList] = useState<EducationItem[]>(items);
 
   function update(index: number, patch: Partial<EducationItem>) {
@@ -329,7 +368,10 @@ export function EducationEditor({
 
   return (
     <SectionEditFrame
-      title={cvEditorCopy.sections.education}
+      title={copy.sections.education}
+      ariaLabel={`${copy.actions.edit} ${copy.sections.education}`}
+      saveLabel={copy.actions.save}
+      cancelLabel={copy.actions.cancel}
       onSave={() => {
         onSave(list);
       }}
@@ -338,14 +380,15 @@ export function EducationEditor({
       {list.map((item, index) => (
         <ItemCard
           key={index}
-          removeLabel={`${cvEditorCopy.actions.remove} education ${index + 1}`}
+          removeLabel={copy.actions.remove}
+          removeAriaLabel={`${copy.actions.remove} ${copy.nouns.education} ${index + 1}`}
           onRemove={() => {
             setList((current) => removeAt(current, index));
           }}
         >
           <TextField
             id={`cv-edu-program-${index}`}
-            label={cvEditorCopy.fields.program}
+            label={copy.fields.program}
             value={item.program ?? ""}
             onChange={(program) => {
               update(index, { program });
@@ -353,7 +396,7 @@ export function EducationEditor({
           />
           <TextField
             id={`cv-edu-institution-${index}`}
-            label={cvEditorCopy.fields.institution}
+            label={copy.fields.institution}
             value={item.institution ?? ""}
             onChange={(institution) => {
               update(index, { institution });
@@ -361,7 +404,7 @@ export function EducationEditor({
           />
           <TextField
             id={`cv-edu-location-${index}`}
-            label={cvEditorCopy.fields.location}
+            label={copy.fields.location}
             value={item.location ?? ""}
             onChange={(location) => {
               update(index, { location });
@@ -370,7 +413,7 @@ export function EducationEditor({
           <div className="grid gap-3 sm:grid-cols-2">
             <TextField
               id={`cv-edu-start-${index}`}
-              label={cvEditorCopy.fields.startDate}
+              label={copy.fields.startDate}
               value={item.startDate ?? ""}
               onChange={(startDate) => {
                 update(index, { startDate });
@@ -378,7 +421,7 @@ export function EducationEditor({
             />
             <TextField
               id={`cv-edu-end-${index}`}
-              label={cvEditorCopy.fields.endDate}
+              label={copy.fields.endDate}
               value={item.endDate ?? ""}
               onChange={(endDate) => {
                 update(index, { endDate });
@@ -387,7 +430,7 @@ export function EducationEditor({
           </div>
           <TextAreaField
             id={`cv-edu-description-${index}`}
-            label={cvEditorCopy.fields.educationDescription}
+            label={copy.fields.educationDescription}
             rows={4}
             value={item.description ?? ""}
             onChange={(description) => {
@@ -403,7 +446,7 @@ export function EducationEditor({
         }}
         className={addButtonClass}
       >
-        {cvEditorCopy.actions.addEducation}
+        {copy.actions.addEducation}
       </button>
     </SectionEditFrame>
   );
@@ -411,13 +454,16 @@ export function EducationEditor({
 
 export function SkillsEditor({
   groups,
+  locale,
   onSave,
   onCancel,
 }: {
   groups: SkillGroup[];
+  locale: UiLocale;
   onSave: (value: SkillGroup[]) => void;
   onCancel: () => void;
 }) {
+  const copy = getCvEditorCopy(locale);
   const [list, setList] = useState<SkillGroup[]>(groups);
   const [errors, setErrors] = useState<Record<number, SkillGroupErrors | undefined>>({});
 
@@ -441,11 +487,19 @@ export function SkillsEditor({
   }
 
   return (
-    <SectionEditFrame title={cvEditorCopy.sections.skills} onSave={handleSave} onCancel={onCancel}>
+    <SectionEditFrame
+      title={copy.sections.skills}
+      ariaLabel={`${copy.actions.edit} ${copy.sections.skills}`}
+      saveLabel={copy.actions.save}
+      cancelLabel={copy.actions.cancel}
+      onSave={handleSave}
+      onCancel={onCancel}
+    >
       {list.map((group, index) => (
         <ItemCard
           key={index}
-          removeLabel={`${cvEditorCopy.actions.remove} skill group ${index + 1}`}
+          removeLabel={copy.actions.remove}
+          removeAriaLabel={`${copy.actions.remove} ${copy.nouns.skillGroup} ${index + 1}`}
           onRemove={() => {
             setList((current) => {
               const next = removeAt(current, index);
@@ -455,19 +509,20 @@ export function SkillsEditor({
         >
           <TextField
             id={`cv-skill-label-${index}`}
-            label={cvEditorCopy.fields.skillGroupLabel}
+            label={copy.fields.skillGroupLabel}
             value={group.label}
-            error={errors[index]?.label}
+            error={errors[index]?.label ? copy.validation.skillGroupLabelRequired : undefined}
             onChange={(label) => {
               update(index, { label });
             }}
           />
           <StringListField
-            label={cvEditorCopy.fields.skillItems}
+            label={copy.fields.skillItems}
             items={group.items}
-            itemNoun="Skill"
-            addLabel={cvEditorCopy.actions.addSkillItem}
-            error={errors[index]?.items}
+            itemNoun={copy.nouns.skill}
+            addLabel={copy.actions.addSkillItem}
+            removeLabel={copy.actions.remove}
+            error={errors[index]?.items ? copy.validation.skillGroupItemsRequired : undefined}
             onChange={(items) => {
               update(index, { items });
             }}
@@ -481,7 +536,7 @@ export function SkillsEditor({
         }}
         className={addButtonClass}
       >
-        {cvEditorCopy.actions.addSkillGroup}
+        {copy.actions.addSkillGroup}
       </button>
     </SectionEditFrame>
   );
@@ -489,13 +544,16 @@ export function SkillsEditor({
 
 export function LanguagesEditor({
   languages,
+  locale,
   onSave,
   onCancel,
 }: {
   languages: LanguageItem[];
+  locale: UiLocale;
   onSave: (value: LanguageItem[]) => void;
   onCancel: () => void;
 }) {
+  const copy = getCvEditorCopy(locale);
   const [list, setList] = useState<LanguageItem[]>(languages);
   const [errors, setErrors] = useState<Record<number, LanguageErrors | undefined>>({});
 
@@ -522,27 +580,35 @@ export function LanguagesEditor({
   }
 
   return (
-    <SectionEditFrame title={cvEditorCopy.sections.languages} onSave={handleSave} onCancel={onCancel}>
+    <SectionEditFrame
+      title={copy.sections.languages}
+      ariaLabel={`${copy.actions.edit} ${copy.sections.languages}`}
+      saveLabel={copy.actions.save}
+      cancelLabel={copy.actions.cancel}
+      onSave={handleSave}
+      onCancel={onCancel}
+    >
       {list.map((language, index) => (
         <ItemCard
           key={index}
-          removeLabel={`${cvEditorCopy.actions.remove} language ${index + 1}`}
+          removeLabel={copy.actions.remove}
+          removeAriaLabel={`${copy.actions.remove} ${copy.nouns.language} ${index + 1}`}
           onRemove={() => {
             setList((current) => removeAt(current, index));
           }}
         >
           <TextField
             id={`cv-language-name-${index}`}
-            label={cvEditorCopy.fields.languageName}
+            label={copy.fields.languageName}
             value={language.name}
-            error={errors[index]?.name}
+            error={errors[index]?.name ? copy.validation.languageNameRequired : undefined}
             onChange={(name) => {
               update(index, { name });
             }}
           />
           <TextField
             id={`cv-language-proficiency-${index}`}
-            label={cvEditorCopy.fields.languageProficiency}
+            label={copy.fields.languageProficiency}
             value={language.proficiency ?? ""}
             onChange={(proficiency) => {
               update(index, { proficiency });
@@ -557,7 +623,7 @@ export function LanguagesEditor({
         }}
         className={addButtonClass}
       >
-        {cvEditorCopy.actions.addLanguage}
+        {copy.actions.addLanguage}
       </button>
     </SectionEditFrame>
   );

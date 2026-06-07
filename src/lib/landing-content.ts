@@ -1,3 +1,5 @@
+import { defaultUiLocale, type UiLocale } from "@/lib/i18n/locales";
+
 export const landingLocales = ["en", "pl", "ru"] as const;
 
 export type LandingLocale = (typeof landingLocales)[number];
@@ -39,7 +41,7 @@ export interface LandingContent {
   }[];
 }
 
-export const defaultLandingLocale = "en" satisfies LandingLocale;
+export const defaultLandingLocale = defaultUiLocale satisfies LandingLocale;
 
 export const landingContentByLocale = {
   en: {
@@ -96,10 +98,131 @@ export const landingContentByLocale = {
       },
       {
         title: "Ready for lightweight i18n",
-        body: "Landing copy is structured for future English, Polish, and Russian UI text without adding the switcher in this slice.",
+        body: "Landing copy is structured for English, Polish, and Russian UI text without changing the route shape.",
       },
     ],
   },
-} satisfies Partial<Record<LandingLocale, LandingContent>> & Record<typeof defaultLandingLocale, LandingContent>;
+  pl: {
+    nav: {
+      productName: "AI CV Builder",
+      signIn: "Zaloguj się",
+      dashboard: "Przestrzeń",
+    },
+    hero: {
+      eyebrow: "Na moment pustej strony",
+      title: "Zamień proste odpowiedzi w profesjonalny szkic CV",
+      body: "AI CV Builder pomaga opisać doświadczenie codziennym językiem, a potem układa odpowiedzi w czyste CV gotowe do edycji i eksportu.",
+      primaryCta: {
+        signedOut: "Rozpocznij CV",
+        signedIn: "Przejdź do przestrzeni",
+      },
+      secondaryCta: {
+        signedOut: "Zaloguj się",
+        signedIn: "Otwórz przestrzeń",
+      },
+    },
+    preview: {
+      label: "Podgląd szkicu CV",
+      name: "Twoje imię i nazwisko",
+      role: "Podsumowanie zawodowe",
+      summary:
+        "Zwięzły szkic CV oparty na Twoich odpowiedziach, gotowy do przejrzenia sekcja po sekcji przed eksportem.",
+      sections: ["Doświadczenie", "Edukacja", "Umiejętności", "Języki"],
+    },
+    process: [
+      {
+        step: "01",
+        title: "Odpowiedz na proste pytania",
+        body: "Zacznij od zera z podpowiedziami napisanymi prostym językiem, bez żargonu CV.",
+      },
+      {
+        step: "02",
+        title: "Przejrzyj szkic ułożony przez AI",
+        body: "Aplikacja poprawia brzmienie i strukturę, ale trzyma się faktów podanych przez Ciebie.",
+      },
+      {
+        step: "03",
+        title: "Edytuj sekcje i eksportuj",
+        body: "Pracuj w skupionym przepływie: popraw sekcje CV, zapisz pracę i wyeksportuj czysty PDF.",
+      },
+    ],
+    trustNotes: [
+      {
+        title: "Bez wymyślonych faktów",
+        body: "Szkic powinien przeredagować i uporządkować odpowiedzi, a nie tworzyć pracodawców, szkół, dat ani osiągnięć, których nie podałeś.",
+      },
+      {
+        title: "Jeden skupiony szablon",
+        body: "MVP unika złożonej edycji układu, żeby pierwsze CV można było skończyć szybko.",
+      },
+      {
+        title: "Interfejs w trzech językach",
+        body: "Teksty interfejsu są dostępne po angielsku, polsku i rosyjsku bez zmiany adresów URL.",
+      },
+    ],
+  },
+  ru: {
+    nav: {
+      productName: "AI CV Builder",
+      signIn: "Войти",
+      dashboard: "Пространство",
+    },
+    hero: {
+      eyebrow: "Когда перед вами пустая страница",
+      title: "Превратите простые ответы в профессиональный черновик CV",
+      body: "AI CV Builder помогает описать опыт обычными словами, а затем организует ответы в аккуратное CV, которое можно редактировать и экспортировать.",
+      primaryCta: {
+        signedOut: "Начать CV",
+        signedIn: "Перейти в пространство",
+      },
+      secondaryCta: {
+        signedOut: "Войти",
+        signedIn: "Открыть пространство",
+      },
+    },
+    preview: {
+      label: "Предпросмотр черновика CV",
+      name: "Ваше имя",
+      role: "Профессиональное резюме",
+      summary: "Краткий черновик CV на основе ваших ответов, готовый к проверке по разделам перед экспортом.",
+      sections: ["Опыт", "Образование", "Навыки", "Языки"],
+    },
+    process: [
+      {
+        step: "01",
+        title: "Ответьте на простые вопросы",
+        body: "Начните с нуля с подсказками на обычном языке, без резюме-жаргона.",
+      },
+      {
+        step: "02",
+        title: "Проверьте структурированный AI черновик",
+        body: "Приложение улучшает формулировки и структуру, но опирается на факты, которые вы указали.",
+      },
+      {
+        step: "03",
+        title: "Редактируйте разделы и экспортируйте",
+        body: "Сохраняйте фокус: правьте разделы CV, сохраняйте работу и экспортируйте аккуратный PDF.",
+      },
+    ],
+    trustNotes: [
+      {
+        title: "Без вымышленных фактов о карьере",
+        body: "Черновик должен переформулировать и упорядочить ваши ответы, а не придумывать работодателей, учебные заведения, даты или достижения.",
+      },
+      {
+        title: "Один понятный шаблон",
+        body: "MVP избегает сложного редактирования макета, чтобы первое CV можно было закончить быстро.",
+      },
+      {
+        title: "Интерфейс на трёх языках",
+        body: "Тексты интерфейса доступны на английском, польском и русском без изменения URL.",
+      },
+    ],
+  },
+} satisfies Record<LandingLocale, LandingContent>;
 
 export const landingContent = landingContentByLocale[defaultLandingLocale];
+
+export function getLandingContent(locale: UiLocale): LandingContent {
+  return landingContentByLocale[locale];
+}

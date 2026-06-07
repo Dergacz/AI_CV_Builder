@@ -2,7 +2,9 @@ import { Document, Font, Page, StyleSheet, Text, View } from "@react-pdf/rendere
 
 // Type-only import keeps zod (pulled in by cv-draft's runtime exports) out of this client island.
 import type { GeneratedCvDraft } from "@/lib/cv-draft";
-import { cvEditorCopy } from "@/lib/cv-editor-copy";
+import type { CvOutputLanguage } from "@/lib/cv-questionnaire";
+import { getCvEditorCopy } from "@/lib/cv-editor-copy";
+import { defaultUiLocale } from "@/lib/i18n/locales";
 
 /**
  * PDF rendering of a generated CV draft (S-07).
@@ -72,13 +74,24 @@ function Section({ title, children }: { title: string; children: React.ReactNode
   );
 }
 
-function formatExperienceDates(item: Sections["experience"][number]): string {
-  const end = item.endDate ?? (item.isCurrent ? cvEditorCopy.labels.present : undefined);
+function formatExperienceDates(item: Sections["experience"][number], presentLabel: string): string {
+  const end = item.endDate ?? (item.isCurrent ? presentLabel : undefined);
   if (item.startDate && end) return `${item.startDate} – ${end}`;
   return item.startDate ?? end ?? "";
 }
 
-export default function CvPdfDocument({ draft, fullName }: { draft: GeneratedCvDraft; fullName?: string }) {
+export default function CvPdfDocument({
+  draft,
+  fullName,
+  outputLanguage,
+}: {
+  draft: GeneratedCvDraft;
+  fullName?: string;
+  /** The CV's output language drives the document's section headings, independent of UI locale. */
+  outputLanguage?: CvOutputLanguage;
+}) {
+  // The exported document's structural copy follows the CV output language, not the interface locale.
+  const copy = getCvEditorCopy(outputLanguage ?? defaultUiLocale);
   const { summary, experience, education, skills, languages } = draft.sections;
   const name = fullName?.trim();
 
@@ -91,21 +104,23 @@ export default function CvPdfDocument({ draft, fullName }: { draft: GeneratedCvD
           </View>
         ) : null}
 
-        <Section title={cvEditorCopy.sections.summary}>
+        <Section title={copy.sections.summary}>
           {summary.headline ? <Text style={styles.headline}>{summary.headline}</Text> : null}
           <Text style={styles.body}>{summary.body}</Text>
         </Section>
 
-        <Section title={cvEditorCopy.sections.experience}>
+        <Section title={copy.sections.experience}>
           {experience.length === 0 ? (
-            <Text style={styles.empty}>{cvEditorCopy.emptyStates.experience}</Text>
+            <Text style={styles.empty}>{copy.emptyStates.experience}</Text>
           ) : (
             experience.map((item, index) => {
               const heading = [item.role, item.organization].filter(Boolean).join(" · ");
-              const meta = [item.location, formatExperienceDates(item)].filter(Boolean).join(" · ");
+              const meta = [item.location, formatExperienceDates(item, copy.labels.present)]
+                .filter(Boolean)
+                .join(" · ");
               return (
                 <View key={index} style={styles.item}>
-                  <Text style={styles.itemHeading}>{heading || cvEditorCopy.labels.experienceItemFallback}</Text>
+                  <Text style={styles.itemHeading}>{heading || copy.labels.experienceItemFallback}</Text>
                   {meta ? <Text style={styles.itemMeta}>{meta}</Text> : null}
                   <Text style={styles.body}>{item.description}</Text>
                   {item.highlights.map((highlight, highlightIndex) => (
@@ -119,16 +134,16 @@ export default function CvPdfDocument({ draft, fullName }: { draft: GeneratedCvD
           )}
         </Section>
 
-        <Section title={cvEditorCopy.sections.education}>
+        <Section title={copy.sections.education}>
           {education.length === 0 ? (
-            <Text style={styles.empty}>{cvEditorCopy.emptyStates.education}</Text>
+            <Text style={styles.empty}>{copy.emptyStates.education}</Text>
           ) : (
             education.map((item, index) => {
               const heading = [item.program, item.institution].filter(Boolean).join(" · ");
               const meta = [item.location, item.startDate, item.endDate].filter(Boolean).join(" · ");
               return (
                 <View key={index} style={styles.item}>
-                  <Text style={styles.itemHeading}>{heading || cvEditorCopy.labels.educationItemFallback}</Text>
+                  <Text style={styles.itemHeading}>{heading || copy.labels.educationItemFallback}</Text>
                   {meta ? <Text style={styles.itemMeta}>{meta}</Text> : null}
                   {item.description ? <Text style={styles.body}>{item.description}</Text> : null}
                 </View>
@@ -137,9 +152,9 @@ export default function CvPdfDocument({ draft, fullName }: { draft: GeneratedCvD
           )}
         </Section>
 
-        <Section title={cvEditorCopy.sections.skills}>
+        <Section title={copy.sections.skills}>
           {skills.length === 0 ? (
-            <Text style={styles.empty}>{cvEditorCopy.emptyStates.skills}</Text>
+            <Text style={styles.empty}>{copy.emptyStates.skills}</Text>
           ) : (
             skills.map((group, index) => (
               <Text key={`${group.label}-${index}`} style={styles.skillGroup}>
@@ -150,9 +165,9 @@ export default function CvPdfDocument({ draft, fullName }: { draft: GeneratedCvD
           )}
         </Section>
 
-        <Section title={cvEditorCopy.sections.languages}>
+        <Section title={copy.sections.languages}>
           {languages.length === 0 ? (
-            <Text style={styles.empty}>{cvEditorCopy.emptyStates.languages}</Text>
+            <Text style={styles.empty}>{copy.emptyStates.languages}</Text>
           ) : (
             languages.map((language, index) => (
               <Text key={`${language.name}-${index}`} style={styles.language}>
