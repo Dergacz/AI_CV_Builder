@@ -72,3 +72,27 @@ Add `src/lib/i18n/` as a typed, static message layer. Middleware resolves `ui_lo
 - Every major visible app surface renders in English, Polish, and Russian with no route prefix changes.
 - UI language persists across refresh/navigation and controls `<html lang>`.
 - Changing UI language does not change CV output language, saved CV language, generated content, or exported CV content.
+
+## Browser Smoke Checklist (en / pl / ru)
+
+Run the full path once per interface language. Switch language from the global shell switcher; the URL
+must stay unprefixed (`/`, `/auth/signin`, `/dashboard`, `/cv/new`, `/cv/[id]`) throughout.
+
+1. **Landing** (`/`): copy localizes; `<html lang>` matches the selected locale.
+2. **Auth — signin** (`/auth/signin`): submit empty/invalid fields → localized validation; trigger a
+   failed signin → localized error from a stable code (not raw prose in the URL).
+3. **Auth — signup** (`/auth/signup`) and **confirm-email**: headers and copy localize.
+4. **Dashboard** (`/dashboard`): workspace chrome and saved-CV library copy localize.
+5. **Questionnaire** (`/cv/new`): steps, labels, validation, review, sparse warnings, loading, and
+   retry states localize; switching language keeps the route `/cv/new`.
+6. **CV output ≠ UI language**: pick an output language different from the UI locale, generate a draft,
+   and confirm UI chrome follows the UI language while generated content follows the output language.
+7. **Editor**: section UI, edit controls, save/export controls, dialogs, and empty states localize.
+8. **Save & reopen**: save the CV, reopen from `/dashboard`; saved-CV actions/errors localize while the
+   saved CV's output-language label is preserved.
+9. **Delete dialog**: localized confirm/cancel and any delete error copy.
+10. **Export**: export button/status/error copy follows the UI language; the exported PDF's content and
+    section headings follow the CV output language, not the UI locale.
+11. **Persistence**: refresh and navigate — the chosen UI language survives and URLs remain unprefixed.
+
+Prerequisite: an authenticated account and enough service availability to exercise generate/save/export.

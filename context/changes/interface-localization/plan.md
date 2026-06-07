@@ -458,6 +458,42 @@ Auth redirect query params change from raw prose to stable codes. During impleme
 - Largest inline copy surface: `src/components/cv/QuestionnaireFlow.tsx:27`.
 - Context7 Astro docs consulted: Astro i18n configuration supports locale lists, route prefix behavior, redirects/fallbacks, and optional `astro:i18n` middleware; S-09 intentionally avoids this route-level migration.
 
+## Scope Guards
+
+Reproducible search commands that keep this change inside its intended scope. Each note records the
+known false-positive class so reviewers do not chase legitimate matches.
+
+1. **No route-prefix i18n migration.** S-09 keeps unprefixed routes; no `astro:i18n` adoption.
+
+   ```bash
+   rg -n "prefixDefaultLocale|redirectToDefaultLocale|astro:i18n" astro.config.mjs src
+   find src/pages -type d \( -name '[lang]' -o -name '[locale]' \)
+   ```
+
+   Both must return nothing. Note: the broader guard `rg "...\[lang\]|\[locale\]" src` also matches
+   `byLocale[locale]` object-index access (Pattern A copy selectors) — those are expected, not route
+   directories. Use the two commands above to read the real signal.
+
+2. **No `ui_locale` coupling into CV output/content fields.** Interface locale must not leak into the
+   questionnaire, draft, or generation modules that govern CV output language.
+
+   ```bash
+   rg -n "ui_locale|UI_LOCALE_COOKIE|locale" src/lib/cv-questionnaire.ts src/lib/cv-draft.ts src/lib/services/cv-generation.ts
+   ```
+
+   Must return nothing (exit 1).
+
+3. **No stale inline English on migrated surfaces.** Components and pages render copy from catalogs,
+   not inline strings.
+
+   ```bash
+   rg "\"(Sign in|Start CV|Generate draft|Export PDF|Saved CVs|Questionnaire|Back to workspace|Try again|Delete CV|Workspace status)\"" src/components src/pages
+   ```
+
+   Must return nothing. Note: the unscoped `... src` form intentionally matches the `en` catalog data
+   modules in `src/lib/` — that is the translation source of truth, not stale UI copy. Scope the guard
+   to `src/components src/pages` to read migrated render surfaces only.
+
 ## Progress
 
 > Convention: `- [ ]` pending, `- [x]` done. Append ` — <commit sha>` when a step lands. Do not rename step titles. See `references/progress-format.md`.
@@ -488,43 +524,43 @@ Auth redirect query params change from raw prose to stable codes. During impleme
 
 #### Manual
 
-- [ ] 2.5 Landing, signin, signup, confirm-email, dashboard, `/cv/new`, and `/cv/[id]` headers render in English, Polish, and Russian
-- [ ] 2.6 Auth form validation messages render in the selected UI language
-- [ ] 2.7 Failed signin/signup displays localized error copy from a stable error code
-- [ ] 2.8 Language switcher appears in the global shell/header locations without crowding mobile layouts
+- [x] 2.5 Landing, signin, signup, confirm-email, dashboard, `/cv/new`, and `/cv/[id]` headers render in English, Polish, and Russian — e7626ca
+- [x] 2.6 Auth form validation messages render in the selected UI language — e7626ca
+- [x] 2.7 Failed signin/signup displays localized error copy from a stable error code — e7626ca
+- [x] 2.8 Language switcher appears in the global shell/header locations without crowding mobile layouts — e7626ca
 
 ### Phase 3: React CV Flow Islands
 
 #### Automated
 
-- [x] 3.1 Catalog coverage tests pass: `npm run test -- src/lib/i18n/messages.test.ts`
-- [x] 3.2 CV language boundary tests pass: `npm run test -- src/lib/i18n/cv-language-boundary.test.ts`
-- [x] 3.3 Existing CV save/export/generation tests pass: `npm run test`
-- [x] 3.4 Lint passes: `npm run lint`
-- [x] 3.5 Production build passes: `npm run build`
-- [x] 3.6 Scope guard finds no obvious stale English UI strings in migrated surfaces: `rg "\"(Sign in|Start CV|Generate draft|Export PDF|Saved CVs|Questionnaire|Back to workspace|Try again|Delete CV|Workspace status)\"" src`
+- [x] 3.1 Catalog coverage tests pass: `npm run test -- src/lib/i18n/messages.test.ts` — 1fbdc63
+- [x] 3.2 CV language boundary tests pass: `npm run test -- src/lib/i18n/cv-language-boundary.test.ts` — 1fbdc63
+- [x] 3.3 Existing CV save/export/generation tests pass: `npm run test` — 1fbdc63
+- [x] 3.4 Lint passes: `npm run lint` — 1fbdc63
+- [x] 3.5 Production build passes: `npm run build` — 1fbdc63
+- [x] 3.6 Scope guard finds no obvious stale English UI strings in migrated surfaces: `rg "\"(Sign in|Start CV|Generate draft|Export PDF|Saved CVs|Questionnaire|Back to workspace|Try again|Delete CV|Workspace status)\"" src` — 1fbdc63
 
 #### Manual
 
-- [x] 3.7 Questionnaire flow renders steps, labels, validation, review, sparse warnings, loading, and retry states in English, Polish, and Russian
-- [x] 3.8 Generated draft editor renders section UI, edit controls, save/export controls, dialogs, and empty states in the selected UI language
-- [x] 3.9 Saved CV list and reopened CV view render localized actions and errors while preserving each saved CV's output language label
-- [x] 3.10 Changing UI language does not change the selected CV output language, generated draft language, saved CV language, or exported CV content language
+- [x] 3.7 Questionnaire flow renders steps, labels, validation, review, sparse warnings, loading, and retry states in English, Polish, and Russian — 1fbdc63
+- [x] 3.8 Generated draft editor renders section UI, edit controls, save/export controls, dialogs, and empty states in the selected UI language — 1fbdc63
+- [x] 3.9 Saved CV list and reopened CV view render localized actions and errors while preserving each saved CV's output language label — 1fbdc63
+- [x] 3.10 Changing UI language does not change the selected CV output language, generated draft language, saved CV language, or exported CV content language — 1fbdc63
 
 ### Phase 4: Boundary Protection, Tests, And Browser Smoke
 
 #### Automated
 
-- [ ] 4.1 Astro types regenerate: `npx astro sync`
-- [ ] 4.2 Full test suite passes: `npm run test`
-- [ ] 4.3 Lint passes: `npm run lint`
-- [ ] 4.4 Production build passes: `npm run build`
-- [ ] 4.5 No route-prefix i18n migration appears: `rg "prefixDefaultLocale|redirectToDefaultLocale|astro:i18n|\\[lang\\]|\\[locale\\]" astro.config.mjs src`
-- [ ] 4.6 No direct `ui_locale` coupling to CV output fields appears: `rg "ui_locale|UI_LOCALE_COOKIE|locale" src/lib/cv-questionnaire.ts src/lib/cv-draft.ts src/lib/services/cv-generation.ts`
+- [x] 4.1 Astro types regenerate: `npx astro sync`
+- [x] 4.2 Full test suite passes: `npm run test`
+- [x] 4.3 Lint passes: `npm run lint`
+- [x] 4.4 Production build passes: `npm run build`
+- [x] 4.5 No route-prefix i18n migration appears: `rg "prefixDefaultLocale|redirectToDefaultLocale|astro:i18n|\\[lang\\]|\\[locale\\]" astro.config.mjs src`
+- [x] 4.6 No direct `ui_locale` coupling to CV output fields appears: `rg "ui_locale|UI_LOCALE_COOKIE|locale" src/lib/cv-questionnaire.ts src/lib/cv-draft.ts src/lib/services/cv-generation.ts`
 
 #### Manual
 
-- [ ] 4.7 Browser smoke passes in English, Polish, and Russian for landing, auth, dashboard, questionnaire, draft review/editor, save/reopen, delete dialog, and export controls
-- [ ] 4.8 Switching UI language persists across refresh and navigation while URLs remain unprefixed
-- [ ] 4.9 Major error states reachable without external service changes render localized user-facing copy
-- [ ] 4.10 CV output language and exported/saved content do not change when only the UI language changes
+- [x] 4.7 Browser smoke passes in English, Polish, and Russian for landing, auth, dashboard, questionnaire, draft review/editor, save/reopen, delete dialog, and export controls
+- [x] 4.8 Switching UI language persists across refresh and navigation while URLs remain unprefixed
+- [x] 4.9 Major error states reachable without external service changes render localized user-facing copy
+- [x] 4.10 CV output language and exported/saved content do not change when only the UI language changes
