@@ -53,6 +53,11 @@ Full server-side rendering (`output: "server"` in astro.config.mjs). All pages a
 
 GitHub Actions workflow (`.github/workflows/ci.yml`) runs lint + build on every push and PR to master. Requires `SUPABASE_URL` and `SUPABASE_KEY` repository secrets for the build step.
 
+## Testing
+
+- Unit/contract tests: `npm test` (Vitest). Test files live next to sources as `src/**/*.test.ts`; the `@/*` alias is mirrored in `vitest.config.ts`.
+- Mutation testing: `stryker.config.json` (Vitest runner). Run **narrowed** to the module under change — `npx stryker run --mutate "src/lib/file.ts"`, or by line range `--mutate "src/lib/file.ts:12-40"`. Only run it for code touched by the current change or a risk in `test-plan.md`. Artifacts land in `reports/` (gitignored). For the full selective-gate workflow and how to triage survived mutants, see "Mutation testing (Stryker)" in the 10xDevs section below.
+
 <!-- BEGIN @przeprogramowani/10x-cli -->
 
 ## 10xDevs AI Toolkit - Module 3, Lesson 2
