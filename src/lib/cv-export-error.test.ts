@@ -18,6 +18,13 @@ describe("classifyExportError", () => {
     expect(classifyExportError(new RangeError("Invalid array length"))).toBe("export_failed");
   });
 
+  it("classifies thrown strings by their content, not just Error instances", () => {
+    // Some callers throw a raw string instead of an Error; the fetch/render
+    // distinction must still hold so the user gets the right retry message.
+    expect(classifyExportError("Failed to fetch font")).toBe("service_unavailable");
+    expect(classifyExportError("Layout overflow while rendering page")).toBe("export_failed");
+  });
+
   it("defaults unknown non-error values to export_failed", () => {
     expect(classifyExportError(undefined)).toBe("export_failed");
     expect(classifyExportError({ weird: true })).toBe("export_failed");

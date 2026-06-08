@@ -2,14 +2,11 @@
 name: 10x-tech-stack-selector
 description: >
   Pick a starter and a stack for a greenfield project after the PRD is written.
-  Reads context/foundation/prd.md, opens with a Q0 path-fork (recommended
-  default for the (product_type, language_family) cell vs design-your-own),
-  runs the residual interview on the custom path, reasons over a language-aware
-  starter registry with four agent-friendly quality gates, and writes a
-  context/foundation/tech-stack.md hand-off /10x-bootstrapper consumes. Use when
-  the user asks "what stack should I use", says "pick a stack", "choose
-  framework", "co wybrać do projektu", or has a PRD on disk and is ready to
-  scaffold. Use AFTER /10x-prd, BEFORE /10x-bootstrapper.
+  Reads context/foundation/prd.md, reasons over a language-aware starter
+  registry with four agent-friendly quality gates, and writes the
+  context/foundation/tech-stack.md hand-off. Use when the user asks "what
+  stack should I use", "pick a stack", "choose framework",
+  "co wybrać do projektu". Use AFTER /10x-prd, BEFORE /10x-bootstrapper.
 argument-hint: "[path-to-prd]"
 allowed-tools:
   - Read
@@ -118,7 +115,6 @@ PRD priors:
 Ask one confirmation:
 
 AskUserQuestion:
-
 - question: "Are these priors correct, or do you want to correct anything before we proceed?"
   header: "Priors"
   options:
@@ -128,7 +124,7 @@ AskUserQuestion:
     description: "I'll ask which field to correct, then update an in-memory override (the PRD on disk is unchanged)."
   - label: "Stop — fix the PRD first"
     description: "Exit. Re-run /10x-prd to fix priors, then re-invoke /10x-tech-stack-selector."
-    multiSelect: false
+  multiSelect: false
 
 If "Correct a value": ask which field, capture an override, proceed with the override applied for this session only.
 
@@ -195,7 +191,6 @@ If the file does not exist, write `context/foundation/tech-stack.md` with the va
 If the file exists, ask:
 
 AskUserQuestion:
-
 - question: "context/foundation/tech-stack.md already exists. How would you like to proceed?"
   header: "Collision"
   options:
@@ -205,7 +200,7 @@ AskUserQuestion:
     description: "Preserve history. New selection lands at the next available tech-stack-vN.md slot."
   - label: "Abort"
     description: "Exit without writing. The conversation rationale is preserved in chat only."
-    multiSelect: false
+  multiSelect: false
 
 The recommended default here is "Overwrite" because tech-stack-selector is a one-shot decision per project; multiple versions are usually a sign the user is reconsidering, in which case losing the prior pick is intentional. Versioned save is the escape hatch.
 
@@ -265,6 +260,7 @@ hints:
   has_ai: <bool>
   has_background_jobs: <bool>
 ---
+
 ## Why this stack
 
 <one paragraph, ≤ 200 words>

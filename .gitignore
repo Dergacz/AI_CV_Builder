@@ -28,3 +28,7 @@ pnpm-debug.log*
 .idea/
 
 .playwright-mcp/
+
+# Stryker mutation testing
+reports/
+.stryker-tmp/
