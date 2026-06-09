@@ -68,3 +68,19 @@ export type GetCvResponse = { ok: true; cv: SavedCv } | CvErrorResponse;
 /** Create (POST) and update (PUT) both return the saved summary. */
 export type SaveCvResponse = { ok: true; cv: SavedCvSummary } | CvErrorResponse;
 export type DeleteCvResponse = { ok: true } | CvErrorResponse;
+
+/**
+ * Entitlement contract (F-01). The single shape every gated path reads to decide
+ * a user's generation quality. Resolved server-side from the `subscriptions` store
+ * against the DB clock; absence of a subscription ⇒ Basic. Presented to users only
+ * as "Basic" vs "Advanced" — never model names (FR-004).
+ */
+export type GenerationTier = "basic" | "advanced";
+
+export interface EntitlementStatus {
+  tier: GenerationTier;
+  /** True iff the user is Advanced right now (paid period not yet elapsed). */
+  isAdvanced: boolean;
+  /** ISO `current_period_end` while Advanced; `null` when Basic. */
+  activeUntil: string | null;
+}
