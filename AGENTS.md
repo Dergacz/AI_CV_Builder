@@ -20,7 +20,7 @@ AI CV Builder is an Astro 6 SSR app that turns user answers into a professional 
 
 ## Project Structure
 
-`src/pages/` contains Astro routes, with auth POST endpoints in `src/pages/api/auth/`. `src/components/auth/` holds interactive React auth form pieces; shared shadcn/ui components live in `src/components/ui/`. `src/lib/` holds Supabase, config-status, and utility helpers. `supabase/config.toml` is local Supabase config; there are no migrations yet.
+`src/pages/` contains Astro routes, with auth POST endpoints in `src/pages/api/auth/`. `src/components/auth/` holds interactive React auth form pieces; shared shadcn/ui components live in `src/components/ui/`. `src/lib/` holds Supabase, config-status, and utility helpers. `supabase/config.toml` is local Supabase config; migrations live in `supabase/migrations/` (naming: `YYYYMMDDHHmmss_description.sql`). Always enable RLS on new tables with granular per-operation, per-role policies.
 
 ## Coding Conventions
 
@@ -28,7 +28,7 @@ Use the `@/*` alias from @tsconfig.json for `src` imports. Prefer Astro componen
 
 ## Testing and CI
 
-No test runner or test script is configured yet; do not invent one in docs. The current verification gate is `npm run lint` plus `npm run build`. GitHub Actions in @.github/workflows/ci.yml runs on pushes and PRs to `master` and requires `SUPABASE_URL` and `SUPABASE_KEY` repository secrets for build.
+Unit/contract tests run with Vitest: `npm test` (`vitest run`); test files live beside sources as `src/**/*.test.ts`, with the `@/*` alias mirrored in @vitest.config.ts. Mutation testing is configured via Stryker (@stryker.config.json, Vitest runner) and run narrowed to the module under change — `npx stryker run --mutate "src/lib/file.ts"`. The verification gate is `npm run lint` + `npm run build` + `npm test`. GitHub Actions in @.github/workflows/ci.yml runs on pushes and PRs to `master` and requires `SUPABASE_URL` and `SUPABASE_KEY` repository secrets for build.
 
 ## Git and PRs
 

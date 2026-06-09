@@ -55,13 +55,15 @@ export function useCvExport(locale: UiLocale): CvExportController {
           import("@react-pdf/renderer"),
           import("@/components/cv/CvPdfDocument"),
         ]);
-        const blob = await pdf(
-          createElement(CvPdfDocument, {
-            draft,
-            fullName: meta.fullName,
-            outputLanguage: meta.outputLanguage,
-          }),
-        ).toBlob();
+        // CvPdfDocument is a wrapper that renders a <Document> internally, so passing it
+        // to `pdf()` is correct at runtime; the element-type generic just needs a cast to
+        // the parameter type `pdf()` expects (a Document element).
+        const documentElement = createElement(CvPdfDocument, {
+          draft,
+          fullName: meta.fullName,
+          outputLanguage: meta.outputLanguage,
+        }) as Parameters<typeof pdf>[0];
+        const blob = await pdf(documentElement).toBlob();
         triggerDownload(blob, buildCvPdfFilename(meta));
         setStatus("done");
       } catch (caught) {

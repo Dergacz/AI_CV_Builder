@@ -49,9 +49,19 @@ Full server-side rendering (`output: "server"` in astro.config.mjs). All pages a
 - Cloudflare local dev: secrets go in `.dev.vars` (gitignored)
 - Deploy: `npx wrangler deploy` (requires Cloudflare account + `wrangler` auth)
 
+## Versions & idioms (pinned — newer than common training data)
+
+These majors postdate much training data; do not fall back to previous-major idioms:
+
+- **Tailwind 4** — CSS-first via `@tailwindcss/vite`. There is NO `tailwind.config.js`; theme/tokens live in CSS (`@theme` in the global stylesheet). Do not generate a `tailwind.config.js` or v3-style JS config. Class ordering is enforced by `prettier-plugin-tailwindcss`.
+- **ESLint 9** — flat config in `eslint.config.js`. Do NOT add `.eslintrc*` files or `extends` arrays of the legacy shape. New rules go into the flat config array.
+- **React 19 + React Compiler** — `eslint-plugin-react-compiler` is active. Avoid manual `useMemo`/`useCallback`/`memo` for compiler-handled cases; write straightforward components. No `"use client"`/`"use server"` directives (these are Astro islands, not Next.js).
+- **zod 4** — import from `zod`; verify against the installed v4 API (error customization and some method signatures changed from v3). Do not assume v3 idioms.
+- **Astro 6** — API routes export `const prerender = false` and uppercase handlers (`GET`, `POST`). Run `npx astro sync` after changing content/types.
+
 ## CI
 
-GitHub Actions workflow (`.github/workflows/ci.yml`) runs lint + build on every push and PR to master. Requires `SUPABASE_URL` and `SUPABASE_KEY` repository secrets for the build step.
+GitHub Actions runs `astro sync` + `astro check` + lint + test + build on every PR to master (`.github/workflows/ci.yml`); `deploy.yml` runs the same gate then deploys to Cloudflare Workers on push to master. Requires `SUPABASE_URL` and `SUPABASE_KEY` repository secrets for the build step.
 
 ## Testing
 

@@ -56,7 +56,11 @@ export function validateLanguage(language: LanguageItem): LanguageErrors {
   return errors;
 }
 
-/** True when an error map has no keys set. */
-export function isClean(errors: Record<string, string | undefined>): boolean {
+/**
+ * True when an error map has no keys set. Accepts any error object (the typed
+ * `*Errors` interfaces have no string index signature, so a bare
+ * `Record<string, string | undefined>` would reject them).
+ */
+export function isClean(errors: object): boolean {
   return Object.values(errors).every((value) => value === undefined);
 }
