@@ -458,18 +458,18 @@ backfill to reverse. No existing user needs a row created.
 #### Manual
 
 - [x] 2.4 `resolveEntitlement` returns Basic for no row and Advanced for a seeded
-      future-dated row
+      future-dated row — 5438a50
 
 ### Phase 3: Tests & Seed Contract
 
 #### Automated
 
-- [x] 3.1 New resolver tests pass: `npm test`
-- [x] 3.2 Type checking passes: `npx astro check`
-- [x] 3.3 Linting passes: `npm run lint`
+- [x] 3.1 New resolver tests pass: `npm test` — 5438a50
+- [x] 3.2 Type checking passes: `npx astro check` — 5438a50
+- [x] 3.3 Linting passes: `npm run lint` — 5438a50
 
 #### Manual
 
-- [x] 3.4 Documented seed snippet produces an Advanced result from the resolver
+- [x] 3.4 Documented seed snippet produces an Advanced result from the resolver — 5438a50
 - [x] 3.5 Integration checks pass: RLS write-denial, `now()` boundary, unique-user
-      constraint
+      constraint — 5438a50
