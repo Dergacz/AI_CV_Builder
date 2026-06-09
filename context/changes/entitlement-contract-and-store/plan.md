@@ -406,26 +406,26 @@ backfill to reverse. No existing user needs a row created.
 
 #### Automated
 
-- [x] 1.1 Migration applies cleanly on reset: `npm run db:reset`
-- [x] 1.2 Types regenerate and include `subscriptions`: `npm run db:types`
-- [x] 1.3 Type checking passes: `npx astro check`
-- [x] 1.4 Linting passes: `npm run lint`
+- [x] 1.1 Migration applies cleanly on reset: `npm run db:reset` — 82a6bbc
+- [x] 1.2 Types regenerate and include `subscriptions`: `npm run db:types` — 82a6bbc
+- [x] 1.3 Type checking passes: `npx astro check` — 82a6bbc
+- [x] 1.4 Linting passes: `npm run lint` — 82a6bbc
 
 #### Manual
 
-- [x] 1.5 `public.cvs` unchanged (no altered columns, no data loss)
-- [x] 1.6 Authenticated user cannot read another user's subscription row
-- [x] 1.7 Authenticated user's self INSERT/UPDATE on `subscriptions` is denied by RLS
+- [x] 1.5 `public.cvs` unchanged (no altered columns, no data loss) — 82a6bbc
+- [x] 1.6 Authenticated user cannot read another user's subscription row — 82a6bbc
+- [x] 1.7 Authenticated user's self INSERT/UPDATE on `subscriptions` is denied by RLS — 82a6bbc
 - [x] 1.8 `get_entitlement()` returns no rows for a user with no subscription, and
-      `is_advanced = true` for a seeded future-dated row
+      `is_advanced = true` for a seeded future-dated row — 82a6bbc
 
 ### Phase 2: Resolver Service & Types
 
 #### Automated
 
-- [ ] 2.1 Type checking passes: `npx astro check`
-- [ ] 2.2 Linting passes: `npm run lint`
-- [ ] 2.3 Existing tests still pass: `npm test`
+- [x] 2.1 Type checking passes: `npx astro check`
+- [x] 2.2 Linting passes: `npm run lint`
+- [x] 2.3 Existing tests still pass: `npm test`
 
 #### Manual
 
