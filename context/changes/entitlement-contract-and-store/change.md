@@ -1,7 +1,7 @@
 ---
 change_id: entitlement-contract-and-store
 title: Entitlement contract and store
-status: implemented
+status: impl_reviewed
 created: 2026-06-09
 updated: 2026-06-09
 archived_at: null
