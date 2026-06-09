@@ -1,271 +1,219 @@
 ---
-project: AI CV Builder
+project: AI CV Builder — Commercial Readiness Release
 version: 1
-status: complete
-created: 2026-06-01
-updated: 2026-06-07
-prd_version: 1
-main_goal: speed
+status: draft
+created: 2026-06-09
+updated: 2026-06-09
+prd_version: 2
+main_goal: market-feedback
 top_blocker: none
 ---
 
-# Roadmap: AI CV Builder
+# Roadmap: AI CV Builder — Commercial Readiness Release (Wave 1)
 
-> Derived from `context/foundation/prd.md` (v1) + auto-researched codebase baseline.
+> Derived from `context/foundation/prd-v2.md` (v2) + auto-researched codebase baseline.
+> The completed MVP roadmap is archived at `context/foundation/archive/2026-06-09-roadmap.md`.
 > Edit-in-place; archive when superseded.
 > Slices below are listed in dependency order. The "At a glance" table is the index.
 
 ## Vision recap
 
-AI CV Builder helps first-time or low-confidence CV creators get past the blank-page moment by turning guided self-description into a structured, professional CV. The MVP must keep the user out of full document-editor complexity while still producing a clean template, section edits, saved CVs, and PDF export.
+The MVP proves that guided self-description produces a usable CV, but it is free and
+not commercially packaged. This release turns it into a sellable product: a small
+subscription (~$2–3/month) that automatically upgrades a paying user's CV generation
+from a **Basic** tier to an **Advanced** tier, gated server-side so it can't be
+bypassed. The **product wedge** — the one trait that, if removed, makes the product
+just another free generator — is that paying users get a demonstrably better-written
+CV (an edge they can't self-assess) while the full free flow keeps working unchanged.
+Wave 1 sells on the Advanced tier alone; ATS features, templates, photo, and theming
+are sequenced into later waves.
 
 ## North star
 
-**S-08: User can complete the full saved PDF flow in a supported language** - this is the first full proof that the product promise works end to end under the `speed` goal.
+**S-02: User can subscribe and immediately receive server-gated Advanced generation** —
+the slice that closes the commercial loop end to end (pay → entitlement flips →
+generation runs Advanced, unbypassable). Under the `market-feedback` goal this is the
+validation milestone: it is the first point at which a real person can pay and the
+"invisible edge" hypothesis can be tested with money, not opinion.
 
-Here, north star means the smallest end-to-end slice whose successful delivery proves the main product promise; it is placed as early as its prerequisites allow because later work only matters if this flow works.
+> North star here means the smallest end-to-end, user-visible slice whose successful
+> delivery would prove the core product hypothesis — placed as early as its
+> prerequisites allow, because everything else (landing polish, Google login, cookie
+> banner) only matters if people actually pay for Advanced. S-02 sits behind a thin
+> enabling chain (F-01 → S-01); those come first only because S-02 cannot exist
+> without them.
 
 ## At a glance
 
 **Status legend** (mutually exclusive):
 
-- `done` - implemented and merged.
-- `ready` - all prerequisites met; ready to hand to `/10x-plan`.
-- `blocked` - one or more prerequisites are not yet implemented (see **Blocked by**).
+- `ready` — all prerequisites met (none, or a present baseline layer); ready to hand to `/10x-plan`.
+- `proposed` — prerequisites exist in this roadmap but are not yet implemented.
+- `blocked` — one or more Unknowns with `Block: yes` (none in this roadmap).
 
-| ID   | Change ID                           | Outcome (user can ...)                                                                                                              | Prerequisites                | PRD refs                                 | Status  | Blocked by |
-| ---- | ----------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------- | ---------------------------- | ---------------------------------------- | ------- | ---------- |
-| F-01 | generation-export-decision-contract | (foundation) generation and PDF export decisions are captured as minimal contracts                                                  | -                            | NFR: Export reliability, Response timing | done    | -          |
-| F-02 | cv-persistence-privacy-contract     | (foundation) owner-only saved-CV persistence is defined enough to plan save/reopen                                                  | -                            | Access Control, NFR: Privacy, Retention  | done    | -          |
-| S-01 | product-landing-start               | user can understand the value proposition and start CV creation                                                                     | -                            | FR-001, FR-002                           | done    | -          |
-| S-02 | account-access-for-cv-work          | user can sign up, log in, and reach the CV workspace                                                                                | -                            | FR-003                                   | done    | -          |
-| S-03 | guided-questionnaire-capture        | user can create a new CV by answering a simple guided questionnaire                                                                 | S-01, S-02                   | US-01, FR-004, FR-005                    | done    | -          |
-| S-04 | generated-cv-draft                  | user can receive a usable structured CV draft from questionnaire answers                                                            | F-01, S-03                   | US-01, FR-006, FR-012, FR-013, FR-014    | done    | -          |
-| S-05 | cv-template-section-editing         | user can review the draft in one clean template and edit named sections                                                             | S-04                         | US-01, FR-007, FR-008                    | done    | -          |
-| S-06 | saved-cv-library                    | user can save CV changes and reopen previous CVs from their account                                                                 | F-02, S-02                   | FR-009, FR-011                           | done    | -          |
-| S-07 | pdf-export                          | user can export the reviewed CV as a clean PDF and see export failure states                                                        | F-01, S-05                   | US-01, FR-010, FR-014                    | done    | -          |
-| S-09 | interface-localization              | user can use the whole app interface (landing, auth, dashboard, questionnaire, review, error states) in English, Polish, or Russian | S-01, S-02, S-03             | US-01, FR-015                            | done    | -          |
-| S-08 | full-saved-pdf-flow                 | user can complete the full saved PDF flow in English, Polish, or Russian                                                            | F-01, F-02, S-06, S-07, S-09 | US-01, FR-015                            | done    | -          |
-
-**Ready now:** none - S-08 (`full-saved-pdf-flow`) is implemented; the north star integration slice is complete and the roadmap MVP scope is fully delivered.
+| ID   | Change ID                          | Outcome (user can …)                                              | Prerequisites    | PRD refs                       | Status   |
+| ---- | ---------------------------------- | ---------------------------------------------------------------- | ---------------- | ------------------------------ | -------- |
+| F-01 | entitlement-contract-and-store     | (foundation) subscription state is stored additively and read by a single server-authoritative entitlement resolver | —                | FR-003, FR-012                 | ready    |
+| S-01 | server-gated-advanced-generation   | get Advanced output automatically when entitled, Basic otherwise — enforced server-side | F-01             | US-01, FR-002, FR-003, FR-004, FR-011 | proposed |
+| S-02 | subscription-checkout-and-entitlement | subscribe (~$2–3/mo), manage, and cancel — and have entitlement flip to Advanced | F-01, S-01       | US-01, FR-001                  | proposed |
+| S-03 | google-sign-in-account-linking     | sign in with Google, linked to their existing account by verified email | —                | US-02, FR-007, FR-008, FR-009  | ready    |
+| S-04 | commercial-landing-page            | understand the value, see pricing/what Advanced unlocks, and start | —                | FR-005, FR-006                 | ready    |
+| S-05 | cookie-consent-banner              | see a cookie notice and accept or dismiss it                     | —                | FR-010                         | ready    |
+| S-06 | retroactive-advanced-regeneration  | re-generate an existing saved CV with Advanced after subscribing | S-01, S-02       | US-01, FR-002, FR-012          | proposed |
 
 ## Streams
 
-Navigation aid - groups items that share a Prerequisites chain. Canonical ordering still lives in the dependency graph below; this table is the proposed reading order across parallel tracks.
+Navigation aid — groups items that share a Prerequisites chain. Canonical ordering still lives in the dependency graph below; this table is the proposed reading order across parallel tracks.
 
-| Stream | Theme                      | Chain                                | Note                                                                                                              |
-| ------ | -------------------------- | ------------------------------------ | ----------------------------------------------------------------------------------------------------------------- |
-| A      | Entry and account          | `S-01` -> `S-02` -> `S-03`           | Opens the fastest path into the core questionnaire without waiting on deeper decisions.                           |
-| B      | Generation and export      | `F-01` -> `S-04` -> `S-05` -> `S-07` | Resolves the decision blocker around the generated draft and PDF path.                                            |
-| C      | Persistence and completion | `F-02` -> `S-06` -> `S-08`           | Joins Streams A and B at `S-08` for the full saved PDF flow.                                                      |
-| D      | Interface localization     | `S-03` -> `S-09` -> `S-08`           | Establishes the multilingual UI once; joins the completion track at `S-08`. Separate from per-CV output language. |
+| Stream | Theme                  | Chain                                  | Note                                                                                     |
+| ------ | ---------------------- | -------------------------------------- | ---------------------------------------------------------------------------------------- |
+| A      | Commercial loop        | `F-01` → `S-01` → `S-02` → `S-06`      | The wedge chain; holds the north star (`S-02`). Sequenced first under the `market-feedback` goal. |
+| B      | Account access         | `S-03`                                 | Standalone, no prerequisites — Google sign-in extends the existing auth independently.    |
+| C      | Storefront & compliance | `S-04` / `S-05`                       | Public-facing surfaces, no prerequisites, parallel with each other. `S-04`'s pay CTA wires to `S-02` when it lands. |
 
 ## Baseline
 
-What's already in place in the codebase as of `2026-06-01` (auto-researched + user-confirmed).
+What's already in place in the codebase as of `2026-06-09` (auto-researched + `tech-stack.md`).
 Foundations below assume these are present and do NOT re-scaffold them.
 
-- **Frontend:** present - web app scaffold, routing, component system, styling, and build scripts exist.
-- **Backend / API:** partial - auth API routes exist, but product CV generation/save/export routes are not implemented.
-- **Data:** partial - managed data client and local config exist, but there are no CV tables, migrations, or seeded product data.
-- **Auth:** present - email/password auth and route protection exist.
-- **Deploy / infra:** present - edge deployment config and CI exist.
-- **Observability:** partial - platform observability is enabled, but app-level error tracking is not defined.
+- **Frontend:** present — Astro 6.3 SSR + React 19 islands, Tailwind 4, shadcn/ui (`astro.config.mjs`, `src/components/`).
+- **Backend / API:** present — Astro SSR with uppercase route handlers (`src/pages/api/{auth,cv}/**`) and a service layer (`src/lib/services/`).
+- **Data:** present — Supabase Postgres, single `public.cvs` table with owner-only RLS (`supabase/migrations/20260606103740_create_cvs.sql`). **No subscription/entitlement table** — that gap is F-01.
+- **Auth:** present, email/password only — Supabase SSR + middleware (`src/lib/supabase.ts`, `src/middleware.ts`). **No Google/OAuth** anywhere — that gap is S-03.
+- **Deploy / infra:** present — Cloudflare Workers (`wrangler.jsonc`), GitHub Actions `ci.yml` + `deploy.yml`. Payment provider is an external SaaS, not built here.
+- **Observability:** absent at the application layer — Cloudflare platform observability binding only; no Sentry/OTel/logging lib. **No cookie-banner code** (gap is S-05) and **no payment code** (gap is S-02) exists anywhere.
 
 ## Foundations
 
-### F-01: Generation and export decision contract
+### F-01: Entitlement contract and store
 
-- **Outcome:** (foundation) generation output, PDF export behavior, timeout/error boundaries, and verification criteria are decided enough for the generated draft and PDF slices to be planned.
-- **Change ID:** generation-export-decision-contract
-- **PRD refs:** NFR: Export reliability, Response timing
-- **Unlocks:** S-04, S-07, S-08
-- **Prerequisites:** -
-- **Parallel with:** F-02, S-01, S-02
-- **Blockers:** -
-- **Decision artifact:** `context/changes/generation-export-decision-contract/decision-contract.md`
-- **Spike artifact:** `context/changes/generation-export-decision-contract/pdf-runtime-spike.md`
-- **Risk:** If these decisions wait until implementation, S-04 and S-07 can drift into incompatible generation and export assumptions.
-- **Status:** done
-
-### F-02: CV persistence and privacy contract
-
-- **Outcome:** (foundation) the minimum owner-only saved-CV contract is defined enough for save/reopen behavior to be planned without building a broad data layer in advance.
-- **Change ID:** cv-persistence-privacy-contract
-- **PRD refs:** Access Control, NFR: Privacy, Retention
-- **Unlocks:** S-06, S-08
-- **Prerequisites:** -
-- **Parallel with:** F-01, S-01, S-02
-- **Blockers:** -
-- **Decision artifact:** `context/changes/cv-persistence-privacy-contract/persistence-privacy-contract.md`
-- **Risk:** Overbuilding persistence would slow the launch path; under-defining ownership would risk privacy and saved-CV reliability.
-- **Status:** done
+- **Outcome:** (foundation) subscription state is stored additively in a new owner-only table, and a single server-side entitlement resolver answers "is this user Advanced right now?" — the one source of truth that every gated path reads. No checkout and no provider integration here; storage + read contract only.
+- **Change ID:** entitlement-contract-and-store
+- **PRD refs:** FR-003 (server-authoritative, unbypassable), FR-012 (additive — must not mutate existing `public.cvs` rows or the `GeneratedCvDraft` shape)
+- **Unlocks:** S-01 (reads the resolver to choose the tier), S-02 (writes entitlement on payment success); reduces the FR-003 bypass risk by centralizing the gate.
+- **Prerequisites:** —
+- **Parallel with:** S-03, S-04, S-05
+- **Blockers:** —
+- **Unknowns:**
+  - Shape of the entitlement record (status + paid-through timestamp) sufficient to express the cancellation rule "Advanced persists until end of paid period." — Owner: team. Block: no.
+- **Risk:** Sequenced first because both the gate (S-01) and the checkout (S-02) depend on a stable entitlement read; if its shape were decided ad hoc inside S-02, S-01 would drift into an incompatible read. Kept minimal (storage + resolver, additive, RLS owner-only) so it doesn't become a premature billing layer — S-01/S-02 still integrate it through real user behavior.
+- **Status:** ready
 
 ## Slices
 
-### S-01: Product landing and start
+### S-01: Server-gated Advanced vs Basic generation
 
-- **Outcome:** user can understand that the app turns their answers into a professional CV and can start CV creation from the landing page.
-- **Change ID:** product-landing-start
-- **PRD refs:** FR-001, FR-002
-- **Prerequisites:** -
-- **Parallel with:** F-01, F-02, S-02
-- **Blockers:** -
-- **Unknowns:** -
-- **Risk:** If the landing page promises "magic AI" instead of guided input, the first users may enter the flow with the wrong expectations.
-- **Status:** done
-
-### S-02: Account access for CV work
-
-- **Outcome:** user can sign up, log in, and reach the CV workspace that will hold their saved CVs.
-- **Change ID:** account-access-for-cv-work
-- **PRD refs:** FR-003
-- **Prerequisites:** -
-- **Parallel with:** F-01, F-02, S-01
-- **Blockers:** -
-- **Unknowns:** -
-- **Risk:** Auth already exists, but the product flow still needs to make account access feel like part of CV creation rather than a starter dashboard.
-- **Status:** done
-
-### S-03: Guided questionnaire capture
-
-- **Outcome:** user can create a new CV by answering a guided questionnaire written in simple, non-CV language.
-- **Change ID:** guided-questionnaire-capture
-- **PRD refs:** US-01, FR-004, FR-005
-- **Prerequisites:** S-01, S-02
-- **Parallel with:** F-01, F-02
-- **Blockers:** -
+- **Outcome:** a user's CV generation automatically runs the Advanced tier when their entitlement is active and Basic otherwise, enforced on the server for every generation request and unbypassable from the client; the UI reflects the active tier and shows non-subscribers a simple upgrade prompt paired with a concrete benefit.
+- **Change ID:** server-gated-advanced-generation
+- **PRD refs:** US-01, FR-002 (auto Basic/Advanced), FR-003 (server-authoritative), FR-004 (Basic/Advanced framing + upgrade prompt, no model names), FR-011 (free Basic flow unchanged)
+- **Prerequisites:** F-01
+- **Parallel with:** S-03, S-04, S-05
+- **Blockers:** —
 - **Unknowns:**
-  - Which questions collect enough structure for a useful first generated CV without feeling like a professional resume form? - Owner: team. Block: no.
-- **Risk:** This is where the blank-page problem is reduced; a questionnaire that is too thin will make generation look weak later.
-- **Status:** done
+  - How to make the Basic→Advanced quality delta genuinely tangible, and which concrete benefit to advertise (e.g. "better wording / ATS-ready"). — Owner: user. Block: no (per `top_blocker: none` — verified and tuned from real output/usage, not pre-launch; this is the release's core product risk to watch, not a planning blocker).
+  - The Advanced model preserves the existing strict structured-output + zod contract and `GeneratedCvDraft` shape — only the model swaps. — Owner: team. Block: no.
+- **Risk:** This is the riskiest-assumption slice — the wedge mechanism. Verifiable end to end by seeding an entitlement (no real payment needed yet), so it can land before S-02. The Advanced timing NFR (~30s bar) is a flag to watch here.
+- **Status:** proposed
 
-### S-04: Generated CV draft
+### S-02: Subscription checkout and entitlement (north star)
 
-- **Outcome:** user can receive a usable structured CV draft from questionnaire answers, including clear loading and major failure states.
-- **Change ID:** generated-cv-draft
-- **PRD refs:** US-01, FR-006, FR-012, FR-013, FR-014
-- **Prerequisites:** F-01 (done), S-03 (done)
-- **Parallel with:** S-06
-- **Blocked by:** - (all prerequisites met)
+- **Outcome:** a user can subscribe to the paid plan (~$2–3/month) through a PCI-compliant third-party provider, view and cancel it, and on successful payment their entitlement flips to Advanced so their next generation (S-01) runs Advanced; cancelling keeps Advanced until the end of the already-paid period, then drops to Basic. In-progress CV work is preserved through the upgrade.
+- **Change ID:** subscription-checkout-and-entitlement
+- **PRD refs:** US-01, FR-001 (subscribe / manage / cancel)
+- **Prerequisites:** F-01, S-01
+- **Parallel with:** S-03, S-04, S-05
+- **Blockers:** —
 - **Unknowns:**
-  - F-01 and S-03 are both resolved; the questionnaire answer contract (`QUESTIONNAIRE_VERSION`, output language) from S-03 is the input to draft generation. - Owner: team. Block: no.
-- **Risk:** This slice proves whether everyday-language answers can become a professional draft; it should not wait behind editing or dashboard work.
-- **Status:** done
+  - Which third-party payment provider, integrated `fetch`-only within the Cloudflare Workers runtime (no Node-only SDK), writing entitlement on a verified payment signal. — Owner: user. Block: no (provider selectable at plan time; `top_blocker: none`).
+  - The app stores only a subscription reference/status and never raw card data; the privacy-logging rule extends to the payment/webhook path. — Owner: team. Block: no.
+- **Risk:** Closes the commercial loop — depends on S-01 so that a flipped entitlement is actually user-visible as Advanced output. The Workers-runtime constraint (`fetch`-based, no Node SDK) is the main integration risk; pick a provider whose API/webhooks work edge-side.
+- **Status:** proposed
 
-### S-05: CV template and section editing
+### S-03: Google sign-in with account linking
 
-- **Outcome:** user can review the generated CV in one clean professional template and edit Summary, Experience, Education, Skills, and Languages.
-- **Change ID:** cv-template-section-editing
-- **PRD refs:** US-01, FR-007, FR-008
-- **Prerequisites:** S-04 (done)
-- **Parallel with:** S-06
-- **Blocked by:** - (all prerequisites met)
+- **Outcome:** a user can sign up and sign in with Google alongside the existing email/password option, and a Google sign-in whose verified email matches an existing account resolves to that same account (no duplicate) with all their saved CVs available; existing email/password accounts and sessions keep working unchanged.
+- **Change ID:** google-sign-in-account-linking
+- **PRD refs:** US-02, FR-007 (Google sign-in), FR-008 (link by verified email), FR-009 (preserve email/password)
+- **Prerequisites:** —
+- **Parallel with:** F-01, S-01, S-02, S-04, S-05
+- **Blockers:** —
 - **Unknowns:**
-  - What section-editing controls keep editing simple without becoming a full document editor? - Owner: team. Block: no.
-  - User-facing strings introduced by this slice are registered into the en/pl/ru i18n catalog per the S-09 convention, so the editing UI is translated by the time S-08 runs. - Owner: team. Block: no.
-- **Risk:** Editing must build trust in the generated draft while preserving the PRD boundary against advanced layout editing.
-- **Status:** done
+  - Account-linking only occurs when email is verified on both sides, to avoid takeover via unverified email. — Owner: team. Block: no.
+- **Risk:** The most autonomous slice — extends the existing Supabase auth, no dependency on the commercial core. Main risk is the linking edge case (matching vs duplicate accounts); preservation of existing logins (FR-009) is a hard guardrail.
+- **Status:** ready
 
-### S-06: Saved CV library
+### S-04: Commercial landing page
 
-- **Outcome:** user can save CV changes and reopen previously created CVs from their account.
-- **Change ID:** saved-cv-library
-- **PRD refs:** FR-009, FR-011
-- **Prerequisites:** F-02 (done), S-02 (done)
-- **Parallel with:** S-04, S-05, S-07
-- **Blocked by:** - (all prerequisites met)
+- **Outcome:** a visitor sees an improved landing page that conveys the value proposition, trust signals (why to trust the app with their data and career), and pricing / what the Advanced tier unlocks, and can start; subtle, non-distracting animations are included as a nice-to-have.
+- **Change ID:** commercial-landing-page
+- **PRD refs:** FR-005 (value + trust + pricing), FR-006 (subtle animations, nice-to-have)
+- **Prerequisites:** —
+- **Parallel with:** F-01, S-01, S-02, S-03, S-05
+- **Blockers:** —
 - **Unknowns:**
-  - F-02 and S-02 are resolved; keep the saved-CV library minimal and owner-only when planning this slice. - Owner: team. Block: no.
-- **Risk:** Saving and reopening are required for real usefulness, but the dashboard should stay minimal and not distract from finishing the first CV.
-- **Status:** done
+  - Willingness to pay at the ~$2–3 point — validate before over-investing in landing polish. — Owner: user. Block: no (informs scope, not buildability).
+  - Animations carry an explicit performance guardrail: they must not regress mobile or cold-load performance; cut if they do. — Owner: team. Block: no.
+- **Risk:** Buildable in parallel; the only coupling is that the pay CTA wires to S-02's checkout once it lands (until then it points into the existing flow). Keep it lean — enough to pitch and price, not a full marketing site.
+- **Status:** ready
 
-### S-07: PDF export
+### S-05: Cookie consent banner
 
-- **Outcome:** user can export the reviewed CV as a clean, readable PDF and see clear export failure states if export fails.
-- **Change ID:** pdf-export
-- **PRD refs:** US-01, FR-010, FR-014
-- **Prerequisites:** F-01 (done), S-05 (done)
-- **Parallel with:** S-06
-- **Blocked by:** - (all prerequisites met)
+- **Outcome:** a visitor sees a cookie notice/banner and can accept or dismiss it; the notice reflects a real audit of which cookies the app actually sets (essential vs non-essential), not a decorative widget.
+- **Change ID:** cookie-consent-banner
+- **PRD refs:** FR-010
+- **Prerequisites:** —
+- **Parallel with:** F-01, S-01, S-02, S-03, S-04
+- **Blockers:** —
 - **Unknowns:**
-  - F-01 and S-05 are both resolved; the reviewed CV template is available as the input to final PDF export, which can now be planned against the completed contract. - Owner: team. Block: no.
-  - Export-related user-facing strings (including failure states) live in a centralized English-only `cv-export-copy.ts` module, ready for S-09 to localize (the en/pl/ru catalog itself is owned by S-09). - Owner: team. Block: no.
-- **Risk:** PDF quality is a guardrail; a late export surprise would threaten the whole launch path.
-- **Status:** done
+  - Enumerate the cookies the app actually sets (essential vs non-essential) to drive the banner's scope and any legal consent need. — Owner: user. Block: no (a quick audit that should precede shipping the banner, but doesn't block planning).
+- **Risk:** Smallest compliance slice, fully autonomous. The risk is shipping consent theater — the audit must be real before the banner ships.
+- **Status:** ready
 
-### S-08: Full saved PDF flow
+### S-06: Retroactive Advanced regeneration
 
-- **Outcome:** user can complete the full flow from starting a CV to exporting a saved PDF in English, Polish, or Russian.
-- **Change ID:** full-saved-pdf-flow
-- **PRD refs:** US-01, FR-015
-- **Prerequisites:** F-01 (done), F-02 (done), S-06 (done), S-07 (done), S-09 (done)
-- **Parallel with:** -
-- **Blocked by:** - (all prerequisites met)
+- **Outcome:** after subscribing, a user can re-generate an existing saved CV with the Advanced tier (not only new generations), making the upgrade's value immediate and tangible; existing saved CVs remain valid and the export quality does not regress.
+- **Change ID:** retroactive-advanced-regeneration
+- **PRD refs:** US-01, FR-002 (Advanced applies), FR-012 (existing CVs valid, no export regression)
+- **Prerequisites:** S-01, S-02, seeded entitlement on a saved CV (existing saved-CV flow — present in baseline)
+- **Parallel with:** —
+- **Blockers:** —
 - **Unknowns:**
-  - Interface translation is implemented by S-09; this slice's remaining unknown is integration-only - verifying the full start -> save -> export flow renders correctly in each of English, Polish, and Russian. - Owner: team. Block: no.
-- **Risk:** This is the chosen first full proof; it intentionally waits until generation, save/reopen, PDF export, and the multilingual UI can be exercised together.
-- **Status:** done (implemented 2026-06-07)
-
-### S-09: Interface localization (multilingual UI)
-
-- **Outcome:** user can use the entire app interface - landing, auth, dashboard, guided questionnaire, draft review, and error/empty states - in English, Polish, or Russian, choosing their interface language independently of each CV's output language.
-- **Change ID:** interface-localization
-- **PRD refs:** US-01, FR-015
-- **Prerequisites:** S-01 (done), S-02 (done), S-03 (done)
-- **Parallel with:** S-04, S-05, S-06, S-07
-- **Blocked by:** - (all prerequisites met)
-- **Unknowns:**
-  - Locale strategy: lightweight message-catalog approach (extending the existing `landingContentByLocale` pattern in `src/lib/landing-content.ts`) vs. Astro's built-in i18n routing. - Owner: team. Block: no.
-  - How interface language is persisted and switched (cookie or session vs. account preference), and whether routes stay unprefixed or move to `/[lang]/`. - Owner: team. Block: no.
-- **Convention:** UI language is a separate preference from per-CV output language; the existing `CvOutputLanguage` selection (`src/lib/cv-questionnaire.ts`) is unchanged. Later UI-bearing slices (S-05, S-07) register their user-facing strings into the en/pl/ru message catalog as part of their own implementation, so no string is left English-only when S-08 runs.
-- **Risk:** If scope drifts into deep localization (date/number/currency formats, country-specific resume norms), it pulls a parked non-goal onto the launch path and threatens the `speed` goal. Keep to UI-string translation only.
-- **Status:** done
+  - Re-generation must not corrupt the stored draft if it fails midway; existing draft stays valid on failure. — Owner: team. Block: no.
+- **Risk:** Directly mitigates the FR-002 imperceptible-delta risk by letting subscribers feel the upgrade on CVs they already wrote. Last in the chain because it needs both the gate (S-01) and a real subscription (S-02).
+- **Status:** proposed
 
 ## Backlog Handoff
 
-| Roadmap ID | Change ID                           | Suggested issue title                                       | Ready for `/10x-plan` | Notes                                                                                                            |
-| ---------- | ----------------------------------- | ----------------------------------------------------------- | --------------------- | ---------------------------------------------------------------------------------------------------------------- |
-| F-01       | generation-export-decision-contract | Define generation and PDF export contracts                  | no                    | Implemented; use completed contract for S-04 and S-07                                                            |
-| F-02       | cv-persistence-privacy-contract     | Define saved-CV persistence and owner privacy contract      | no                    | Implemented; use completed contract for S-06 and S-08                                                            |
-| S-01       | product-landing-start               | Replace starter landing with product landing and start path | no                    | Implemented; landing start path is complete                                                                      |
-| S-02       | account-access-for-cv-work          | Connect account access to the CV workspace                  | no                    | Implemented; workspace shell is complete                                                                         |
-| S-03       | guided-questionnaire-capture        | Build guided questionnaire capture                          | no                    | Implemented; guided questionnaire and review are complete                                                        |
-| S-04       | generated-cv-draft                  | Generate usable CV draft from questionnaire answers         | no                    | Implemented; OpenAI generation service, API route, and questionnaire generation UI are complete                  |
-| S-05       | cv-template-section-editing         | Add CV template review and section editing                  | no                    | Implemented; clean template review and per-section editing are complete                                          |
-| S-06       | saved-cv-library                    | Save and reopen CVs from account                            | no                    | Implemented; save/reopen library, owner-only API, and delete are complete                                        |
-| S-07       | pdf-export                          | Export reviewed CV as PDF                                   | no                    | Implemented; browser-side @react-pdf/renderer export with bundled Noto Sans (en/pl/ru), failure states           |
-| S-08       | full-saved-pdf-flow                 | Complete saved PDF flow with language support               | no                    | Implemented; north star integration slice verified end to end (create -> save -> reopen -> export) in en/pl/ru   |
-| S-09       | interface-localization              | Translate the app interface into English, Polish, Russian   | no                    | Implemented; UI language is separate from CV output language; UI-string translation only                         |
+| Roadmap ID | Change ID                              | Suggested issue title                                              | Ready for `/10x-plan` | Notes |
+| ---------- | -------------------------------------- | ----------------------------------------------------------------- | --------------------- | ----- |
+| F-01       | entitlement-contract-and-store         | Add entitlement store + server-authoritative resolver             | yes                   | Start here — unlocks the commercial loop. Run `/10x-plan entitlement-contract-and-store`. |
+| S-01       | server-gated-advanced-generation       | Gate generation tier (Basic/Advanced) server-side                 | no                    | Needs F-01. The wedge mechanism; verifiable with a seeded entitlement. |
+| S-02       | subscription-checkout-and-entitlement  | Subscribe / manage / cancel via third-party provider              | no                    | Needs F-01 + S-01. North star; pick a Workers-`fetch`-safe provider. |
+| S-03       | google-sign-in-account-linking         | Add Google sign-in with verified-email account linking            | yes                   | No prerequisites — can run in parallel with the commercial core. |
+| S-04       | commercial-landing-page                | Rebuild landing with value, trust, and pricing                    | yes                   | No prerequisites; pay CTA wires to S-02 later. |
+| S-05       | cookie-consent-banner                  | Add cookie consent banner backed by a real cookie audit           | yes                   | No prerequisites; run the cookie audit first. |
+| S-06       | retroactive-advanced-regeneration      | Let subscribers re-generate existing CVs with Advanced            | no                    | Needs S-01 + S-02. Makes the upgrade tangible. |
 
 ## Open Roadmap Questions
 
-1. **Which generation output contract is sufficient for the editable CV sections?** - Resolved by F-01 + S-04: the structured `GeneratedCvDraft` contract (Summary, Experience, Education, Skills, Languages) drives both generation and section editing. Owner: team. Block: (closed).
-2. **Which PDF export approach can reliably produce a clean CV without delaying launch?** - Resolved by S-07: browser-side `@react-pdf/renderer` rendering the structured draft, with bundled Noto Sans (en/pl/ru) and the lib kept out of the SSR/Worker bundle via `client:only` islands. Owner: team. Block: (closed).
-3. **How should English, Polish, and Russian be selected for UI text and CV output without deep localization?** - Resolved by S-09: UI text uses a separate lightweight message catalog and cookie-backed interface language, chosen independently of each CV's output language; CV output language remains handled in S-03/S-04. Owner: team. Block: (closed).
+1. **Basic→Advanced quality delta** — Owner: user. Gates: S-01 (non-blocking). The release's core product risk: how to create and verify a genuinely tangible quality difference, and which concrete benefit to advertise as "Advanced." Per `main_goal: market-feedback`, validated from real output rather than pre-launch.
+2. **Payment provider selection** — Owner: user. Gates: S-02 (non-blocking). Choose a PCI-compliant provider whose API/webhooks operate `fetch`-only inside Cloudflare Workers (no Node SDK).
+3. **Cookie/privacy audit** — Owner: user. Gates: S-05 (non-blocking). Enumerate the cookies the app sets (essential vs non-essential) before the banner ships.
+4. **Conversion strength** — Owner: user. Roadmap-wide (non-blocking). Is an unlimited free tier + a perceptible Advanced benefit enough to convert, or are soft levers needed? Resolve post-launch from conversion data.
+5. **Pricing validation** — Owner: user. Informs S-04 (non-blocking). Confirm willingness to pay at ~$2–3 before over-investing in landing polish.
 
 ## Parked
 
-- **Old CV upload/import** - Why parked: PRD Non-Goals keep v1 focused on blank-page start-from-scratch flow.
-- **Multiple templates and advanced visual customization** - Why parked: PRD Non-Goals keep the MVP to one clean professional template.
-- **Full document editor** - Why parked: PRD Non-Goals exclude drag-and-drop, layout editing, section reordering, and advanced formatting.
-- **Per-section AI regeneration** - Why parked: PRD Non-Goals keep AI regeneration full-CV only in v1.
-- **Deep localization** - Why parked: PRD Non-Goals allow English, Polish, and Russian support without country-specific resume norms. S-09 covers UI-string translation only; date/number/currency formatting and country-specific resume norms stay out of scope.
-- **Subscription or billing system** - Why parked: PRD Non-Goals exclude payment scope from the MVP.
-- **Job-description-based CV tailoring** - Why parked: PRD Non-Goals defer tailoring complexity beyond the start-from-scratch flow.
-- **Cover letter generation** - Why parked: PRD Non-Goals keep cover letters outside the core MVP.
+- **Hidden ATS skills & advanced ATS features** — Why parked: PRD Non-Goals defer ATS to Wave 2; Wave 1 sells on the Advanced tier alone.
+- **Candidate location & clickable contacts** — Why parked: Wave 2 (`## Forward: roadmap waves`).
+- **Resume page-count control (1/2/Auto) with AI compression** — Why parked: Wave 2.
+- **Multiple resume templates** — Why parked: Wave 3.
+- **Optional photo support (template-dependent)** — Why parked: Wave 3.
+- **Dark theme** — Why parked: Wave 3.
+- **Pay-per-use / one-time purchases** — Why parked: PRD Non-Goals; subscription is the single paid path.
+- **Custom billing infrastructure** — Why parked: PRD Non-Goals; billing is handled by a third-party provider.
+- **Team / shared / org accounts & multiple paid tiers** — Why parked: PRD Non-Goals; single-user accounts, one paid tier.
 
 ## Done
 
-- **F-01 `generation-export-decision-contract`** - Implemented on 2026-06-03. Decision contract and PDF runtime spike are in `context/changes/generation-export-decision-contract/`; unlocks S-04/S-07 planning once their remaining prerequisites are ready.
-- **F-02 `cv-persistence-privacy-contract`** - Implemented on 2026-06-03. Persistence/privacy contract is in `context/changes/cv-persistence-privacy-contract/persistence-privacy-contract.md`; unlocks S-06/S-08 planning once their remaining prerequisites are ready.
-- **S-01 `product-landing-start`** - Implemented on 2026-06-03. Product landing now replaces the starter homepage and sends signed-out users to `/auth/signup` and signed-in users to `/dashboard`; unlocks S-03 planning once S-02 is ready.
-- **S-02 `account-access-for-cv-work`** - Implemented on 2026-06-04. Account redirects, product auth pages, and protected CV workspace shell are complete; unlocks S-03 and S-06 planning.
-- **S-03 `guided-questionnaire-capture`** - Implemented on 2026-06-04. Protected `/cv/new` route, client-only guided questionnaire island, and read-only review end state are complete; questionnaire answer contract (`QUESTIONNAIRE_VERSION`, output language) unlocks S-04 planning.
-- **S-04 `generated-cv-draft`** - Implemented on 2026-06-05. OpenAI generation service (`src/lib/services/cv-generation.ts`), `/api/cv/generate` route with content-length validation, and the questionnaire-driven generation UI with loading/failure states are complete; the structured draft (`GeneratedCvDraft`) unlocks S-05 planning.
-- **S-05 `cv-template-section-editing`** - Implemented on 2026-06-05. Clean professional CV template review with per-section editing (Summary, Experience, Education, Skills, Languages), a regenerate-discard guard, and accessibility improvements are complete; the reviewed CV template unlocks S-07 (pdf-export) planning.
-- **S-06 `saved-cv-library`** - Implemented on 2026-06-06. First DB migration (`public.cvs` with owner-only RLS + `updated_at` trigger), typed Supabase client, owner-enforcing repository, saved-CV API (`/api/cv`, `/api/cv/[id]`), save bar in the creation flow, bookmarkable `/cv/[id]` reopen route, and dashboard library with delete are complete; questionnaire answers are persisted in `source_snapshot` and restored on reopen. Unblocks S-08 once S-07 and S-09 land.
-- **S-07 `pdf-export`** - Implemented on 2026-06-07. Browser-side PDF export via lazily-loaded `@react-pdf/renderer` (`CvPdfDocument` over the structured draft + a name header), `useCvExport` state machine, and an Export button in the editor save bar with inline failure states (`export_failed` / `service_unavailable`, CV stays visible, retry). Bundled Noto Sans (Latin/Latin-Ext/Cyrillic) renders en/pl/ru correctly; the heavy lib is kept out of the SSR/Worker bundle by switching the `/cv/new` and `/cv/[id]` islands to `client:only`. Pure helpers (`cv-export-filename`, `cv-export-error`) are unit-tested; the render is manual QA per the F-01 spike. Leaves only S-09 before the S-08 north star.
-- **S-09 `interface-localization`** - Implemented on 2026-06-07. Lightweight cookie-backed UI locale selection (`en`, `pl`, `ru`) localizes landing, auth, dashboard, questionnaire, editor/review, saved-CV, export, and major error/empty states while keeping URLs unprefixed. CV output language, saved CV language, durable titles, and exported content remain independent from the interface locale. Review triage removed language switching from stateful CV edit screens for MVP, neutralized name-only saved-title fallback text, accepted deterministic client catalog selection as an implementation deviation, and added fallback handling for unknown API error buckets. Unblocks S-08.
-- **S-08 `full-saved-pdf-flow`** - Implemented on 2026-06-07. North star integration proof: a signed-in user creates a CV, generates a structured draft, edits named sections, saves, reopens from the dashboard, edits again, and exports the current on-screen draft as PDF, with the selected CV output language (en/pl/ru) preserved through generation, save/reopen, and export independently of the UI locale. Added a deterministic full-flow contract test (`src/lib/cv-full-flow-contract.test.ts`) and an executed smoke checklist (`context/changes/full-saved-pdf-flow/smoke-checklist.md`) covering the Chrome happy path, the representative language matrix with UI/output mismatches, the four joined failure states, focused Safari/Firefox/Edge/mobile export checks, and the S-07 bundle-isolation reconfirmation (`@react-pdf/renderer` stays out of the server bundle). No new feature surfaces and no DB migration; targeted verification only. Completes the roadmap MVP scope.
-- **S-08: user can complete the full flow from starting a CV to exporting a saved PDF in English, Polish, or Russian.** — Archived 2026-06-07 → `context/archive/2026-06-07-full-saved-pdf-flow/`. Lesson: —.
+(Empty on first generation. `/10x-archive` appends here — and flips the item's `Status` to `done` — when a change whose `Change ID` matches a roadmap item is archived.)
