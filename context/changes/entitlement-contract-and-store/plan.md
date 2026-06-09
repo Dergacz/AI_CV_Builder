@@ -365,6 +365,34 @@ seeded row:
 (The integration gate stays ad-hoc per the project's two-layer strategy; running local
 Supabase is opt-in, not a per-commit CI gate.)
 
+### Seed snippet (for S-01 / dev — privileged path):
+
+User writes are denied by RLS, so seed via a privileged path. Two equivalent options:
+
+- **SQL (manual, against the local DB).** `user_id` is a FK to `auth.users`, so the
+  target user must exist first:
+
+  ```sql
+  insert into public.subscriptions (user_id, status, current_period_end)
+  values ('<auth-user-uuid>', 'active', now() + interval '30 days');
+  ```
+
+- **Programmatic (`upsertEntitlement`).** Call with a service-role client:
+  `upsertEntitlement(serviceRoleClient, userId, { status: "active", currentPeriodEnd:
+  new Date(Date.now() + 30*864e5).toISOString() })`. This is the same write contract
+  S-02's webhook will reuse.
+
+A future-dated `current_period_end` makes `resolveEntitlement` return Advanced; a
+past-dated one (or no row) returns Basic. (Note: `resolveEntitlement` reads via
+`auth.uid()`, so a scratch service-role client without a user session always sees
+Basic — verify the Advanced path through an authenticated session or the
+`get_entitlement()` SQL check from Phase 1.)
+
+> Cookbook (`test-plan.md §6`) deferred: no `context/foundation/test-plan.md` exists in
+> the repo yet (it is owned by `/10x-test-plan`). When that file is created, add a
+> one-line entry pointing future tier-gating work at `resolveEntitlement` as the single
+> entitlement read.
+
 ### Manual Testing Steps:
 
 1. `npm run db:reset` then `npm run db:types`; confirm `subscriptions` appears in the
@@ -423,25 +451,25 @@ backfill to reverse. No existing user needs a row created.
 
 #### Automated
 
-- [x] 2.1 Type checking passes: `npx astro check`
-- [x] 2.2 Linting passes: `npm run lint`
-- [x] 2.3 Existing tests still pass: `npm test`
+- [x] 2.1 Type checking passes: `npx astro check` — 67721cc
+- [x] 2.2 Linting passes: `npm run lint` — 67721cc
+- [x] 2.3 Existing tests still pass: `npm test` — 67721cc
 
 #### Manual
 
-- [ ] 2.4 `resolveEntitlement` returns Basic for no row and Advanced for a seeded
+- [x] 2.4 `resolveEntitlement` returns Basic for no row and Advanced for a seeded
       future-dated row
 
 ### Phase 3: Tests & Seed Contract
 
 #### Automated
 
-- [ ] 3.1 New resolver tests pass: `npm test`
-- [ ] 3.2 Type checking passes: `npx astro check`
-- [ ] 3.3 Linting passes: `npm run lint`
+- [x] 3.1 New resolver tests pass: `npm test`
+- [x] 3.2 Type checking passes: `npx astro check`
+- [x] 3.3 Linting passes: `npm run lint`
 
 #### Manual
 
-- [ ] 3.4 Documented seed snippet produces an Advanced result from the resolver
-- [ ] 3.5 Integration checks pass: RLS write-denial, `now()` boundary, unique-user
+- [x] 3.4 Documented seed snippet produces an Advanced result from the resolver
+- [x] 3.5 Integration checks pass: RLS write-denial, `now()` boundary, unique-user
       constraint
