@@ -9,6 +9,7 @@
     "astro": "astro",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
+    "typecheck": "astro check",
     "format": "prettier --write .",
     "test": "vitest run",
     "db:start": "supabase start",
