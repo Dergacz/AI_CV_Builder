@@ -68,7 +68,11 @@
     "vite": "^7.3.2"
   },
   "lint-staged": {
-    "*.{ts,tsx,astro}": [
+    "*.{ts,tsx}": [
+      "eslint --fix",
+      "vitest related --run --passWithNoTests"
+    ],
+    "*.astro": [
       "eslint --fix"
     ],
     "*.{json,css,md}": [
