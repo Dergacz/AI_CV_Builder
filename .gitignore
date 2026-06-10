@@ -29,6 +29,13 @@ pnpm-debug.log*
 
 .playwright-mcp/
 
+# Playwright E2E
+playwright/.auth/
+test-results/
+playwright-report/
+blob-report/
+playwright/.cache/
+
 # Stryker mutation testing
 reports/
 .stryker-tmp/
