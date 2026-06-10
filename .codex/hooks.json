@@ -1,0 +1,18 @@
+{
+  "_comment": "Codex equivalent of the Claude Code per-edit lint hook (.claude/settings.json). Same pattern — trigger(PostToolUse) -> match(edit tool) -> check(eslint) -> signal(block + additionalContext). Codex's file-edit tool is `apply_patch`; the matcher also lists Edit|Write for forward-compat.",
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "apply_patch|Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash .codex/hooks/lint.sh",
+            "timeout": 30,
+            "statusMessage": "Linting edited files"
+          }
+        ]
+      }
+    ]
+  }
+}

@@ -9,6 +9,7 @@
     "astro": "astro",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
+    "typecheck": "astro check",
     "format": "prettier --write .",
     "test": "vitest run",
     "db:start": "supabase start",
@@ -67,7 +68,11 @@
     "vite": "^7.3.2"
   },
   "lint-staged": {
-    "*.{ts,tsx,astro}": [
+    "*.{ts,tsx}": [
+      "eslint --fix",
+      "vitest related --run --passWithNoTests"
+    ],
+    "*.astro": [
       "eslint --fix"
     ],
     "*.{json,css,md}": [

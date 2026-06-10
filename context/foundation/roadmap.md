@@ -3,7 +3,7 @@ project: AI CV Builder — Commercial Readiness Release
 version: 1
 status: draft
 created: 2026-06-09
-updated: 2026-06-09
+updated: 2026-06-10
 prd_version: 2
 main_goal: market-feedback
 top_blocker: none
@@ -53,8 +53,8 @@ validation milestone: it is the first point at which a real person can pay and t
 
 | ID   | Change ID                          | Outcome (user can …)                                              | Prerequisites    | PRD refs                       | Status   |
 | ---- | ---------------------------------- | ---------------------------------------------------------------- | ---------------- | ------------------------------ | -------- |
-| F-01 | entitlement-contract-and-store     | (foundation) subscription state is stored additively and read by a single server-authoritative entitlement resolver | —                | FR-003, FR-012                 | ready    |
-| S-01 | server-gated-advanced-generation   | get Advanced output automatically when entitled, Basic otherwise — enforced server-side | F-01             | US-01, FR-002, FR-003, FR-004, FR-011 | proposed |
+| F-01 | entitlement-contract-and-store     | (foundation) subscription state is stored additively and read by a single server-authoritative entitlement resolver | —                | FR-003, FR-012                 | done     |
+| S-01 | server-gated-advanced-generation   | get Advanced output automatically when entitled, Basic otherwise — enforced server-side | F-01 ✓           | US-01, FR-002, FR-003, FR-004, FR-011 | ready    |
 | S-02 | subscription-checkout-and-entitlement | subscribe (~$2–3/mo), manage, and cancel — and have entitlement flip to Advanced | F-01, S-01       | US-01, FR-001                  | proposed |
 | S-03 | google-sign-in-account-linking     | sign in with Google, linked to their existing account by verified email | —                | US-02, FR-007, FR-008, FR-009  | ready    |
 | S-04 | commercial-landing-page            | understand the value, see pricing/what Advanced unlocks, and start | —                | FR-005, FR-006                 | ready    |
@@ -78,7 +78,7 @@ Foundations below assume these are present and do NOT re-scaffold them.
 
 - **Frontend:** present — Astro 6.3 SSR + React 19 islands, Tailwind 4, shadcn/ui (`astro.config.mjs`, `src/components/`).
 - **Backend / API:** present — Astro SSR with uppercase route handlers (`src/pages/api/{auth,cv}/**`) and a service layer (`src/lib/services/`).
-- **Data:** present — Supabase Postgres, single `public.cvs` table with owner-only RLS (`supabase/migrations/20260606103740_create_cvs.sql`). **No subscription/entitlement table** — that gap is F-01.
+- **Data:** present — Supabase Postgres with owner-only RLS: `public.cvs` (`supabase/migrations/20260606103740_create_cvs.sql`) and now `public.subscriptions` + `get_entitlement()` resolver (`supabase/migrations/20260609132956_create_subscriptions.sql`), delivered by F-01.
 - **Auth:** present, email/password only — Supabase SSR + middleware (`src/lib/supabase.ts`, `src/middleware.ts`). **No Google/OAuth** anywhere — that gap is S-03.
 - **Deploy / infra:** present — Cloudflare Workers (`wrangler.jsonc`), GitHub Actions `ci.yml` + `deploy.yml`. Payment provider is an external SaaS, not built here.
 - **Observability:** absent at the application layer — Cloudflare platform observability binding only; no Sentry/OTel/logging lib. **No cookie-banner code** (gap is S-05) and **no payment code** (gap is S-02) exists anywhere.
@@ -97,7 +97,8 @@ Foundations below assume these are present and do NOT re-scaffold them.
 - **Unknowns:**
   - Shape of the entitlement record (status + paid-through timestamp) sufficient to express the cancellation rule "Advanced persists until end of paid period." — Owner: team. Block: no.
 - **Risk:** Sequenced first because both the gate (S-01) and the checkout (S-02) depend on a stable entitlement read; if its shape were decided ad hoc inside S-02, S-01 would drift into an incompatible read. Kept minimal (storage + resolver, additive, RLS owner-only) so it doesn't become a premature billing layer — S-01/S-02 still integrate it through real user behavior.
-- **Status:** ready
+- **Delivered (2026-06-10):** `public.subscriptions` (`status` + `current_period_end`, unique `user_id`) with **read-own-only RLS and no user write policy** (self-grant denied, FR-003); `get_entitlement()` DB-clock function; `resolveEntitlement(supabase, userId)` → `{ tier, isAdvanced, activeUntil }` (defaults to Basic with no row); privileged `upsertEntitlement` write helper for S-02 to reuse. Commits `82a6bbc` → `d0e8af3`. The entitlement-record unknown is resolved: cancellation is encoded purely via `current_period_end > now()`.
+- **Status:** done
 
 ## Slices
 
@@ -112,8 +113,8 @@ Foundations below assume these are present and do NOT re-scaffold them.
 - **Unknowns:**
   - How to make the Basic→Advanced quality delta genuinely tangible, and which concrete benefit to advertise (e.g. "better wording / ATS-ready"). — Owner: user. Block: no (per `top_blocker: none` — verified and tuned from real output/usage, not pre-launch; this is the release's core product risk to watch, not a planning blocker).
   - The Advanced model preserves the existing strict structured-output + zod contract and `GeneratedCvDraft` shape — only the model swaps. — Owner: team. Block: no.
-- **Risk:** This is the riskiest-assumption slice — the wedge mechanism. Verifiable end to end by seeding an entitlement (no real payment needed yet), so it can land before S-02. The Advanced timing NFR (~30s bar) is a flag to watch here.
-- **Status:** proposed
+- **Risk:** This is the riskiest-assumption slice — the wedge mechanism. Verifiable end to end by seeding an entitlement (no real payment needed yet — use the F-01 seed snippet / `upsertEntitlement`), so it can land before S-02. The Advanced timing NFR (~30s bar) is a flag to watch here.
+- **Status:** ready (F-01 prerequisite delivered)
 
 ### S-02: Subscription checkout and entitlement (north star)
 
@@ -186,8 +187,8 @@ Foundations below assume these are present and do NOT re-scaffold them.
 
 | Roadmap ID | Change ID                              | Suggested issue title                                              | Ready for `/10x-plan` | Notes |
 | ---------- | -------------------------------------- | ----------------------------------------------------------------- | --------------------- | ----- |
-| F-01       | entitlement-contract-and-store         | Add entitlement store + server-authoritative resolver             | yes                   | Start here — unlocks the commercial loop. Run `/10x-plan entitlement-contract-and-store`. |
-| S-01       | server-gated-advanced-generation       | Gate generation tier (Basic/Advanced) server-side                 | no                    | Needs F-01. The wedge mechanism; verifiable with a seeded entitlement. |
+| F-01       | entitlement-contract-and-store         | Add entitlement store + server-authoritative resolver             | done ✓                | Implemented 2026-06-10 (`82a6bbc`→`d0e8af3`); not yet archived. Unblocks S-01 and S-02. |
+| S-01       | server-gated-advanced-generation       | Gate generation tier (Basic/Advanced) server-side                 | yes                   | F-01 delivered. The wedge mechanism; verifiable with a seeded entitlement via `upsertEntitlement`. |
 | S-02       | subscription-checkout-and-entitlement  | Subscribe / manage / cancel via third-party provider              | no                    | Needs F-01 + S-01. North star; pick a Workers-`fetch`-safe provider. |
 | S-03       | google-sign-in-account-linking         | Add Google sign-in with verified-email account linking            | yes                   | No prerequisites — can run in parallel with the commercial core. |
 | S-04       | commercial-landing-page                | Rebuild landing with value, trust, and pricing                    | yes                   | No prerequisites; pay CTA wires to S-02 later. |
@@ -216,4 +217,7 @@ Foundations below assume these are present and do NOT re-scaffold them.
 
 ## Done
 
-(Empty on first generation. `/10x-archive` appends here — and flips the item's `Status` to `done` — when a change whose `Change ID` matches a roadmap item is archived.)
+> `/10x-archive` normally appends here when a change is archived. F-01 is implemented and
+> impl-reviewed but **not yet archived** — recorded below ahead of archival.
+
+- **F-01: entitlement-contract-and-store** — implemented 2026-06-10. Owner-only `public.subscriptions` store (read-own-only RLS, no user write policy), `get_entitlement()` DB-clock function, `resolveEntitlement` resolver, and privileged `upsertEntitlement` write helper. Commits `82a6bbc` (schema) → `67721cc` (resolver+types) → `5438a50` (tests) → `d0e8af3` (epilogue). Unblocks S-01 and S-02.
