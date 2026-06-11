@@ -312,28 +312,28 @@ No data migration. New Worker secrets (`POSTHOG_API_KEY`, `OBSERVABILITY_ID_SALT
 
 #### Automated
 
-- [x] 1.1 Type checking passes: `npm run typecheck`
-- [x] 1.2 Linting passes: `npm run lint`
-- [x] 1.3 Build passes with new env fields: `npm run build`
+- [x] 1.1 Type checking passes: `npm run typecheck` — 581a535
+- [x] 1.2 Linting passes: `npm run lint` — 581a535
+- [x] 1.3 Build passes with new env fields: `npm run build` — 581a535
 
 #### Manual
 
-- [x] 1.4 PostHog EU Cloud project exists and keys stored as Worker secrets
-- [x] 1.5 App loads + banner shows when PostHog unconfigured; banner absent when configured
+- [x] 1.4 PostHog EU Cloud project exists and keys stored as Worker secrets — 581a535
+- [x] 1.5 App loads + banner shows when PostHog unconfigured; banner absent when configured — 581a535
 
 ### Phase 2: Server-Side Recording Contract
 
 #### Automated
 
-- [ ] 2.1 Unit tests pass: `npm test`
-- [ ] 2.2 Scrub test proves no disallowed key can be emitted: `npm test src/lib/observability/scrub.test.ts`
-- [ ] 2.3 Type checking passes: `npm run typecheck`
-- [ ] 2.4 Linting passes: `npm run lint`
+- [x] 2.1 Unit tests pass: `npm test`
+- [x] 2.2 Scrub test proves no disallowed key can be emitted: `npm test src/lib/observability/scrub.test.ts`
+- [x] 2.3 Type checking passes: `npm run typecheck`
+- [x] 2.4 Linting passes: `npm run lint`
 
 #### Manual
 
-- [ ] 2.5 Code review confirms allowlist semantics; raw user id / content cannot reach `fetch`
-- [ ] 2.6 Emission is best-effort: forced PostHog failure does not throw into or slow a request path
+- [x] 2.5 Code review confirms allowlist semantics; raw user id / content cannot reach `fetch`
+- [x] 2.6 Emission is best-effort: forced PostHog failure does not throw into or slow a request path
 
 ### Phase 3: Client Init Scaffold + Browser Error Hook
 
