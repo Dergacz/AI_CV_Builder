@@ -29,7 +29,7 @@ The CV builder works mechanically — landing → questionnaire → AI generatio
 
 | ID    | Change ID                     | Outcome (user can …)                                              | Prerequisites | PRD refs              | Status   |
 | ----- | ----------------------------- | ---------------------------------------------------------------- | ------------- | --------------------- | -------- |
-| F-01  | observability-baseline        | (foundation) managed analytics + error-monitor provisioned; pseudonymous no-raw-content recording contract in place | —             | FR-008, FR-009, FR-010 | ready    |
+| F-01  | observability-baseline        | (foundation) managed analytics + error-monitor provisioned; pseudonymous no-raw-content recording contract in place | —             | FR-008, FR-009, FR-010 | done     |
 | F-02  | core-flow-regression-net      | (foundation) existing questionnaire→generate→save→export path guarded by regression tests | —             | FR-013                | ready    |
 | S-01  | funnel-event-instrumentation  | (operator) see a real user move through all 8 funnel steps as tracked events | F-01          | FR-008, US-01         | proposed |
 | S-02  | enforce-email-verification    | verify their email behind a hard wall, resend it, existing accounts grandfathered | F-02          | FR-001, FR-002, FR-014, US-01 | proposed |
@@ -80,7 +80,7 @@ Foundations below assume these are present and do NOT re-scaffold them.
   - Which specific managed analytics tool + error monitor (PRD Non-Goal mandates managed, not built; tool choice deferred to stack-assessment). The contract can be designed tool-agnostically, so this does not block planning. — Owner: user. Block: no.
   - Whether the GDPR posture + chosen analytics tool require a cookie/consent banner or cookieless pseudonymous tracking suffices (PRD Open Q3). — Owner: user. Block: no.
 - **Risk:** Sequenced first because the north star and three other slices all depend on the recording contract; the load-bearing risk is letting raw content leak into a third-party store — the scrub/pseudonymity contract must be established here, once, not per-slice. Kept minimal (provision + contract only) so it does not become a "build the whole observability layer" project.
-- **Status:** ready
+- **Status:** done
 
 ### F-02: Core-flow regression net
 
