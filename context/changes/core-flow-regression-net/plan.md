@@ -295,27 +295,27 @@ None — additive test-only change. No schema, data, or production-source modifi
 
 #### Automated
 
-- [x] 1.1 New test file passes: `npm test -- src/lib/services/cv-generation.test.ts`
-- [x] 1.2 Full unit suite stays green: `npm test`
-- [x] 1.3 Type checking passes: `npm run typecheck`
-- [x] 1.4 Linting passes: `npm run lint`
+- [x] 1.1 New test file passes: `npm test -- src/lib/services/cv-generation.test.ts` — 5936d36
+- [x] 1.2 Full unit suite stays green: `npm test` — 5936d36
+- [x] 1.3 Type checking passes: `npm run typecheck` — 5936d36
+- [x] 1.4 Linting passes: `npm run lint` — 5936d36
 
 #### Manual
 
-- [x] 1.5 Break-to-prove-red on a failure branch confirmed red → reverted → recorded
+- [x] 1.5 Break-to-prove-red on a failure branch confirmed red → reverted → recorded — 5936d36
 
 ### Phase 2: Save seam failure contract (unit)
 
 #### Automated
 
-- [ ] 2.1 New/extended save-route tests pass: `npm test -- src/pages/api/cv`
-- [ ] 2.2 Full unit suite stays green: `npm test`
-- [ ] 2.3 Type checking passes: `npm run typecheck`
-- [ ] 2.4 Linting passes: `npm run lint`
+- [x] 2.1 New/extended save-route tests pass: `npm test -- src/pages/api/cv`
+- [x] 2.2 Full unit suite stays green: `npm test`
+- [x] 2.3 Type checking passes: `npm run typecheck`
+- [x] 2.4 Linting passes: `npm run lint`
 
 #### Manual
 
-- [ ] 2.5 Break-to-prove-red on the auth check confirmed red → reverted → recorded
+- [x] 2.5 Break-to-prove-red on the auth check confirmed red → reverted → recorded
 
 ### Phase 3: PDF output-quality characterization (unit)
 
