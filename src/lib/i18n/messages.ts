@@ -164,6 +164,7 @@ export interface UiMessages {
     brand: string;
     signedInAs: string;
     signOut: string;
+    signOutError: string;
     hero: {
       eyebrow: string;
       heading: string;
@@ -319,6 +320,7 @@ export const messagesByLocale = {
       brand: "AI CV Builder",
       signedInAs: "Signed in as",
       signOut: "Sign out",
+      signOutError: "Sign-out failed. Please try again.",
       hero: {
         eyebrow: "Your CV workspace",
         heading: "Start from a calm place, then build the CV step by step",
@@ -573,6 +575,7 @@ export const messagesByLocale = {
       brand: "AI CV Builder",
       signedInAs: "Zalogowano jako",
       signOut: "Wyloguj się",
+      signOutError: "Wylogowanie nie powiodło się. Spróbuj ponownie.",
       hero: {
         eyebrow: "Twoja przestrzeń CV",
         heading: "Zacznij spokojnie, a potem buduj CV krok po kroku",
@@ -827,6 +830,7 @@ export const messagesByLocale = {
       brand: "AI CV Builder",
       signedInAs: "Вы вошли как",
       signOut: "Выйти",
+      signOutError: "Не удалось выйти. Попробуйте ещё раз.",
       hero: {
         eyebrow: "Ваше рабочее пространство CV",
         heading: "Начните спокойно, затем соберите CV шаг за шагом",
