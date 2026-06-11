@@ -19,14 +19,20 @@ function json(status: number, body: Record<string, unknown>): Response {
   });
 }
 
-/** Constant-time-ish token comparison so the guard does not leak length via timing. */
-function tokensMatch(expected: string, provided: string): boolean {
-  if (expected.length !== provided.length) {
-    return false;
-  }
+async function sha256(value: string): Promise<Uint8Array> {
+  const digest = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(value));
+  return new Uint8Array(digest);
+}
+
+/**
+ * Constant-time token comparison. Both inputs are hashed to fixed-width 32-byte digests first, so
+ * neither the length nor the content of the secret leaks through comparison timing.
+ */
+async function tokensMatch(expected: string, provided: string): Promise<boolean> {
+  const [a, b] = await Promise.all([sha256(expected), sha256(provided)]);
   let mismatch = 0;
-  for (let i = 0; i < expected.length; i += 1) {
-    mismatch |= expected.charCodeAt(i) ^ provided.charCodeAt(i);
+  for (let i = 0; i < a.length; i += 1) {
+    mismatch |= a[i] ^ b[i];
   }
   return mismatch === 0;
 }
@@ -40,7 +46,7 @@ const handler: APIRoute = async (context) => {
 
   // Fail closed: when the guard secret is absent (production default) or the token
   // does not match, behave exactly like a nonexistent route.
-  if (!expected || !tokensMatch(expected, provided)) {
+  if (!expected || !(await tokensMatch(expected, provided))) {
     return json(404, { ok: false, error: "not_found" });
   }
 
@@ -48,8 +54,11 @@ const handler: APIRoute = async (context) => {
   const pseudonymousId = userId ? await getPseudonymousUserId(userId) : null;
   const identity: Identity = { distinctId: pseudonymousId ?? getAnonSessionId(context.cookies) };
 
-  await track("observability_smoke", { surface: "server" }, identity);
-  await reportError(new Error("smoke-test"), { error_location: "smoke" }, identity);
+  // Fire both emits concurrently so the worst-case added latency stays at one timeout, not two.
+  await Promise.all([
+    track("observability_smoke", { surface: "server" }, identity),
+    reportError(new Error("smoke-test"), { error_location: "smoke" }, identity),
+  ]);
 
   return json(200, { ok: true });
 };
