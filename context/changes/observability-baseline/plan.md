@@ -353,14 +353,14 @@ No data migration. New Worker secrets (`POSTHOG_API_KEY`, `OBSERVABILITY_ID_SALT
 
 #### Automated
 
-- [x] 4.1 Type checking passes: `npm run typecheck`
-- [x] 4.2 Linting passes: `npm run lint`
-- [x] 4.3 Tests pass: `npm test`
-- [x] 4.4 Build passes: `npm run build`
+- [x] 4.1 Type checking passes: `npm run typecheck` — b99f77b
+- [x] 4.2 Linting passes: `npm run lint` — b99f77b
+- [x] 4.3 Tests pass: `npm test` — b99f77b
+- [x] 4.4 Build passes: `npm run build` — b99f77b
 
 #### Manual
 
-- [ ] 4.5 Server smoke route produces one `observability_smoke` event + one error in PostHog EU
-- [ ] 4.6 Client smoke produces one client event + one captured browser error in PostHog
-- [ ] 4.7 Captured payloads contain no answer/prompt/draft/CV content; only pseudonymous/session distinct_id
-- [ ] 4.8 Smoke triggers cannot be fired by anonymous/production traffic
+- [x] 4.5 Server smoke route produces one `observability_smoke` event + one error in PostHog EU — b99f77b
+- [x] 4.6 Client smoke produces one client event + one captured browser error in PostHog — b99f77b
+- [x] 4.7 Captured payloads contain no answer/prompt/draft/CV content; only pseudonymous/session distinct_id — b99f77b
+- [x] 4.8 Smoke triggers cannot be fired by anonymous/production traffic — b99f77b
