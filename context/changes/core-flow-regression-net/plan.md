@@ -321,27 +321,27 @@ None — additive test-only change. No schema, data, or production-source modifi
 
 #### Automated
 
-- [x] 3.1 New PDF test passes: `npm test -- src/components/cv/CvPdfDocument.test.ts`
-- [x] 3.2 Full unit suite stays green: `npm test`
-- [x] 3.3 Type checking passes: `npm run typecheck`
-- [x] 3.4 Linting passes: `npm run lint`
+- [x] 3.1 New PDF test passes: `npm test -- src/components/cv/CvPdfDocument.test.ts` — 539692e
+- [x] 3.2 Full unit suite stays green: `npm test` — 539692e
+- [x] 3.3 Type checking passes: `npm run typecheck` — 539692e
+- [x] 3.4 Linting passes: `npm run lint` — 539692e
 
 #### Manual
 
-- [x] 3.5 Break-to-prove-red on a section/heading confirmed red → reverted → recorded
-- [x] 3.6 Exported PDF in en/pl/ru shows correct glyphs and content
+- [x] 3.5 Break-to-prove-red on a section/heading confirmed red → reverted → recorded — 539692e
+- [x] 3.6 Exported PDF in en/pl/ru shows correct glyphs and content — 539692e
 
 ### Phase 4: Core-flow happy-path + reachability E2E
 
 #### Automated
 
-- [ ] 4.1 New spec passes with local Supabase: `npm run db:start` then `npm run test:e2e -- core-flow`
-- [ ] 4.2 Full E2E suite stays green: `npm run test:e2e`
-- [ ] 4.3 Type checking passes: `npm run typecheck`
-- [ ] 4.4 Linting passes: `npm run lint`
+- [x] 4.1 New spec passes with local Supabase: `npm run db:start` then `npm run test:e2e -- core-flow`
+- [x] 4.2 Full E2E suite stays green: `npm run test:e2e`
+- [x] 4.3 Type checking passes: `npm run typecheck`
+- [x] 4.4 Linting passes: `npm run lint`
 
 #### Manual
 
-- [ ] 4.5 Break-to-prove-red on save-insert confirmed red → reverted → recorded
-- [ ] 4.6 Break-to-prove-red on export download confirmed red → reverted → recorded
-- [ ] 4.7 Spec re-runs green (idempotent cleanup, no collisions)
+- [x] 4.5 Break-to-prove-red on save-insert confirmed red → reverted → recorded
+- [x] 4.6 Break-to-prove-red on export download confirmed red → reverted → recorded
+- [x] 4.7 Spec re-runs green (idempotent cleanup, no collisions)
