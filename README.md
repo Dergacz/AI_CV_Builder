@@ -148,6 +148,29 @@ Users can then sign in immediately after sign-up without clicking a confirmation
 
 Route protection is handled in `src/middleware.ts`. Add paths to the `PROTECTED_ROUTES` array there to require authentication.
 
+## PostHog Observability Configuration
+
+This project uses PostHog EU Cloud for product analytics and error monitoring. PostHog is optional in local development; when `POSTHOG_API_KEY` is absent, observability emission is disabled and the app shows the configuration banner.
+
+Create a PostHog EU Cloud project and store its keys in your local `.env` and `.dev.vars` files:
+
+| Variable                | Description                                                     |
+| ----------------------- | --------------------------------------------------------------- |
+| `POSTHOG_API_KEY`       | Server-side PostHog project token for HTTP capture              |
+| `POSTHOG_HOST`          | Server capture host; use `https://eu.i.posthog.com` by default  |
+| `OBSERVABILITY_ID_SALT` | Server-only salt for deterministic pseudonymous user IDs        |
+| `PUBLIC_POSTHOG_KEY`    | Browser-readable PostHog project token                          |
+| `PUBLIC_POSTHOG_HOST`   | Browser capture host; use `https://eu.i.posthog.com` by default |
+
+For Cloudflare Workers production, store secrets with Wrangler:
+
+```bash
+npx wrangler secret put POSTHOG_API_KEY
+npx wrangler secret put OBSERVABILITY_ID_SALT
+```
+
+`POSTHOG_HOST` and `PUBLIC_POSTHOG_HOST` should remain on the EU ingest host unless the project intentionally moves regions or adds a first-party proxy.
+
 ## Deployment
 
 This project deploys to [Cloudflare Workers](https://workers.cloudflare.com/).
@@ -164,7 +187,7 @@ npm run build
 npx wrangler deploy
 ```
 
-Set `SUPABASE_URL` and `SUPABASE_KEY` as secrets in your Cloudflare dashboard or via `npx wrangler secret put`.
+Set `SUPABASE_URL`, `SUPABASE_KEY`, `POSTHOG_API_KEY`, and `OBSERVABILITY_ID_SALT` as secrets in your Cloudflare dashboard or via `npx wrangler secret put`.
 
 ## CI
 

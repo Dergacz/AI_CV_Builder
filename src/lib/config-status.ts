@@ -1,4 +1,4 @@
-import { SUPABASE_URL, SUPABASE_KEY } from "astro:env/server";
+import { POSTHOG_API_KEY, SUPABASE_URL, SUPABASE_KEY } from "astro:env/server";
 
 export interface ConfigStatus {
   name: string;
@@ -15,6 +15,13 @@ export const configStatuses: ConfigStatus[] = [
     message: "Supabase nie jest skonfigurowany — funkcje uwierzytelniania są wyłączone.",
     docsUrl: "https://github.com/przeprogramowani/10x-astro-starter#supabase-configuration",
     docsLabel: "Zobacz instrukcję konfiguracji",
+  },
+  {
+    name: "PostHog",
+    configured: Boolean(POSTHOG_API_KEY),
+    message: "PostHog nie jest skonfigurowany — analityka produktu i monitoring błędów są wyłączone.",
+    docsUrl: "https://posthog.com/docs",
+    docsLabel: "Zobacz dokumentację PostHog",
   },
 ];
 
