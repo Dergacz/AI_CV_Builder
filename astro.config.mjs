@@ -23,6 +23,7 @@ export default defineConfig({
       POSTHOG_API_KEY: envField.string({ context: "server", access: "secret", optional: true }),
       POSTHOG_HOST: envField.string({ context: "server", access: "public", optional: true }),
       OBSERVABILITY_ID_SALT: envField.string({ context: "server", access: "secret", optional: true }),
+      OBSERVABILITY_SMOKE_TOKEN: envField.string({ context: "server", access: "secret", optional: true }),
       PUBLIC_POSTHOG_KEY: envField.string({ context: "client", access: "public", optional: true }),
       PUBLIC_POSTHOG_HOST: envField.string({ context: "client", access: "public", optional: true }),
     },

@@ -339,24 +339,24 @@ No data migration. New Worker secrets (`POSTHOG_API_KEY`, `OBSERVABILITY_ID_SALT
 
 #### Automated
 
-- [x] 3.1 Type checking passes: `npm run typecheck`
-- [x] 3.2 Linting passes: `npm run lint`
-- [x] 3.3 Build passes: `npm run build`
+- [x] 3.1 Type checking passes: `npm run typecheck` — 8dde986
+- [x] 3.2 Linting passes: `npm run lint` — 8dde986
+- [x] 3.3 Build passes: `npm run build` — 8dde986
 
 #### Manual
 
-- [x] 3.4 PostHog loads cookieless (no PostHog cookies in devtools) when configured
-- [x] 3.5 No client init / no console errors when unconfigured
-- [x] 3.6 Error-hook scaffold attached and forwards only type/location
+- [x] 3.4 PostHog loads cookieless (no PostHog cookies in devtools) when configured — 8dde986
+- [x] 3.5 No client init / no console errors when unconfigured — 8dde986
+- [x] 3.6 Error-hook scaffold attached and forwards only type/location — 8dde986
 
 ### Phase 4: Proof-of-Life Smoke Emission
 
 #### Automated
 
-- [ ] 4.1 Type checking passes: `npm run typecheck`
-- [ ] 4.2 Linting passes: `npm run lint`
-- [ ] 4.3 Tests pass: `npm test`
-- [ ] 4.4 Build passes: `npm run build`
+- [x] 4.1 Type checking passes: `npm run typecheck`
+- [x] 4.2 Linting passes: `npm run lint`
+- [x] 4.3 Tests pass: `npm test`
+- [x] 4.4 Build passes: `npm run build`
 
 #### Manual
 

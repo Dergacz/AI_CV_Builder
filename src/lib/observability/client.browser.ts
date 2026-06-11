@@ -116,3 +116,27 @@ export function installBrowserErrorHandlers(target: ListenerTarget = window): vo
     reportErrorClient(reason, { error_location: "unhandledrejection" });
   });
 }
+
+interface SmokeTarget {
+  __obsSmoke?: () => void;
+  dispatchEvent(event: Event): boolean;
+}
+
+/**
+ * F-01 proof-of-life client smoke trigger. DEV-ONLY: guarded by `import.meta.env.DEV`, so it is
+ * stripped from production bundles and never wired into user-facing UI. When present, call
+ * `window.__obsSmoke()` from devtools to emit one client `observability_smoke` event and dispatch a
+ * test `error` event that routes through the Phase 3 browser error hook into PostHog. Remove or keep
+ * DEV-guarded after F-01 verification (see README "PostHog Observability Configuration").
+ */
+export function installClientSmokeTrigger(target: SmokeTarget = window): void {
+  if (!import.meta.env.DEV) {
+    return;
+  }
+  target.__obsSmoke = () => {
+    trackClient("observability_smoke", { surface: "client" });
+    target.dispatchEvent(
+      new ErrorEvent("error", { error: new Error("smoke-test"), filename: "client-smoke", lineno: 0 }),
+    );
+  };
+}
