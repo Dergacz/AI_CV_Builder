@@ -1,6 +1,6 @@
 import { defineMiddleware } from "astro:middleware";
 import { UI_LOCALE_COOKIE, resolveUiLocale } from "@/lib/i18n/locales";
-import { createClient } from "@/lib/supabase";
+import { createClient, safeGetUser } from "@/lib/supabase";
 
 const PROTECTED_ROUTES = ["/dashboard", "/cv"];
 
@@ -10,10 +10,7 @@ export const onRequest = defineMiddleware(async (context, next) => {
   const supabase = createClient(context.request.headers, context.cookies);
 
   if (supabase) {
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-    context.locals.user = user ?? null;
+    context.locals.user = await safeGetUser(supabase);
   } else {
     context.locals.user = null;
   }

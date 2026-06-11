@@ -2,7 +2,7 @@
 import Layout from "@/layouts/Layout.astro";
 import LanguageSwitcher from "@/components/LanguageSwitcher.astro";
 import SavedCvList from "@/components/cv/SavedCvList";
-import { createClient } from "@/lib/supabase";
+import { createClient, safeGetUser } from "@/lib/supabase";
 import { listCvs } from "@/lib/services/cv-repository";
 import type { SavedCvSummary } from "@/types";
 import { getMessages } from "@/lib/i18n/messages";
@@ -19,9 +19,7 @@ const supabase = createClient(Astro.request.headers, Astro.cookies);
 let cvs: SavedCvSummary[] = [];
 let loadError = false;
 if (supabase) {
-  const {
-    data: { user: verifiedUser },
-  } = await supabase.auth.getUser();
+  const verifiedUser = await safeGetUser(supabase);
   if (verifiedUser) {
     try {
       cvs = await listCvs(supabase, verifiedUser.id);
