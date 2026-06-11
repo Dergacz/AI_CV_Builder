@@ -308,28 +308,28 @@ None — additive test-only change. No schema, data, or production-source modifi
 
 #### Automated
 
-- [x] 2.1 New/extended save-route tests pass: `npm test -- src/pages/api/cv`
-- [x] 2.2 Full unit suite stays green: `npm test`
-- [x] 2.3 Type checking passes: `npm run typecheck`
-- [x] 2.4 Linting passes: `npm run lint`
+- [x] 2.1 New/extended save-route tests pass: `npm test -- src/pages/api/cv` — 69db9cf
+- [x] 2.2 Full unit suite stays green: `npm test` — 69db9cf
+- [x] 2.3 Type checking passes: `npm run typecheck` — 69db9cf
+- [x] 2.4 Linting passes: `npm run lint` — 69db9cf
 
 #### Manual
 
-- [x] 2.5 Break-to-prove-red on the auth check confirmed red → reverted → recorded
+- [x] 2.5 Break-to-prove-red on the auth check confirmed red → reverted → recorded — 69db9cf
 
 ### Phase 3: PDF output-quality characterization (unit)
 
 #### Automated
 
-- [ ] 3.1 New PDF test passes: `npm test -- src/components/cv/CvPdfDocument.test.ts`
-- [ ] 3.2 Full unit suite stays green: `npm test`
-- [ ] 3.3 Type checking passes: `npm run typecheck`
-- [ ] 3.4 Linting passes: `npm run lint`
+- [x] 3.1 New PDF test passes: `npm test -- src/components/cv/CvPdfDocument.test.ts`
+- [x] 3.2 Full unit suite stays green: `npm test`
+- [x] 3.3 Type checking passes: `npm run typecheck`
+- [x] 3.4 Linting passes: `npm run lint`
 
 #### Manual
 
-- [ ] 3.5 Break-to-prove-red on a section/heading confirmed red → reverted → recorded
-- [ ] 3.6 Exported PDF in en/pl/ru shows correct glyphs and content
+- [x] 3.5 Break-to-prove-red on a section/heading confirmed red → reverted → recorded
+- [x] 3.6 Exported PDF in en/pl/ru shows correct glyphs and content
 
 ### Phase 4: Core-flow happy-path + reachability E2E
 
