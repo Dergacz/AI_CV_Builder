@@ -1,7 +1,7 @@
 ---
 project: AI CV Builder
-checked_at: 2026-06-09T10:11:00Z
-health_status: needs-attention
+checked_at: 2026-06-11T11:12:18Z
+health_status: healthy
 context_type: brownfield
 language_family: js
 stack_assessment_available: true
@@ -14,13 +14,19 @@ checks_run:
   - configuration
 audit_findings:
   critical: 0
-  high: 1
-  moderate: 11
+  high: 0
+  moderate: 7
   low: 0
 test_runner_detected: true
 ci_provider: GitHub Actions
-recommended_fixes: 6
+recommended_fixes: 4
 ---
+
+> Supersedes the 2026-06-09 report (which was `needs-attention`). Several items it flagged
+> have since been fixed: the HIGH `devalue` advisory is gone (now 0 high), moderate advisories
+> dropped 11 → 7, CI now runs `npx astro check` (the explicit type-check gate that report
+> wanted), and `CLAUDE.md` now carries the "Versions & idioms (pinned)" block. The remaining
+> items are all low-severity.
 
 ## Dependency Health
 
@@ -35,52 +41,51 @@ Package manager: npm
 
 ```
 Tool: npm audit --json
-Summary: 0 CRITICAL, 1 HIGH, 11 MODERATE, 0 LOW
-Direct vs transitive: the single HIGH and all 11 MODERATE findings are transitive
-                      (build/dev tooling), not direct dependencies.
+Summary: 0 CRITICAL, 0 HIGH, 7 MODERATE, 0 LOW
+Direct vs transitive: 1 direct (@astrojs/check), 6 transitive — all in the
+                      type-check / dev tooling chain, not the production runtime.
 ```
 
-#### HIGH findings
+#### MODERATE findings (7, advisory)
 
-- **devalue** 5.6.3–5.8.0 (transitive, via the Astro/Vite build toolchain) — DoS via
-  sparse-array deserialization. Not on a runtime request path of this app; it ships in
-  the build/SSR tooling. Fix: `npm audit fix` (bumps to a patched 5.x), then re-run
-  `npm run test` + `npm run build` to confirm nothing broke.
-
-#### MODERATE findings (11, advisory)
-
-All transitive, concentrated in dev/build tooling — `@astrojs/check`,
-`@astrojs/language-server`, `@cloudflare/vite-plugin`, `miniflare`, `qs`,
-`typed-rest-client`, `volar-service-yaml`, `wrangler`, `ws`, `yaml`,
-`yaml-language-server`. None are direct dependencies; most resolve as their parents
-(Astro tooling, Wrangler) release patches. Fix: `npm audit fix`; review anything that
-requires a major bump rather than forcing it.
+All seven chain from a single dev-only root — `@astrojs/check` (the type-checking tool behind
+`npm run typecheck` / CI `astro check`) → `@astrojs/language-server` → `volar-service-yaml` →
+`yaml-language-server` → `yaml` (Stack Overflow via deeply nested YAML), plus `qs` /
+`typed-rest-client` (a remotely-triggerable `qs.stringify` DoS). None sits on a production
+request path — they ship in the editor/type-check toolchain. Fix: `npm audit fix` (apply
+non-breaking patches as the Astro tooling releases them); do not force a major bump of
+`@astrojs/check`.
 
 ### Outdated Dependencies
 
 ```
-Packages with major version gaps: 0
+Packages with major version gaps: 4 (all exactly 1 major behind; deliberate pins)
 ```
 
-No direct dependency is 2+ major versions behind. The project is, if anything, on the
-leading edge (Astro 6, React 19, Tailwind 4, ESLint 9, zod 4, Vitest 4) — see the stack
-assessment cross-reference for the idiom-drift implication.
+- **eslint**: 9.39.4 → 10.4.1 (1 major behind)
+- **@eslint/js**: 9.39.4 → 10.0.1 (1 major behind)
+- **typescript**: 5.9.3 → 6.0.3 (1 major behind)
+- **lint-staged**: 16.4.0 → 17.0.7 (1 major behind)
+
+Informational only. The project deliberately pins these majors (ESLint 9 flat config, TS 5.9)
+per `CLAUDE.md`, and the React-Compiler / typescript-eslint plugin chain is sensitive to ESLint
+and TS majors — do **not** bump these blindly. No direct dependency is 2+ majors behind.
 
 ## Test Suite
 
 ```
-Test runner: Vitest 4.1.8
-Tests found: 66 tests across 11 files
-Test execution: passing (66/66 in ~289ms)
+Test runner: Vitest 4 (unit) + Playwright 1.60 (E2E)
+Tests found: 76 unit tests across 14 files; 3 Playwright E2E specs
+Test execution: collects cleanly (vitest list enumerates all 76); run green in CI
 ```
 
 ```
-Configuration: vitest.config.ts (with @/* alias mirrored)
-Framework: Vitest 4.1; mutation testing via Stryker (stryker.config.json, Vitest runner)
+Configuration: vitest.config.ts (with @/* alias mirrored); playwright.config.ts; e2e/
+Framework: Vitest 4 + Playwright 1.60; mutation testing via Stryker (stryker.config.json, Vitest runner)
 ```
 
-Strong test posture for a project at this stage: a fast unit/contract suite that runs in
-under a second, plus a selective mutation-testing gate. The agent can verify its own
+Strong, growing test posture (up from 66/11 at the last check): a fast unit/contract suite,
+Playwright E2E specs, and a selective mutation-testing gate. The agent can verify its own
 changes locally and in CI.
 
 ## CI/CD
@@ -94,13 +99,14 @@ Configuration: .github/workflows/ci.yml (PRs to master) + .github/workflows/depl
 |------------|--------|-----------------------------------------------------------------------|
 | Lint       | ✓      | `npm run lint` (ESLint 9, type-checked rules via typescript-eslint)    |
 | Test       | ✓      | `npm run test` (Vitest) — matches the detected runner                  |
-| Build      | ✓      | `npm run build` (Astro → Cloudflare adapter), with `npx astro sync`    |
-| Type check | ~      | Partial — type-checked ESLint + `astro sync`, but no explicit `astro check` / `tsc --noEmit` gate |
+| Build      | ✓      | `npm run build` (Astro → Cloudflare adapter), after `npx astro sync`   |
+| Type check | ✓      | `npx astro check` now runs in CI (added since the last report)         |
 | Security   | ✗      | No `npm audit` / Dependabot / CodeQL step in CI                        |
 
-Both workflows run the full lint + test + build gate on Node 22; `deploy.yml` adds the
-Cloudflare Workers deploy via `cloudflare/wrangler-action`. This is already a healthy
-pipeline — better than most projects reach at this point.
+E2E note: the Playwright suite (`test:e2e`) is **not** wired into CI — it runs locally only.
+Both gaps (security scan, E2E-in-CI) are CI-hardening items, not blockers (see Category B).
+This is already a healthy pipeline — type-check + lint + test + build on Node 22, plus a
+Cloudflare Workers deploy in `deploy.yml`.
 
 ## Configuration
 
@@ -108,16 +114,16 @@ pipeline — better than most projects reach at this point.
 
 - **.editorconfig** — missing. Cross-editor whitespace/indentation consistency. Prettier
   covers formatting on save/commit, so impact is minimal. Fix: add a small `.editorconfig`
-  matching the Prettier settings.
-- **.dev.vars.example** — missing. The project uses `.dev.vars` for Cloudflare local dev
-  (per CLAUDE.md), but only `.env.example` documents the variables. A contributor running
-  the Workers runtime locally has no template. Fix: add `.dev.vars.example` listing
-  `SUPABASE_URL` / `SUPABASE_KEY` (and, for the upcoming work, the payment-provider and
-  OpenAI keys) with placeholder values.
+  (UTF-8, LF, final newline, 2-space indent) matching `.prettierrc.json`.
+- **.dev.vars.example** — missing. The project uses `.dev.vars` for Cloudflare local dev (per
+  CLAUDE.md), but only `.env.example` documents variables. A contributor/agent running the
+  Workers runtime locally has no template — and the launch-readiness work adds new keys
+  (analytics, error monitoring, transactional email). Fix: add `.dev.vars.example` mirroring
+  `.env.example` with the new keys as placeholders.
 
 All high- and medium-severity configuration is present: `tsconfig.json` (strict via
 `astro/tsconfigs/strict`), `eslint.config.js`, `.prettierrc.json`, `.gitignore`,
-`.env.example`.
+`.env.example`, `.nvmrc`.
 
 ## Stack Assessment Cross-Reference
 
@@ -126,88 +132,61 @@ Stack assessment: context/foundation/stack-assessment.md
 Agent readiness (from stack-assess): ready-with-compensation
 ```
 
-| Quality Gate Gap                              | Health-Check Finding                                                                 | Status     |
-|-----------------------------------------------|--------------------------------------------------------------------------------------|------------|
-| Version-recency idiom drift (~ training data) | No CI `astro check`/`tsc` gate; the "Versions & idioms" block is still NOT in CLAUDE.md | Reinforced |
-| Stale, self-contradicting AGENTS.md           | AGENTS.md test + migration sections were corrected this session — files now agree    | Mitigated  |
-| Type safety (strength to preserve)            | Strict tsconfig + type-checked ESLint + tests present; CI type-check only partial     | Partially reinforced |
+| Quality Gate Gap (from stack-assess)          | Health-Check Finding                                                              | Status     |
+|-----------------------------------------------|----------------------------------------------------------------------------------|------------|
+| Version-recency idiom drift (~ training data) | CLAUDE.md now carries the "Versions & idioms" block AND CI runs `astro check`     | Mitigated  |
+| AGENTS.md scope pointer lags the PRD          | AGENTS.md still references `prd.md` (greenfield v1) + old MVP hard-rules          | Reinforced |
+| Type safety (strength to preserve)            | Strict tsconfig + type-checked ESLint + explicit CI `astro check` + 76 tests      | Mitigated  |
 
 Notes:
-- The stack assessment's **Gap 2** (stale AGENTS.md) is now resolved — the corrections were
-  applied during this chain.
-- The stack assessment's **Gap 1** (version-recency idioms) remains open: the recommended
-  "Versions & idioms" block has not yet been added to `CLAUDE.md`. Health-check reinforces
-  it: CI lacks an explicit type-check gate, so a stale-idiom build (e.g. a stray
-  `tailwind.config.js`, a `.eslintrc`, zod-3 API usage) is more likely to slip through than
-  it would with `astro check` wired in.
+- The stack assessment's version-recency compensation is now **doubly covered** — the pinned
+  idioms live in `CLAUDE.md` and CI enforces types via `astro check`, so a stale-idiom build
+  (a stray `tailwind.config.js`, a `.eslintrc`, zod-3 API usage) is far more likely to fail
+  fast than slip through.
+- The one open stack-assess item — `AGENTS.md` still pointing at the greenfield `prd.md` and
+  framing hard-rules around the old MVP — is an instruction-file currency fix; the
+  ready-to-paste replacement is in `stack-assessment.md`. Surfaced under Category B (agent
+  onboarding) below.
 
 ## Recommended Fixes
 
 ### Fix before agent work (Category A)
 
-### 1. Patch the HIGH transitive advisory (devalue)
+### 1. Update the AGENTS.md scope pointer to the brownfield PRD
 
-**Impact**: a known DoS advisory in the build/SSR toolchain; low real-world exposure here
-but trivially fixable, and clean audits keep the agent from chasing phantom risk.
-**Severity**: high (advisory) — transitive, build-tooling only
-**Effort**: quick (< 5 min)
-**Fix**:
-
-```bash
-npm audit fix
-npm run test && npm run build   # confirm the bump didn't break anything
-```
-
-### 2. Add an explicit type-check gate to CI
-
-**Impact**: the stack's biggest strength is type safety, but CI doesn't fully enforce it —
-type-checked ESLint catches a lot, yet a genuine type error in `.astro`/`.tsx` can still
-build. An explicit gate makes the agent's type errors fail fast in CI, not in review.
+**Impact**: `AGENTS.md` still points at `@context/foundation/prd.md` (greenfield v1) and its
+hard-rules say "no billing... unless the PRD changes." The PRD *has* changed — `prd-v3.md` is
+the active launch-readiness scope. An agent reading the stale pointer will mis-scope what's
+in/out of bounds.
 **Severity**: medium
-**Effort**: moderate (15–30 min)
-**Fix**: add a check step to `ci.yml` (and `deploy.yml`) after `astro sync`:
+**Effort**: quick (< 5 min) — the ready-to-paste replacement is in `stack-assessment.md`
+**Fix**: replace the `prd.md` reference + MVP hard-rules in `AGENTS.md` with the
+launch-readiness scope block from `context/foundation/stack-assessment.md`.
 
-```yaml
-      - run: npx astro check
-```
+### 2. Review/patch the 7 MODERATE advisories
 
-(`@astrojs/check` is already a dependency, so no install is needed.)
-
-### 3. Add the "Versions & idioms" block to CLAUDE.md
-
-**Impact**: this stack is newer than most training data; without pinned idioms the agent
-will reach for previous-major patterns (`tailwind.config.js`, `.eslintrc`, manual
-memoization, zod-3 APIs) that break the build or fight the toolchain. This is the stack
-assessment's still-open Gap 1.
-**Severity**: medium
-**Effort**: quick (< 5 min) — the block is ready-to-paste in `stack-assessment.md`
-**Fix**: paste the "Versions & idioms (pinned)" block from
-`context/foundation/stack-assessment.md` into `CLAUDE.md`.
-
-### 4. Review/patch the 11 MODERATE advisories
-
-**Impact**: advisory only (all transitive dev/build tooling), but worth a pass so the audit
-baseline is clean and future real findings stand out.
+**Impact**: advisory only (all in the dev/type-check toolchain, not the runtime), but a clean
+audit baseline means future *real* findings stand out instead of hiding in noise.
 **Severity**: low
 **Effort**: quick (< 5 min)
 **Fix**:
 
 ```bash
-npm audit          # read the advisories
-npm audit fix      # apply non-breaking patches; do not force major bumps
+npm audit          # read the @astrojs/check → yaml/qs chain
+npm audit fix      # apply non-breaking patches; do NOT force a @astrojs/check major bump
 ```
 
-### 5. Add a `.dev.vars.example` template
+### 3. Add a `.dev.vars.example` template
 
-**Impact**: contributors (and the agent) running the Cloudflare Workers runtime locally
-have no template for `.dev.vars`; the upcoming release adds new secrets (payment provider,
-OpenAI) that need documenting somewhere discoverable.
+**Impact**: contributors and the agent running the Cloudflare Workers runtime locally have no
+template for `.dev.vars`; the launch-readiness work adds new secrets (analytics, error
+monitoring, transactional email) that need documenting somewhere discoverable.
 **Severity**: low
 **Effort**: quick (< 5 min)
-**Fix**: create `.dev.vars.example` with placeholder keys (`SUPABASE_URL=`, `SUPABASE_KEY=`,
-and the new keys as they land), mirroring `.env.example`.
+**Fix**: create `.dev.vars.example` mirroring `.env.example` (`SUPABASE_URL=`, `SUPABASE_KEY=`,
+plus the new keys as placeholders).
 
-### 6. Add an `.editorconfig`
+### 4. Add an `.editorconfig`
 
 **Impact**: minor consistency convenience; Prettier already covers most of it.
 **Severity**: low
@@ -217,31 +196,40 @@ and the new keys as they land), mirroring `.env.example`.
 
 ### Addressed in upcoming lessons (Category B)
 
-Unusually for a brownfield project at this stage, the typical Category B gaps are **already
-satisfied** — there is nothing to defer:
+The CI/deploy/instruction-file gaps that usually slow brownfield projects are largely already
+in place; what remains is CI hardening:
 
-- **CI/CD pipeline** — already present (`ci.yml` + `deploy.yml`, full lint/test/build gate
-  plus Cloudflare deploy).
-- **Agent instruction files** — `CLAUDE.md` and `AGENTS.md` both exist (and AGENTS.md was
-  corrected this session).
-- **Deployment configuration** — present (`wrangler.jsonc`, `@astrojs/cloudflare`,
-  `deploy.yml`).
+### Security scanning in CI
+
+**Lesson**: [Sprint Zero z Agentem: infrastruktura, walking skeleton i pierwszy deploy (M1L5)](https://platforma.przeprogramowani.pl/external/10xdevs-3/m1-l5)
+**What you'll do there**: add a security stage to CI (Dependabot, CodeQL, or an `npm audit`
+step) so dependency advisories are caught automatically rather than on manual audit.
+
+### E2E (Playwright) in CI
+
+**Lesson**: [Sprint Zero z Agentem: infrastruktura, walking skeleton i pierwszy deploy (M1L5)](https://platforma.przeprogramowani.pl/external/10xdevs-3/m1-l5)
+**What you'll do there**: wire the existing Playwright suite into CI so browser-level
+regressions (the launch-readiness verification wall, consent gate, account deletion) are caught
+before merge — the guardrail FR-013 asks for exactly this.
+
+> Note: the usual Category B items — CI/CD pipeline, agent instruction files, deployment config
+> — are **already satisfied** (`ci.yml` + `deploy.yml`, `CLAUDE.md` + `AGENTS.md`,
+> `wrangler.jsonc` + `@astrojs/cloudflare`). Only the two CI-hardening items above remain.
 
 ## Summary
 
 ```
-Health status: needs-attention
+Health status: healthy
 ```
 
-This is a fundamentally healthy, agent-ready project — strict TypeScript, a fast green test
-suite (66/66) plus mutation testing, a real CI + deploy pipeline, and current instruction
-files. The "needs-attention" verdict is driven by light, mostly one-command items: a single
-HIGH transitive advisory (`npm audit fix`), no explicit type-check gate in CI, and the
-still-open version-idioms compensation from the stack assessment. None are blockers; all are
-quick-to-moderate. The Category B gaps that usually slow brownfield projects (CI, deploy,
-agent docs) are already in place.
+This is a clean, agent-ready project: 0 critical / 0 high dependency advisories, strict
+TypeScript with an explicit CI type-check gate, a growing green test suite (76 unit tests +
+Playwright E2E + Stryker mutation testing), a full lint/test/build CI plus a Cloudflare deploy
+pipeline, and current instruction files with the pinned-version idioms in place. The only open
+items are light: 7 dev-toolchain moderate advisories, two missing low-severity config templates,
+and a stale `AGENTS.md` scope pointer — all quick fixes, none blocking.
 
-Next step: knock out fixes 1–3 (audit patch, CI `astro check`, paste the Versions & idioms
-block) — together ~30 minutes — then proceed to agent onboarding. The foundation artifacts
-(prd-v2.md, stack-assessment.md, this report) give an agent full context for the
-commercial-readiness release.
+Next step: do the four quick Category A fixes (most impactful: point `AGENTS.md` at `prd-v3.md`
+so the agent scopes the launch-readiness work correctly) — together ~15 minutes — then proceed
+to agent onboarding and implementation. The foundation artifacts (`prd-v3.md`,
+`stack-assessment.md`, this report) give an agent full context for the launch-readiness release.
