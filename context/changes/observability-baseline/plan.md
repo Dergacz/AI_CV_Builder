@@ -325,29 +325,29 @@ No data migration. New Worker secrets (`POSTHOG_API_KEY`, `OBSERVABILITY_ID_SALT
 
 #### Automated
 
-- [x] 2.1 Unit tests pass: `npm test`
-- [x] 2.2 Scrub test proves no disallowed key can be emitted: `npm test src/lib/observability/scrub.test.ts`
-- [x] 2.3 Type checking passes: `npm run typecheck`
-- [x] 2.4 Linting passes: `npm run lint`
+- [x] 2.1 Unit tests pass: `npm test` — e3104a1
+- [x] 2.2 Scrub test proves no disallowed key can be emitted: `npm test src/lib/observability/scrub.test.ts` — e3104a1
+- [x] 2.3 Type checking passes: `npm run typecheck` — e3104a1
+- [x] 2.4 Linting passes: `npm run lint` — e3104a1
 
 #### Manual
 
-- [x] 2.5 Code review confirms allowlist semantics; raw user id / content cannot reach `fetch`
-- [x] 2.6 Emission is best-effort: forced PostHog failure does not throw into or slow a request path
+- [x] 2.5 Code review confirms allowlist semantics; raw user id / content cannot reach `fetch` — e3104a1
+- [x] 2.6 Emission is best-effort: forced PostHog failure does not throw into or slow a request path — e3104a1
 
 ### Phase 3: Client Init Scaffold + Browser Error Hook
 
 #### Automated
 
-- [ ] 3.1 Type checking passes: `npm run typecheck`
-- [ ] 3.2 Linting passes: `npm run lint`
-- [ ] 3.3 Build passes: `npm run build`
+- [x] 3.1 Type checking passes: `npm run typecheck`
+- [x] 3.2 Linting passes: `npm run lint`
+- [x] 3.3 Build passes: `npm run build`
 
 #### Manual
 
-- [ ] 3.4 PostHog loads cookieless (no PostHog cookies in devtools) when configured
-- [ ] 3.5 No client init / no console errors when unconfigured
-- [ ] 3.6 Error-hook scaffold attached and forwards only type/location
+- [x] 3.4 PostHog loads cookieless (no PostHog cookies in devtools) when configured
+- [x] 3.5 No client init / no console errors when unconfigured
+- [x] 3.6 Error-hook scaffold attached and forwards only type/location
 
 ### Phase 4: Proof-of-Life Smoke Emission
 

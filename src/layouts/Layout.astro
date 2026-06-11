@@ -44,6 +44,13 @@ const { title = "AI CV Builder" } = Astro.props;
       ))
     }
     <slot />
+    <script>
+      // Cookieless PostHog init + browser error-hook scaffold. No-op when PUBLIC_POSTHOG_KEY is
+      // unset; emits no funnel events (those land in S-01). See src/lib/observability/client.browser.ts.
+      import { initClientObservability } from "@/lib/observability/client.browser";
+
+      initClientObservability();
+    </script>
   </body>
 </html>
 
