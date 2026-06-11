@@ -11,6 +11,9 @@ const { user } = Astro.locals;
 const locale = Astro.locals.locale;
 const copy = getMessages(locale).dashboard;
 
+// Surfaced when /api/auth/signout fails to clear the session and redirects here.
+const signOutError = Astro.url.searchParams.get("signout_error") === "1";
+
 // Route is auth-protected by middleware; load the owner's saved CVs for the library.
 const supabase = createClient(Astro.request.headers, Astro.cookies);
 let cvs: SavedCvSummary[] = [];
@@ -36,6 +39,13 @@ if (supabase) {
 <Layout locale={locale} title={copy.title}>
   <main class="min-h-screen bg-slate-50 px-5 py-6 text-slate-950 sm:px-8">
     <div class="mx-auto flex min-h-[calc(100vh-3rem)] max-w-6xl flex-col">
+      {
+        signOutError && (
+          <div class="mb-5 rounded-lg border border-red-200 bg-red-50 px-4 py-3" role="alert">
+            <p class="text-sm font-medium text-red-900">{copy.signOutError}</p>
+          </div>
+        )
+      }
       <header class="flex flex-col gap-4 border-b border-slate-200 pb-5 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <a href="/" class="text-base font-semibold text-slate-950">{copy.brand}</a>
