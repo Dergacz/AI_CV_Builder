@@ -1,9 +1,9 @@
 ---
 change_id: core-flow-regression-net
 title: Core flow regression net
-status: implementing
+status: implemented
 created: 2026-06-11
-updated: 2026-06-11
+updated: 2026-06-12
 archived_at: null
 ---
 

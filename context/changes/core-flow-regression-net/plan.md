@@ -335,13 +335,13 @@ None — additive test-only change. No schema, data, or production-source modifi
 
 #### Automated
 
-- [x] 4.1 New spec passes with local Supabase: `npm run db:start` then `npm run test:e2e -- core-flow`
-- [x] 4.2 Full E2E suite stays green: `npm run test:e2e`
-- [x] 4.3 Type checking passes: `npm run typecheck`
-- [x] 4.4 Linting passes: `npm run lint`
+- [x] 4.1 New spec passes with local Supabase: `npm run db:start` then `npm run test:e2e -- core-flow` — c961160
+- [x] 4.2 Full E2E suite stays green: `npm run test:e2e` — c961160
+- [x] 4.3 Type checking passes: `npm run typecheck` — c961160
+- [x] 4.4 Linting passes: `npm run lint` — c961160
 
 #### Manual
 
-- [x] 4.5 Break-to-prove-red on save-insert confirmed red → reverted → recorded
-- [x] 4.6 Break-to-prove-red on export download confirmed red → reverted → recorded
-- [x] 4.7 Spec re-runs green (idempotent cleanup, no collisions)
+- [x] 4.5 Break-to-prove-red on save-insert confirmed red → reverted → recorded — c961160
+- [x] 4.6 Break-to-prove-red on export download confirmed red → reverted → recorded — c961160
+- [x] 4.7 Spec re-runs green (idempotent cleanup, no collisions) — c961160
