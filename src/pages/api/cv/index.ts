@@ -1,5 +1,5 @@
 import type { APIRoute } from "astro";
-import { createClient } from "@/lib/supabase";
+import { createClient, safeGetUser } from "@/lib/supabase";
 import { cvSaveSchema } from "@/lib/cv-answers.schema";
 import { cvSaveErrorMessages } from "@/lib/cv-save-messages";
 import { readBoundedJson } from "@/lib/request-body";
@@ -30,9 +30,7 @@ export const GET: APIRoute = async (context) => {
   if (!supabase) {
     return json(503, { ok: false, error: "service_unavailable", message: cvSaveErrorMessages.service_unavailable });
   }
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const user = await safeGetUser(supabase);
   if (!user) {
     return json(401, { ok: false, error: "service_unavailable", message: SESSION_EXPIRED });
   }
@@ -65,9 +63,7 @@ export const POST: APIRoute = async (context) => {
   if (!supabase) {
     return json(503, { ok: false, error: "service_unavailable", message: cvSaveErrorMessages.service_unavailable });
   }
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const user = await safeGetUser(supabase);
   if (!user) {
     return json(401, { ok: false, error: "service_unavailable", message: SESSION_EXPIRED });
   }

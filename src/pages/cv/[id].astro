@@ -1,7 +1,7 @@
 ---
 import Layout from "@/layouts/Layout.astro";
 import SavedCvView from "@/components/cv/SavedCvView";
-import { createClient } from "@/lib/supabase";
+import { createClient, safeGetUser } from "@/lib/supabase";
 import { getMessages } from "@/lib/i18n/messages";
 import { getCv } from "@/lib/services/cv-repository";
 
@@ -16,9 +16,7 @@ if (!supabase || !id) {
   return Astro.redirect("/dashboard");
 }
 
-const {
-  data: { user },
-} = await supabase.auth.getUser();
+const user = await safeGetUser(supabase);
 if (!user) {
   return Astro.redirect("/auth/signin");
 }
