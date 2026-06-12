@@ -1,6 +1,7 @@
 import posthog from "posthog-js";
 import { PUBLIC_POSTHOG_HOST, PUBLIC_POSTHOG_KEY } from "astro:env/client";
 
+import type { FunnelEvent } from "./events";
 import { scrub, type TrackProps } from "./scrub";
 
 // Browser-side mirror of the server recording contract in ./index.ts. Kept self-contained
@@ -9,7 +10,7 @@ import { scrub, type TrackProps } from "./scrub";
 const DEFAULT_POSTHOG_HOST = "https://eu.i.posthog.com";
 const ERROR_EVENT = "observability_error";
 
-export type ClientObservabilityEvent = "observability_smoke" | typeof ERROR_EVENT;
+export type ClientObservabilityEvent = "observability_smoke" | typeof ERROR_EVENT | FunnelEvent;
 
 export interface ClientErrorContext extends TrackProps {
   error_location: string;
@@ -19,6 +20,7 @@ interface InitOptions {
   key?: string;
   host?: string;
   installErrorHandlers?: boolean;
+  distinctId?: string;
 }
 
 interface BrowserErrorEvent {
@@ -73,6 +75,10 @@ export function initClientObservability(options: InitOptions = {}): boolean {
     capture_pageview: false,
     disable_session_recording: true,
     persistence: "memory",
+    // Pin the browser SDK's distinct_id to the server-resolved id so client funnel events line up
+    // with server ones into a single funnel. $process_person_profile:false (per capture) keeps
+    // person profiles off, so bootstrapping the id does not reverse F-01's cookieless posture.
+    ...(options.distinctId ? { bootstrap: { distinctID: options.distinctId } } : {}),
   });
   initialized = true;
 

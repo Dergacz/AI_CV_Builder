@@ -1,5 +1,7 @@
 import { OBSERVABILITY_ID_SALT } from "astro:env/server";
 
+import type { Identity } from "./index";
+
 const OBSERVABILITY_SESSION_COOKIE = "obs_session";
 const OBSERVABILITY_SESSION_MAX_AGE_SECONDS = 60 * 60 * 2;
 
@@ -55,4 +57,16 @@ export function getAnonSessionId(cookies: SessionCookies): string {
     secure: true,
   });
   return sessionId;
+}
+
+/**
+ * Resolve the one observability distinct_id for a request: the pseudonymous user id when
+ * authenticated (and the salt is configured), otherwise the anonymous session id. Computed once per
+ * request in middleware and cached on `locals` so every server emit point — and the client init,
+ * via Layout threading — shares a single id. The id flips from anon to pseudonymous at the signup
+ * boundary, which is exactly why the anonymous and identified funnels are linked but not stitched.
+ */
+export async function resolveRequestIdentity(user: { id: string } | null, cookies: SessionCookies): Promise<Identity> {
+  const pseudonymousId = user?.id ? await getPseudonymousUserId(user.id) : null;
+  return { distinctId: pseudonymousId ?? getAnonSessionId(cookies) };
 }
