@@ -290,31 +290,31 @@ No schema or data migration. Existing unconfirmed accounts are out of scope (see
 
 #### Automated
 
-- [x] 1.1 Type checking passes (`npx astro check`)
-- [x] 1.2 Linting passes (`npm run lint`)
-- [x] 1.3 Unit tests pass (`npm test`)
-- [x] 1.4 Guard test covers confirmed / unconfirmed / no-session / non-protected cases
+- [x] 1.1 Type checking passes (`npx astro check`) — e0faa20
+- [x] 1.2 Linting passes (`npm run lint`) — e0faa20
+- [x] 1.3 Unit tests pass (`npm test`) — e0faa20
+- [x] 1.4 Guard test covers confirmed / unconfirmed / no-session / non-protected cases — e0faa20
 
 #### Manual
 
-- [x] 1.5 Unconfirmed user hitting `/dashboard` redirects to `/auth/confirm-email?email=...`
-- [x] 1.6 Confirmed user still reaches `/dashboard` and `/cv`
-- [x] 1.7 No redirect loop on `/auth/confirm-email`
+- [x] 1.5 Unconfirmed user hitting `/dashboard` redirects to `/auth/confirm-email?email=...` — e0faa20
+- [x] 1.6 Confirmed user still reaches `/dashboard` and `/cv` — e0faa20
+- [x] 1.7 No redirect loop on `/auth/confirm-email` — e0faa20
 
 ### Phase 2: Signin `email_not_confirmed` Handling
 
 #### Automated
 
-- [ ] 2.1 Type checking passes (exhaustive `errors` record compiles)
-- [ ] 2.2 Linting passes (`npm run lint`)
-- [ ] 2.3 Unit tests pass (`npm test`)
-- [ ] 2.4 Classifier test asserts `email_not_confirmed` mapping and fallback
+- [x] 2.1 Type checking passes (exhaustive `errors` record compiles)
+- [x] 2.2 Linting passes (`npm run lint`)
+- [x] 2.3 Unit tests pass (`npm test`)
+- [x] 2.4 Classifier test asserts `email_not_confirmed` mapping and fallback
 
 #### Manual
 
-- [ ] 2.5 Unconfirmed signin shows the dedicated message (not "wrong password")
-- [ ] 2.6 Signin URL carries `&email=` after the failed attempt
-- [ ] 2.7 pl / ru locales render translated strings
+- [x] 2.5 Unconfirmed signin shows the dedicated message (not "wrong password")
+- [x] 2.6 Signin URL carries `&email=` after the failed attempt
+- [x] 2.7 pl / ru locales render translated strings
 
 ### Phase 3: Resend Confirmation Flow
 

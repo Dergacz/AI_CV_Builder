@@ -313,6 +313,7 @@ export const messagesByLocale = {
         signin_failed: "We couldn't sign you in. Check your email and password, then try again.",
         signup_failed: "We couldn't create your account. Check your details, then try again.",
         rate_limited: "Too many account attempts right now. Please wait a bit and try again.",
+        email_not_confirmed: "Your email is not verified yet. Check your inbox or resend the confirmation email.",
       },
     },
     dashboard: {
@@ -568,6 +569,7 @@ export const messagesByLocale = {
         signin_failed: "Nie udało się zalogować. Sprawdź e-mail i hasło, a potem spróbuj ponownie.",
         signup_failed: "Nie udało się utworzyć konta. Sprawdź dane i spróbuj ponownie.",
         rate_limited: "Zbyt wiele prób dostępu do konta. Poczekaj chwilę i spróbuj ponownie.",
+        email_not_confirmed: "Twój e-mail nie jest jeszcze potwierdzony. Sprawdź pocztę albo wyślij link ponownie.",
       },
     },
     dashboard: {
@@ -823,6 +825,7 @@ export const messagesByLocale = {
         signin_failed: "Не удалось войти. Проверьте e-mail и пароль, затем попробуйте снова.",
         signup_failed: "Не удалось создать аккаунт. Проверьте данные и попробуйте снова.",
         rate_limited: "Слишком много попыток доступа к аккаунту. Подождите немного и попробуйте снова.",
+        email_not_confirmed: "Ваш e-mail ещё не подтверждён. Проверьте почту или отправьте письмо повторно.",
       },
     },
     dashboard: {
