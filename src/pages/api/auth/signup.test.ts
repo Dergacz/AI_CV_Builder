@@ -46,7 +46,7 @@ describe("POST /api/auth/signup — funnel emission", () => {
 
     const response = await POST(makeContext({ email: "ada@example.com", password: "pw-123456" }));
 
-    expect(response.headers.get("Location")).toBe("/auth/confirm-email");
+    expect(response.headers.get("Location")).toBe("/auth/confirm-email?email=ada%40example.com");
     expect(mocks.track).toHaveBeenCalledWith("funnel_signup_completed", { locale: "en" }, { distinctId: "anon-test" });
   });
 

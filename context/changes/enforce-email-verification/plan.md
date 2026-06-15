@@ -305,31 +305,31 @@ No schema or data migration. Existing unconfirmed accounts are out of scope (see
 
 #### Automated
 
-- [x] 2.1 Type checking passes (exhaustive `errors` record compiles)
-- [x] 2.2 Linting passes (`npm run lint`)
-- [x] 2.3 Unit tests pass (`npm test`)
-- [x] 2.4 Classifier test asserts `email_not_confirmed` mapping and fallback
+- [x] 2.1 Type checking passes (exhaustive `errors` record compiles) — 298335d
+- [x] 2.2 Linting passes (`npm run lint`) — 298335d
+- [x] 2.3 Unit tests pass (`npm test`) — 298335d
+- [x] 2.4 Classifier test asserts `email_not_confirmed` mapping and fallback — 298335d
 
 #### Manual
 
-- [x] 2.5 Unconfirmed signin shows the dedicated message (not "wrong password")
-- [x] 2.6 Signin URL carries `&email=` after the failed attempt
-- [x] 2.7 pl / ru locales render translated strings
+- [x] 2.5 Unconfirmed signin shows the dedicated message (not "wrong password") — 298335d
+- [x] 2.6 Signin URL carries `&email=` after the failed attempt — 298335d
+- [x] 2.7 pl / ru locales render translated strings — 298335d
 
 ### Phase 3: Resend Confirmation Flow
 
 #### Automated
 
-- [ ] 3.1 Type checking passes (`npx astro check`)
-- [ ] 3.2 Linting passes (`npm run lint`)
-- [ ] 3.3 Unit tests pass (`npm test`)
-- [ ] 3.4 Resend endpoint test covers success / error / rate-limited
+- [x] 3.1 Type checking passes (`npx astro check`)
+- [x] 3.2 Linting passes (`npm run lint`)
+- [x] 3.3 Unit tests pass (`npm test`)
+- [x] 3.4 Resend endpoint test covers success / error / rate-limited
 
 #### Manual
 
-- [ ] 3.5 Resend returns with a "sent" notice
+- [x] 3.5 Resend returns with a "sent" notice
 - [ ] 3.6 Rapid second resend surfaces the rate-limit message, no crash
-- [ ] 3.7 pl / ru locales render translated button + notice copy
+- [x] 3.7 pl / ru locales render translated button + notice copy
 
 ### Phase 4: Ops & Docs
 
