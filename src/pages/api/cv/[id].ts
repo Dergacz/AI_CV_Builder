@@ -1,5 +1,6 @@
 import type { APIRoute } from "astro";
 import { z } from "zod";
+import { track } from "@/lib/observability";
 import { createClient, safeGetUser } from "@/lib/supabase";
 import { cvSaveSchema } from "@/lib/cv-answers.schema";
 import { cvSaveErrorMessages } from "@/lib/cv-save-messages";
@@ -91,6 +92,9 @@ export const PUT: APIRoute = async (context) => {
     if (!cv) {
       return json(404, { ok: false, error: "not_found", message: cvSaveErrorMessages.not_found });
     }
+    // Funnel step 7: CV persisted (update). Emitted on every successful save; funnel queries
+    // first-touch per distinct_id, so repeat saves inflate raw counts but not conversion.
+    await track("funnel_cv_saved", { locale: context.locals.locale }, context.locals.observability);
     return json(200, { ok: true, cv });
   } catch {
     return json(500, { ok: false, error: "save_failed", message: cvSaveErrorMessages.save_failed });

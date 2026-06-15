@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   QUESTIONNAIRE_VERSION,
   cvOutputLanguages,
@@ -16,6 +16,7 @@ import CvEditor from "@/components/cv/CvEditor";
 import { TextAreaField, TextField } from "@/components/cv/CvFormFields";
 import { useCvDraftEditor } from "@/components/hooks/useCvDraftEditor";
 import { useCvSave } from "@/components/hooks/useCvSave";
+import { trackClient } from "@/lib/observability/client.browser";
 import { cn } from "@/lib/utils";
 
 type StepKey = "basics" | "experienceEducation" | "skillsLanguages" | "extraContext" | "review";
@@ -43,6 +44,11 @@ export default function QuestionnaireFlow({ locale }: { locale: UiLocale }) {
   const editor = useCvDraftEditor(setDraft);
   const save = useCvSave({ locale });
 
+  // Funnel step 4: questionnaire started (the user reached the first step).
+  useEffect(() => {
+    trackClient("funnel_questionnaire_started", { locale });
+  }, [locale]);
+
   const activeStepKey = STEP_KEYS[activeStepIndex];
   const isFirstStep = activeStepIndex === 0;
   const isLastStep = activeStepIndex === STEP_KEYS.length - 1;
@@ -50,6 +56,9 @@ export default function QuestionnaireFlow({ locale }: { locale: UiLocale }) {
   const sparseWarnings = useMemo(() => getSparseWarnings(answers, copy.sparseWarnings), [answers, copy.sparseWarnings]);
 
   async function handleGenerate() {
+    // Funnel step 5: questionnaire completed — the user submitted all answers and requested
+    // generation (distinct from the server-side funnel_cv_generated success event).
+    trackClient("funnel_questionnaire_completed", { locale });
     setStatus("loading");
     setGenerationError(null);
     try {

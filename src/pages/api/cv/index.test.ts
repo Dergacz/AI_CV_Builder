@@ -19,6 +19,7 @@ const mocks = vi.hoisted(() => ({
   safeGetUser: vi.fn(),
   createCv: vi.fn(),
   listCvs: vi.fn(),
+  track: vi.fn(),
 }));
 
 vi.mock("@/lib/supabase", () => ({
@@ -29,6 +30,10 @@ vi.mock("@/lib/supabase", () => ({
 vi.mock("@/lib/services/cv-repository", () => ({
   createCv: mocks.createCv,
   listCvs: mocks.listCvs,
+}));
+
+vi.mock("@/lib/observability", () => ({
+  track: mocks.track,
 }));
 
 import { GET, POST } from "@/pages/api/cv/index";
@@ -64,7 +69,7 @@ async function readJson(response: Response): Promise<Envelope> {
 
 function makeContext(opts: { user: { id: string } | null; request: Request }) {
   return {
-    locals: { user: opts.user },
+    locals: { user: opts.user, observability: { distinctId: "anon-test" }, locale: "en" },
     request: opts.request,
     cookies: {},
     params: {},
@@ -83,6 +88,7 @@ beforeEach(() => {
   mocks.safeGetUser.mockResolvedValue({ id: "user-123" });
   mocks.createCv.mockReset();
   mocks.listCvs.mockReset();
+  mocks.track.mockReset();
 });
 
 afterEach(() => {
@@ -130,6 +136,7 @@ describe("POST /api/cv — guards", () => {
     const body = await readJson(response);
     expect(body.ok).toBe(false);
     expect(body.error).toBe("save_failed");
+    expect(mocks.track).not.toHaveBeenCalled();
   });
 
   it("returns 201 with the saved summary on success", async () => {
@@ -144,6 +151,20 @@ describe("POST /api/cv — guards", () => {
     const body = await readJson(response);
     expect(body.ok).toBe(true);
     expect(body.cv).toEqual(summary);
+  });
+
+  it("emits funnel_cv_saved with the request identity on success", async () => {
+    mocks.createCv.mockResolvedValue({
+      id: "cv-1",
+      title: "My CV",
+      language: "en",
+      createdAt: "now",
+      updatedAt: "now",
+    });
+
+    await POST(makeContext({ user: { id: "user-123" }, request: jsonRequest("POST", validSavePayload) }));
+
+    expect(mocks.track).toHaveBeenCalledWith("funnel_cv_saved", { locale: "en" }, { distinctId: "anon-test" });
   });
 });
 

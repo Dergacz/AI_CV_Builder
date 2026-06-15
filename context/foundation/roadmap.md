@@ -3,7 +3,7 @@ project: AI CV Builder — Launch-Readiness & Validation Release
 version: 1
 status: draft
 created: 2026-06-11
-updated: 2026-06-11
+updated: 2026-06-15
 prd_version: 3
 main_goal: market-feedback
 top_blocker: capacity
@@ -30,8 +30,8 @@ The CV builder works mechanically — landing → questionnaire → AI generatio
 | ID    | Change ID                     | Outcome (user can …)                                              | Prerequisites | PRD refs              | Status   |
 | ----- | ----------------------------- | ---------------------------------------------------------------- | ------------- | --------------------- | -------- |
 | F-01  | observability-baseline        | (foundation) managed analytics + error-monitor provisioned; pseudonymous no-raw-content recording contract in place | —             | FR-008, FR-009, FR-010 | done     |
-| F-02  | core-flow-regression-net      | (foundation) existing questionnaire→generate→save→export path guarded by regression tests | —             | FR-013                | ready    |
-| S-01  | funnel-event-instrumentation  | (operator) see a real user move through all 8 funnel steps as tracked events | F-01          | FR-008, US-01         | proposed |
+| F-02  | core-flow-regression-net      | (foundation) existing questionnaire→generate→save→export path guarded by regression tests | —             | FR-013                | done     |
+| S-01  | funnel-event-instrumentation  | (operator) see a real user move through all 8 funnel steps as tracked events | F-01          | FR-008, US-01         | done     |
 | S-02  | enforce-email-verification    | verify their email behind a hard wall, resend it, existing accounts grandfathered | F-02          | FR-001, FR-002, FR-014, US-01 | proposed |
 | S-03  | consent-gated-registration    | accept Privacy + Terms to register and read both legal pages     | F-02          | FR-005, FR-006, FR-007, US-01 | proposed |
 | S-04  | google-signin-linking         | sign in with Google into their one existing account (no duplicate) | S-02          | FR-003, FR-004, US-02 | proposed |
@@ -93,7 +93,7 @@ Foundations below assume these are present and do NOT re-scaffold them.
 - **Blockers:** —
 - **Unknowns:** —
 - **Risk:** The new gates all sit on the path to the working app, so "unchanged" is optimistic without a safety net; this foundation makes the guardrail verifiable before any gate lands. Scoped to characterization/regression coverage of the existing path only — not a general test-suite rewrite — so it stays a minimal enabler. Test infra (Vitest + Playwright) already exists, so this is ready now.
-- **Status:** ready
+- **Status:** done
 
 ## Slices
 
@@ -108,7 +108,7 @@ Foundations below assume these are present and do NOT re-scaffold them.
 - **Unknowns:**
   - Coarse-metadata field set per event that stays pseudonymous and content-free. — Owner: user/team. Block: no.
 - **Risk:** This is the validation milestone — sequenced as early as F-01 allows. The risk is instrumenting unevenly (missing one funnel step makes the drop-off picture lie); the 8 events must be wired as one coherent slice across the existing flow, not drip-fed.
-- **Status:** proposed
+- **Status:** done
 
 ### S-02: Enforce email verification
 
@@ -237,4 +237,4 @@ This table is the clean handoff to Jira/Linear or any MCP-backed backlog. One ro
 
 ## Done
 
-(Empty on first generation. `/10x-archive` appends an entry here — and flips that item's `Status` to `done` — when a change whose `Change ID` matches the item is archived. Do NOT pre-populate.)
+- **S-01: (operator) a real user moving landing → registration → email confirmation → questionnaire started → questionnaire completed → CV generated → CV saved → PDF exported is recorded as 8 distinct tracked events, so step-to-step conversion and drop-off are visible.** — Archived 2026-06-15 → `context/archive/2026-06-12-funnel-event-instrumentation/`. Lesson: —.

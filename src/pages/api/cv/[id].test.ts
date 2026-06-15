@@ -20,6 +20,7 @@ const mocks = vi.hoisted(() => ({
   getCv: vi.fn(),
   updateCv: vi.fn(),
   deleteCv: vi.fn(),
+  track: vi.fn(),
 }));
 
 vi.mock("@/lib/supabase", () => ({
@@ -31,6 +32,10 @@ vi.mock("@/lib/services/cv-repository", () => ({
   getCv: mocks.getCv,
   updateCv: mocks.updateCv,
   deleteCv: mocks.deleteCv,
+}));
+
+vi.mock("@/lib/observability", () => ({
+  track: mocks.track,
 }));
 
 import { DELETE, GET, PUT } from "@/pages/api/cv/[id]";
@@ -67,7 +72,7 @@ async function readJson(response: Response): Promise<Envelope> {
 
 function makeContext(opts: { user: { id: string } | null; id?: string; request?: Request }) {
   return {
-    locals: { user: opts.user },
+    locals: { user: opts.user, observability: { distinctId: "anon-test" }, locale: "en" },
     request: opts.request ?? new Request(`http://localhost/api/cv/${opts.id ?? VALID_ID}`),
     cookies: {},
     params: { id: opts.id ?? VALID_ID },
@@ -87,6 +92,7 @@ beforeEach(() => {
   mocks.getCv.mockReset();
   mocks.updateCv.mockReset();
   mocks.deleteCv.mockReset();
+  mocks.track.mockReset();
 });
 
 afterEach(() => {
@@ -172,6 +178,7 @@ describe("PUT /api/cv/[id]", () => {
 
     expect(response.status).toBe(500);
     expect((await readJson(response)).error).toBe("save_failed");
+    expect(mocks.track).not.toHaveBeenCalled();
   });
 
   it("returns 200 with the updated summary on success", async () => {
@@ -184,6 +191,28 @@ describe("PUT /api/cv/[id]", () => {
     const body = await readJson(response);
     expect(body.ok).toBe(true);
     expect(body.cv).toEqual(summary);
+  });
+
+  it("emits funnel_cv_saved with the request identity on a successful update", async () => {
+    mocks.updateCv.mockResolvedValue({
+      id: VALID_ID,
+      title: "My CV",
+      language: "en",
+      createdAt: "now",
+      updatedAt: "now",
+    });
+
+    await PUT(makeContext({ user: { id: "user-123" }, request: putRequest(validSavePayload) }));
+
+    expect(mocks.track).toHaveBeenCalledWith("funnel_cv_saved", { locale: "en" }, { distinctId: "anon-test" });
+  });
+
+  it("does not emit funnel_cv_saved when the update target is missing", async () => {
+    mocks.updateCv.mockResolvedValue(null);
+
+    await PUT(makeContext({ user: { id: "user-123" }, request: putRequest(validSavePayload) }));
+
+    expect(mocks.track).not.toHaveBeenCalled();
   });
 });
 

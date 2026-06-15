@@ -1,5 +1,6 @@
 import { POSTHOG_API_KEY, POSTHOG_HOST } from "astro:env/server";
 
+import type { FunnelEvent } from "./events";
 import { scrub, type SafeProps, type TrackProps } from "./scrub";
 
 const DEFAULT_POSTHOG_HOST = "https://eu.i.posthog.com";
@@ -7,7 +8,7 @@ const POSTHOG_CAPTURE_PATH = "/i/v0/e/";
 const OBSERVABILITY_TIMEOUT_MS = 1_500;
 const ERROR_EVENT = "observability_error";
 
-export type ObservabilityEvent = "observability_smoke" | typeof ERROR_EVENT;
+export type ObservabilityEvent = "observability_smoke" | typeof ERROR_EVENT | FunnelEvent;
 
 export interface Identity {
   distinctId: string | null;

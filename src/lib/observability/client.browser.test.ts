@@ -64,6 +64,29 @@ describe("client observability", () => {
     );
   });
 
+  it("bootstraps the SDK with the server-provided distinct id", async () => {
+    const { initClientObservability } = await loadClient();
+
+    initClientObservability({ distinctId: "server-id", installErrorHandlers: false, key: "phc_public" });
+
+    expect(initMock).toHaveBeenCalledWith(
+      "phc_public",
+      expect.objectContaining({
+        bootstrap: { distinctID: "server-id" },
+        persistence: "memory",
+      }),
+    );
+  });
+
+  it("omits bootstrap when no distinct id is provided", async () => {
+    const { initClientObservability } = await loadClient();
+
+    initClientObservability({ installErrorHandlers: false, key: "phc_public" });
+
+    const config = initMock.mock.calls[0]?.[1] as Record<string, unknown>;
+    expect(config).not.toHaveProperty("bootstrap");
+  });
+
   it("captures only scrubbed client properties after initialization", async () => {
     const { initClientObservability, trackClient } = await loadClient();
     initClientObservability({ key: "phc_public", installErrorHandlers: false });

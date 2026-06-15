@@ -69,3 +69,41 @@ describe("getAnonSessionId", () => {
     );
   });
 });
+
+describe("resolveRequestIdentity", () => {
+  beforeEach(() => {
+    mockEnv.salt = "test-salt";
+  });
+
+  it("uses the pseudonymous user id when authenticated, never the raw id", async () => {
+    const { resolveRequestIdentity, getPseudonymousUserId } = await import("./identity");
+    const cookies = { get: vi.fn().mockReturnValue(undefined), set: vi.fn() };
+
+    const identity = await resolveRequestIdentity({ id: "user-123" }, cookies);
+
+    expect(identity.distinctId).toBe(await getPseudonymousUserId("user-123"));
+    expect(identity.distinctId).toMatch(/^[a-f0-9]{64}$/);
+    expect(identity.distinctId).not.toBe("user-123");
+    expect(cookies.set).not.toHaveBeenCalled();
+  });
+
+  it("falls back to the anon session id for an anonymous request", async () => {
+    const { resolveRequestIdentity } = await import("./identity");
+    const cookies = { get: vi.fn().mockReturnValue(undefined), set: vi.fn() };
+
+    const identity = await resolveRequestIdentity(null, cookies);
+
+    expect(identity.distinctId).toMatch(/^anon_[a-f0-9-]{36}$/);
+    expect(cookies.set).toHaveBeenCalled();
+  });
+
+  it("falls back to the anon session id when the salt is missing", async () => {
+    mockEnv.salt = "";
+    const { resolveRequestIdentity } = await import("./identity");
+    const cookies = { get: vi.fn().mockReturnValue({ value: "existing-session" }), set: vi.fn() };
+
+    const identity = await resolveRequestIdentity({ id: "user-123" }, cookies);
+
+    expect(identity.distinctId).toBe("existing-session");
+  });
+});
