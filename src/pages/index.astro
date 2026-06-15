@@ -9,4 +9,13 @@ const content = getLandingContent(locale);
 
 <Layout locale={locale} title={content.nav.productName}>
   <ProductLanding locale={locale} content={content} />
+  <script>
+    // Funnel step 1: landing viewed (anonymous segment). Init is idempotent and shares the
+    // server-resolved distinct_id from <body>, so this lines up with funnel_signup_completed.
+    import { initClientObservability, trackClient } from "@/lib/observability/client.browser";
+
+    const distinctId = document.body.dataset.obsDistinctId || undefined;
+    initClientObservability(distinctId ? { distinctId } : {});
+    trackClient("funnel_landing_viewed", { locale: document.documentElement.lang });
+  </script>
 </Layout>

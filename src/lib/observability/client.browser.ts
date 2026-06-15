@@ -63,6 +63,12 @@ function captureClient(event: ClientObservabilityEvent, props: TrackProps): void
  * are emitted here — this only bootstraps the SDK so S-01/S-07 can plug in later.
  */
 export function initClientObservability(options: InitOptions = {}): boolean {
+  // Idempotent: the landing page inits from its own script (to emit funnel_landing_viewed) and so
+  // does the root layout; whichever runs first wins, the second is a no-op. Avoids a double init.
+  if (initialized) {
+    return true;
+  }
+
   const key = options.key ?? PUBLIC_POSTHOG_KEY;
   if (!key) {
     return false;

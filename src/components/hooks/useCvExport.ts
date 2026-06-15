@@ -6,6 +6,7 @@ import { getCvExportCopy } from "@/lib/cv-export-copy";
 import type { UiLocale } from "@/lib/i18n/locales";
 import { buildCvPdfFilename } from "@/lib/cv-export-filename";
 import { classifyExportError } from "@/lib/cv-export-error";
+import { trackClient } from "@/lib/observability/client.browser";
 
 export type CvExportStatus = "idle" | "exporting" | "done" | "error";
 
@@ -66,6 +67,8 @@ export function useCvExport(locale: UiLocale): CvExportController {
         const blob = await pdf(documentElement).toBlob();
         triggerDownload(blob, buildCvPdfFilename(meta));
         setStatus("done");
+        // Funnel step 8: PDF exported — the terminal step. Pure client (no server round-trip).
+        trackClient("funnel_pdf_exported", { locale });
       } catch (caught) {
         setError(getCvExportCopy(locale).errors[classifyExportError(caught)]);
         setStatus("error");

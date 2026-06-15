@@ -272,29 +272,29 @@ No data migration. Rotating `OBSERVABILITY_ID_SALT` re-pseudonymizes identified-
 
 #### Automated
 
-- [x] 2.1 Lint + type check pass: `npm run lint && astro check`
-- [x] 2.2 Unit tests pass: `npm test`
-- [x] 2.3 Each server call site emits the correct event name with `locals` identity (mocked `track`)
-- [x] 2.4 `cv_generated` emitted only on the ok branch, never on error
-- [x] 2.5 `email_confirmed` once-guard emits exactly once across repeated authenticated requests
+- [x] 2.1 Lint + type check pass: `npm run lint && astro check` — 8dac497
+- [x] 2.2 Unit tests pass: `npm test` — 8dac497
+- [x] 2.3 Each server call site emits the correct event name with `locals` identity (mocked `track`) — 8dac497
+- [x] 2.4 `cv_generated` emitted only on the ok branch, never on error — 8dac497
+- [x] 2.5 `email_confirmed` once-guard emits exactly once across repeated authenticated requests — 8dac497
 
 #### Manual
 
-- [x] 2.6 Signup / confirm / generate / save each produce exactly one corresponding event in PostHog
-- [x] 2.7 `funnel_cv_generated` carries model_provider/duration_ms/locale and no content
-- [x] 2.8 A second sign-in does NOT produce a second `funnel_email_confirmed`
+- [x] 2.6 Signup / confirm / generate / save each produce exactly one corresponding event in PostHog — 8dac497
+- [x] 2.7 `funnel_cv_generated` carries model_provider/duration_ms/locale and no content — 8dac497
+- [x] 2.8 A second sign-in does NOT produce a second `funnel_email_confirmed` — 8dac497
 
 ### Phase 3: Client-side funnel emits (4 events) + funnel verification
 
 #### Automated
 
-- [ ] 3.1 Lint + type check pass: `npm run lint && astro check`
-- [ ] 3.2 Unit/component tests pass: `npm test`
-- [ ] 3.3 Each client emit point calls `trackClient` with the correct event name; questionnaire-started once per mount; pdf-export only on done
+- [x] 3.1 Lint + type check pass: `npm run lint && astro check`
+- [x] 3.2 Unit/component tests pass: `npm test`
+- [x] 3.3 Each client emit point calls `trackClient` with the correct event name; questionnaire-started once per mount; pdf-export only on done
 
 #### Manual
 
-- [ ] 3.4 Full walk produces all 8 events in PostHog
-- [ ] 3.5 Anonymous funnel (`landing_viewed`→`signup_completed`) resolves with a single anon-session distinct_id
-- [ ] 3.6 Identified funnel (`email_confirmed`→`pdf_exported`) resolves with a single pseudonymous distinct_id (client/server id alignment confirmed)
-- [ ] 3.7 No event carries raw answer/prompt/draft/CV content (payload spot-check)
+- [x] 3.4 Full walk produces all 8 events in PostHog
+- [x] 3.5 Anonymous funnel (`landing_viewed`→`signup_completed`) resolves with a single anon-session distinct_id
+- [x] 3.6 Identified funnel (`email_confirmed`→`pdf_exported`) resolves with a single pseudonymous distinct_id (client/server id alignment confirmed)
+- [x] 3.7 No event carries raw answer/prompt/draft/CV content (payload spot-check)
