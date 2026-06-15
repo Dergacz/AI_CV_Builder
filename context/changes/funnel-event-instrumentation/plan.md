@@ -288,13 +288,13 @@ No data migration. Rotating `OBSERVABILITY_ID_SALT` re-pseudonymizes identified-
 
 #### Automated
 
-- [x] 3.1 Lint + type check pass: `npm run lint && astro check`
-- [x] 3.2 Unit/component tests pass: `npm test`
-- [x] 3.3 Each client emit point calls `trackClient` with the correct event name; questionnaire-started once per mount; pdf-export only on done
+- [x] 3.1 Lint + type check pass: `npm run lint && astro check` — 046d198
+- [x] 3.2 Unit/component tests pass: `npm test` — 046d198
+- [x] 3.3 Each client emit point calls `trackClient` with the correct event name; questionnaire-started once per mount; pdf-export only on done — 046d198
 
 #### Manual
 
-- [x] 3.4 Full walk produces all 8 events in PostHog
-- [x] 3.5 Anonymous funnel (`landing_viewed`→`signup_completed`) resolves with a single anon-session distinct_id
-- [x] 3.6 Identified funnel (`email_confirmed`→`pdf_exported`) resolves with a single pseudonymous distinct_id (client/server id alignment confirmed)
-- [x] 3.7 No event carries raw answer/prompt/draft/CV content (payload spot-check)
+- [x] 3.4 Full walk produces all 8 events in PostHog — 046d198
+- [x] 3.5 Anonymous funnel (`landing_viewed`→`signup_completed`) resolves with a single anon-session distinct_id — 046d198
+- [x] 3.6 Identified funnel (`email_confirmed`→`pdf_exported`) resolves with a single pseudonymous distinct_id (client/server id alignment confirmed) — 046d198
+- [x] 3.7 No event carries raw answer/prompt/draft/CV content (payload spot-check) — 046d198

@@ -1,9 +1,9 @@
 ---
 change_id: funnel-event-instrumentation
 title: Funnel event instrumentation
-status: implementing
+status: implemented
 created: 2026-06-12
-updated: 2026-06-12
+updated: 2026-06-15
 archived_at: null
 ---
 
