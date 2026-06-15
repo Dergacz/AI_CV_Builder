@@ -31,15 +31,19 @@ export const onRequest = defineMiddleware(async (context, next) => {
     context.locals.observability,
     context.locals.locale,
   ).catch(() => false);
-  const runtimeCtx = (context.locals as { runtime?: { ctx?: { waitUntil?(promise: Promise<unknown>): void } } }).runtime
-    ?.ctx;
-  if (runtimeCtx?.waitUntil) {
-    runtimeCtx.waitUntil(emailConfirmed);
+  const cloudflareContext = (context.locals as { cfContext?: { waitUntil?(promise: Promise<unknown>): void } })
+    .cfContext;
+  if (cloudflareContext?.waitUntil) {
+    cloudflareContext.waitUntil(emailConfirmed);
   }
 
   if (PROTECTED_ROUTES.some((route) => context.url.pathname.startsWith(route))) {
-    if (!context.locals.user) {
+    const user = context.locals.user;
+    if (!user) {
       return context.redirect("/auth/signin");
+    }
+    if (!user.email_confirmed_at) {
+      return context.redirect(`/auth/confirm-email?email=${encodeURIComponent(user.email ?? "")}`);
     }
   }
 
