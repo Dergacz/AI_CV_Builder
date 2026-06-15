@@ -1,8 +1,11 @@
 import type { APIRoute } from "astro";
 import { OPENAI_API_KEY, OPENAI_MODEL } from "astro:env/server";
+import { track } from "@/lib/observability";
 import { generateCvDraft } from "@/lib/services/cv-generation";
 import { generationErrorMessages, type GenerateDraftResponse } from "@/lib/cv-draft";
 import { cvAnswersSchema } from "@/lib/cv-answers.schema";
+
+const MODEL_PROVIDER = "openai";
 
 export const prerender = false;
 
@@ -45,7 +48,24 @@ export const POST: APIRoute = async (context) => {
     return json(503, { ok: false, error: "service_unavailable", message: generationErrorMessages.service_unavailable });
   }
 
+  const startedAt = Date.now();
   const result = await generateCvDraft(parsed.data, { apiKey: OPENAI_API_KEY, model: OPENAI_MODEL });
   const status = result.ok ? 200 : result.error === "service_unavailable" ? 503 : 422;
+
+  // Funnel step 6: emit only on a successful generation. Failures show as drop-off (absence of the
+  // next step); their cause is covered by S-07 error monitoring, not this event.
+  if (result.ok) {
+    await track(
+      "funnel_cv_generated",
+      {
+        locale: context.locals.locale,
+        model_provider: MODEL_PROVIDER,
+        duration_ms: Date.now() - startedAt,
+        success: true,
+      },
+      context.locals.observability,
+    );
+  }
+
   return json(status, result);
 };

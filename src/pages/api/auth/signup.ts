@@ -1,5 +1,6 @@
 import type { APIRoute } from "astro";
 import { classifyAuthError } from "@/lib/i18n/auth-errors";
+import { track } from "@/lib/observability";
 import { createClient } from "@/lib/supabase";
 
 export const POST: APIRoute = async (context) => {
@@ -16,6 +17,10 @@ export const POST: APIRoute = async (context) => {
   if (error) {
     return context.redirect(`/auth/signup?error=${classifyAuthError(error, "signup_failed")}`);
   }
+
+  // Funnel step 2: registration succeeded (anonymous segment — no user session resolved yet, so
+  // identity is the anon-session id). Covers both the confirm-email and auto-session success paths.
+  await track("funnel_signup_completed", { locale: context.locals.locale }, context.locals.observability);
 
   if (data.session) {
     return context.redirect("/dashboard");

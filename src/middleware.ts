@@ -1,5 +1,6 @@
 import { defineMiddleware } from "astro:middleware";
 import { UI_LOCALE_COOKIE, resolveUiLocale } from "@/lib/i18n/locales";
+import { trackEmailConfirmedOnce } from "@/lib/observability/funnel";
 import { resolveRequestIdentity } from "@/lib/observability/identity";
 import { createClient, safeGetUser } from "@/lib/supabase";
 
@@ -19,6 +20,15 @@ export const onRequest = defineMiddleware(async (context, next) => {
   // Resolve the request's observability distinct_id once so every server emit point and the
   // client init (threaded via Layout) share a single id. See resolveRequestIdentity.
   context.locals.observability = await resolveRequestIdentity(context.locals.user, context.cookies);
+
+  // Funnel step 3: emit email-confirmed on the first authenticated request after confirmation
+  // (guarded once-only). No-op for anonymous / already-marked requests. See trackEmailConfirmedOnce.
+  await trackEmailConfirmedOnce(
+    context.locals.user,
+    context.cookies,
+    context.locals.observability,
+    context.locals.locale,
+  );
 
   if (PROTECTED_ROUTES.some((route) => context.url.pathname.startsWith(route))) {
     if (!context.locals.user) {

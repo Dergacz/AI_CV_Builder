@@ -257,32 +257,32 @@ No data migration. Rotating `OBSERVABILITY_ID_SALT` re-pseudonymizes identified-
 
 #### Automated
 
-- [x] 1.1 Type checking passes (event unions + App.Locals): `astro sync && astro check`
-- [x] 1.2 Lint passes: `npm run lint`
-- [x] 1.3 Unit tests pass: `npm test`
-- [x] 1.4 `resolveRequestIdentity` returns pseudonymous id when authed, anon-session id otherwise, never the raw user id
-- [x] 1.5 `initClientObservability({ distinctId })` forwards `bootstrap.distinctID` and keeps `$process_person_profile:false`
+- [x] 1.1 Type checking passes (event unions + App.Locals): `astro sync && astro check` — f69677c
+- [x] 1.2 Lint passes: `npm run lint` — f69677c
+- [x] 1.3 Unit tests pass: `npm test` — f69677c
+- [x] 1.4 `resolveRequestIdentity` returns pseudonymous id when authed, anon-session id otherwise, never the raw user id — f69677c
+- [x] 1.5 `initClientObservability({ distinctId })` forwards `bootstrap.distinctID` and keeps `$process_person_profile:false` — f69677c
 
 #### Manual
 
-- [ ] 1.6 Client SDK adopts the server distinct_id (not a fresh random id) with PostHog configured
-- [ ] 1.7 Unconfigured PostHog: app runs normally, config banner still flags it (no regression)
+- [x] 1.6 Client SDK adopts the server distinct_id (not a fresh random id) with PostHog configured — f69677c
+- [x] 1.7 Unconfigured PostHog: app runs normally, config banner still flags it (no regression) — f69677c
 
 ### Phase 2: Server-side funnel emits (4 events)
 
 #### Automated
 
-- [ ] 2.1 Lint + type check pass: `npm run lint && astro check`
-- [ ] 2.2 Unit tests pass: `npm test`
-- [ ] 2.3 Each server call site emits the correct event name with `locals` identity (mocked `track`)
-- [ ] 2.4 `cv_generated` emitted only on the ok branch, never on error
-- [ ] 2.5 `email_confirmed` once-guard emits exactly once across repeated authenticated requests
+- [x] 2.1 Lint + type check pass: `npm run lint && astro check`
+- [x] 2.2 Unit tests pass: `npm test`
+- [x] 2.3 Each server call site emits the correct event name with `locals` identity (mocked `track`)
+- [x] 2.4 `cv_generated` emitted only on the ok branch, never on error
+- [x] 2.5 `email_confirmed` once-guard emits exactly once across repeated authenticated requests
 
 #### Manual
 
-- [ ] 2.6 Signup / confirm / generate / save each produce exactly one corresponding event in PostHog
-- [ ] 2.7 `funnel_cv_generated` carries model_provider/duration_ms/locale and no content
-- [ ] 2.8 A second sign-in does NOT produce a second `funnel_email_confirmed`
+- [x] 2.6 Signup / confirm / generate / save each produce exactly one corresponding event in PostHog
+- [x] 2.7 `funnel_cv_generated` carries model_provider/duration_ms/locale and no content
+- [x] 2.8 A second sign-in does NOT produce a second `funnel_email_confirmed`
 
 ### Phase 3: Client-side funnel emits (4 events) + funnel verification
 
