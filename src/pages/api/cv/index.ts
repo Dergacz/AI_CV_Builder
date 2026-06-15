@@ -75,7 +75,8 @@ export const POST: APIRoute = async (context) => {
       draft: parsed.data.draft,
       answers: parsed.data.answers,
     });
-    // Funnel step 7: a CV first persisted. Emitted on every successful save; PostHog takes first-touch.
+    // Funnel step 7: CV persisted (create). Emitted on every successful save; funnel queries
+    // first-touch per distinct_id, so repeat saves inflate raw counts but not conversion.
     await track("funnel_cv_saved", { locale: context.locals.locale }, context.locals.observability);
     return json(201, { ok: true, cv });
   } catch {
