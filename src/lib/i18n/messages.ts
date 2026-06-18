@@ -26,8 +26,17 @@ export interface SignUpFormCopy extends SignInFormCopy {
     passwordTooShort: (minimum: number) => string;
     confirmPasswordRequired: string;
     passwordsMismatch: string;
+    consentRequired: string;
   };
   passwordHint: (remaining: number) => string;
+  /** Consent gate copy. The label is assembled as: prefix + Terms link + conjunction + Privacy link + suffix. */
+  consent: {
+    prefix: string;
+    termsLabel: string;
+    conjunction: string;
+    privacyLabel: string;
+    suffix: string;
+  };
 }
 
 interface AuthPanelCopy {
@@ -309,18 +318,27 @@ export const messagesByLocale = {
             passwordTooShort: (minimum) => `Password must be at least ${minimum} characters`,
             confirmPasswordRequired: "Please confirm your password",
             passwordsMismatch: "Passwords do not match",
+            consentRequired: "Please accept the Terms of Service and Privacy Policy to continue",
           },
           passwordToggle: {
             show: "Show password",
             hide: "Hide password",
           },
           passwordHint: (remaining) => `${remaining} more character${remaining === 1 ? "" : "s"} needed`,
+          consent: {
+            prefix: "I agree to the ",
+            termsLabel: "Terms of Service",
+            conjunction: " and ",
+            privacyLabel: "Privacy Policy",
+            suffix: ".",
+          },
         },
       },
       errors: {
         auth_unavailable: "Account access is temporarily unavailable. Please try again later.",
         signin_failed: "We couldn't sign you in. Check your email and password, then try again.",
         signup_failed: "We couldn't create your account. Check your details, then try again.",
+        consent_required: "Please accept the Terms of Service and Privacy Policy to create your account.",
         rate_limited: "Too many account attempts right now. Please wait a bit and try again.",
         email_not_confirmed: "Your email is not verified yet. Check your inbox or resend the confirmation email.",
       },
@@ -568,18 +586,27 @@ export const messagesByLocale = {
             passwordTooShort: (minimum) => `Hasło musi mieć co najmniej ${minimum} znaków`,
             confirmPasswordRequired: "Potwierdź hasło",
             passwordsMismatch: "Hasła nie są takie same",
+            consentRequired: "Zaakceptuj Regulamin i Politykę prywatności, aby kontynuować",
           },
           passwordToggle: {
             show: "Pokaż hasło",
             hide: "Ukryj hasło",
           },
           passwordHint: (remaining) => `Brakuje znaków: ${remaining}`,
+          consent: {
+            prefix: "Akceptuję ",
+            termsLabel: "Regulamin",
+            conjunction: " i ",
+            privacyLabel: "Politykę prywatności",
+            suffix: ".",
+          },
         },
       },
       errors: {
         auth_unavailable: "Dostęp do konta jest chwilowo niedostępny. Spróbuj ponownie później.",
         signin_failed: "Nie udało się zalogować. Sprawdź e-mail i hasło, a potem spróbuj ponownie.",
         signup_failed: "Nie udało się utworzyć konta. Sprawdź dane i spróbuj ponownie.",
+        consent_required: "Zaakceptuj Regulamin i Politykę prywatności, aby utworzyć konto.",
         rate_limited: "Zbyt wiele prób dostępu do konta. Poczekaj chwilę i spróbuj ponownie.",
         email_not_confirmed: "Twój e-mail nie jest jeszcze potwierdzony. Sprawdź pocztę albo wyślij link ponownie.",
       },
@@ -827,18 +854,27 @@ export const messagesByLocale = {
             passwordTooShort: (minimum) => `Пароль должен содержать минимум ${minimum} символов`,
             confirmPasswordRequired: "Подтвердите пароль",
             passwordsMismatch: "Пароли не совпадают",
+            consentRequired: "Примите Условия использования и Политику конфиденциальности, чтобы продолжить",
           },
           passwordToggle: {
             show: "Показать пароль",
             hide: "Скрыть пароль",
           },
           passwordHint: (remaining) => `Осталось символов: ${remaining}`,
+          consent: {
+            prefix: "Я принимаю ",
+            termsLabel: "Условия использования",
+            conjunction: " и ",
+            privacyLabel: "Политику конфиденциальности",
+            suffix: ".",
+          },
         },
       },
       errors: {
         auth_unavailable: "Доступ к аккаунту временно недоступен. Попробуйте позже.",
         signin_failed: "Не удалось войти. Проверьте e-mail и пароль, затем попробуйте снова.",
         signup_failed: "Не удалось создать аккаунт. Проверьте данные и попробуйте снова.",
+        consent_required: "Примите Условия использования и Политику конфиденциальности, чтобы создать аккаунт.",
         rate_limited: "Слишком много попыток доступа к аккаунту. Подождите немного и попробуйте снова.",
         email_not_confirmed: "Ваш e-mail ещё не подтверждён. Проверьте почту или отправьте письмо повторно.",
       },

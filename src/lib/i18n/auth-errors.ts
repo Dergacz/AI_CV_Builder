@@ -5,6 +5,7 @@ export const authErrorCodes = [
   "auth_unavailable",
   "signin_failed",
   "signup_failed",
+  "consent_required",
   "rate_limited",
   "email_not_confirmed",
 ] as const;
