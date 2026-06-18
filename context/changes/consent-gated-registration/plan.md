@@ -238,28 +238,28 @@ No data model change and no migration. Consent is enforcement-only and not persi
 
 #### Automated
 
-- [x] 1.1 Type checking passes (all 3 locales supply consent copy + error message): `npx astro check`
-- [x] 1.2 Existing i18n tests pass: `npm test -- src/lib/i18n`
-- [x] 1.3 Linting passes: `npm run lint`
+- [x] 1.1 Type checking passes (all 3 locales supply consent copy + error message): `npx astro check` — 1c86e5f
+- [x] 1.2 Existing i18n tests pass: `npm test -- src/lib/i18n` — 1c86e5f
+- [x] 1.3 Linting passes: `npm run lint` — 1c86e5f
 
 #### Manual
 
-- [x] 1.4 Three locale `consent_required` messages read naturally and match each locale's tone
+- [x] 1.4 Three locale `consent_required` messages read naturally and match each locale's tone — 1c86e5f
 
 ### Phase 2: Client Gate (Form)
 
 #### Automated
 
-- [ ] 2.1 Type checking passes: `npx astro check`
-- [ ] 2.2 Form test passes: `npm test -- src/components/auth/SignUpForm`
-- [ ] 2.3 Linting passes: `npm run lint`
+- [x] 2.1 Type checking passes: `npx astro check`
+- [x] 2.2 Form test passes: `npm test -- src/components/auth/SignUpForm`
+- [x] 2.3 Linting passes: `npm run lint`
 
 #### Manual
 
-- [ ] 2.4 Unchecked box shows inline error and does not navigate
-- [ ] 2.5 Terms and Privacy links point to `/terms` and `/privacy`
-- [ ] 2.6 Checking the box clears the error; valid submission proceeds
-- [ ] 2.7 Checkbox + error render correctly in all three locales
+- [x] 2.4 Unchecked box shows inline error and does not navigate
+- [x] 2.5 Terms and Privacy links point to `/terms` and `/privacy`
+- [x] 2.6 Checking the box clears the error; valid submission proceeds
+- [x] 2.7 Checkbox + error render correctly in all three locales
 
 ### Phase 3: Server Enforcement
 

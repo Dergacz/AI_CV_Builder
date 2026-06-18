@@ -1,13 +1,13 @@
 import React, { useState } from "react";
 import { Mail, Lock, UserPlus } from "lucide-react";
 import { FormField } from "@/components/auth/FormField";
+import { ConsentCheckbox } from "@/components/auth/ConsentCheckbox";
 import { PasswordToggle } from "@/components/auth/PasswordToggle";
 import { SubmitButton } from "@/components/auth/SubmitButton";
 import { ServerError } from "@/components/auth/ServerError";
+import { MIN_PASSWORD_LENGTH, validateSignUp, type SignUpErrors } from "@/components/auth/signup-validation";
 import { getMessages } from "@/lib/i18n/messages";
 import type { UiLocale } from "@/lib/i18n/locales";
-
-const MIN_PASSWORD_LENGTH = 6;
 
 interface Props {
   locale: UiLocale;
@@ -20,31 +20,13 @@ export default function SignUpForm({ locale, serverError }: Props) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [consent, setConsent] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  const [errors, setErrors] = useState<{ email?: string; password?: string; confirmPassword?: string }>({});
+  const [errors, setErrors] = useState<SignUpErrors>({});
 
   function validate() {
-    const next: typeof errors = {};
-
-    if (!email.trim()) {
-      next.email = copy.validation.emailRequired;
-    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-      next.email = copy.validation.emailInvalid;
-    }
-
-    if (!password) {
-      next.password = copy.validation.passwordRequired;
-    } else if (password.length < MIN_PASSWORD_LENGTH) {
-      next.password = copy.validation.passwordTooShort(MIN_PASSWORD_LENGTH);
-    }
-
-    if (!confirmPassword) {
-      next.confirmPassword = copy.validation.confirmPasswordRequired;
-    } else if (password !== confirmPassword) {
-      next.confirmPassword = copy.validation.passwordsMismatch;
-    }
-
+    const next = validateSignUp({ email, password, confirmPassword, consent }, copy);
     setErrors(next);
     return Object.keys(next).length === 0;
   }
@@ -128,6 +110,18 @@ export default function SignUpForm({ locale, serverError }: Props) {
             }}
           />
         }
+      />
+
+      <ConsentCheckbox
+        id="consent"
+        name="consent"
+        checked={consent}
+        onChange={(value) => {
+          setConsent(value);
+          clearError("consent");
+        }}
+        error={errors.consent}
+        copy={copy.consent}
       />
 
       <ServerError message={serverError} />
