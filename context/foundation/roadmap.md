@@ -33,12 +33,13 @@ The CV builder works mechanically — landing → questionnaire → AI generatio
 | F-02  | core-flow-regression-net      | (foundation) existing questionnaire→generate→save→export path guarded by regression tests | —             | FR-013                | done     |
 | S-01  | funnel-event-instrumentation  | (operator) see a real user move through all 8 funnel steps as tracked events | F-01          | FR-008, US-01         | done     |
 | S-02  | enforce-email-verification    | verify their email behind a hard wall, resend it, existing accounts grandfathered | F-02          | FR-001, FR-002, FR-014, US-01 | done     |
-| S-03  | consent-gated-registration    | accept Privacy + Terms to register and read both legal pages     | F-02          | FR-005, FR-006, FR-007, US-01 | proposed |
+| S-03  | consent-gated-registration    | accept the combined Privacy + Terms consent to register (gate enforced client + server) | F-02          | FR-005, FR-006, FR-007, US-01 | done (gate) |
 | S-04  | google-signin-linking         | sign in with Google into their one existing account (no duplicate) | S-02          | FR-003, FR-004, US-02 | proposed |
 | S-05  | post-generation-feedback      | mark a generated CV Helpful / Not-Helpful with an optional comment | F-01          | FR-010, US-01         | proposed |
 | S-06  | daily-generation-limit        | be limited to 100 generations/day with a clear message; cross-account abuse capped | F-02          | FR-012                | proposed |
 | S-07  | centralized-error-monitoring  | (operator) see failures across all 4 surfaces, scrubbed of sensitive content | F-01          | FR-009                | proposed |
 | S-08  | account-deletion              | permanently delete their account and all associated data via explicit confirmation | F-01          | FR-011, US-03         | proposed |
+| S-09  | legal-pages-and-consent-record | read the real Privacy + Terms pages and have their accepted policy version + acceptance timestamp recorded | S-03          | FR-005, FR-006, FR-007 | proposed |
 
 ## Streams
 
@@ -47,7 +48,7 @@ Navigation aid — groups items that share a Prerequisites chain. Canonical orde
 | Stream | Theme                     | Chain                                                        | Note                                                                                   |
 | ------ | ------------------------- | ----------------------------------------------------------- | -------------------------------------------------------------------------------------- |
 | A      | Measurement & observability | `F-01` → `S-01` → (`S-05` / `S-07` / `S-08` parallel)       | The market-feedback spine. North star `S-01` leads; feedback, error-monitoring, and deletion all hang off the F-01 contract. |
-| B      | Launch-safety gates       | `F-02` → (`S-02` / `S-03` / `S-06` parallel) → `S-04`        | The signup→app gating work that makes the funnel safe to expose; `S-04` (Google) joins after `S-02`. |
+| B      | Launch-safety gates       | `F-02` → (`S-02` / `S-03` / `S-06` parallel) → `S-04`; `S-03` → `S-09` | The signup→app gating work that makes the funnel safe to expose; `S-04` (Google) joins after `S-02`. `S-09` (legal pages + consent record) finishes the S-03 scope after the gate shipped. |
 
 (Every `F-NN` and `S-NN` appears in exactly one stream. The two streams are independent after their foundations — a capacity-constrained solo builder can alternate between them or fan agents across both.)
 
@@ -124,19 +125,19 @@ Foundations below assume these are present and do NOT re-scaffold them.
 - **Risk:** A hard wall can suppress the very funnel completion we want to measure; mitigated (not removed) by mandatory resend + inbox/spam guidance. Must not lock out existing accounts — grandfathering is the load-bearing compatibility constraint, so this depends on F-02's regression net.
 - **Status:** done
 
-### S-03: Consent-gated registration + legal pages
+### S-03: Consent-gated registration (consent gate)
 
-- **Outcome:** a visitor can read a dedicated Privacy Policy page (discloses AI-assisted generation) and a Terms of Service page, and registration cannot complete without accepting both — with the accepted policy version and acceptance timestamp recorded per user.
+- **Outcome:** registration cannot complete without accepting the combined Privacy + Terms consent, enforced on both client (inline-validated checkbox) and server (request rejected before account creation), localized across en/pl/ru.
 - **Change ID:** consent-gated-registration
-- **PRD refs:** FR-005, FR-006, FR-007, US-01; NFR "Consent auditability".
+- **PRD refs:** FR-005, FR-006, FR-007, US-01.
 - **Prerequisites:** F-02
 - **Parallel with:** S-02, S-06
 - **Blockers:** —
-- **Unknowns:**
-  - Privacy Policy *content* must be grounded in a real data-flow audit, not a template (PRD Open Q1, Block: partial). The consent gate, version/timestamp recording, and ToS are plannable now; only the Privacy Policy wording waits on the audit. — Owner: user. Block: no.
-  - ToS to be legal-reviewed before scaling marketing (PRD Open Q2). — Owner: user / legal reviewer. Block: no.
-- **Risk:** Sits on the registration path, so it depends on F-02. The audit gates the Privacy Policy text but not the gate mechanics — split the work so the consent gate and version-stamped recording land independently of final policy copy.
-- **Status:** proposed
+- **Unknowns:** —
+- **Risk:** Sits on the registration path, so it depends on F-02. Deliberately split from the legal-page content and the consent audit record (now S-09) so the gate mechanics could land independently of the data-flow audit and final policy copy.
+- **Delivered:** combined required consent checkbox + client/server enforcement + `consent_required` error and consent copy across en/pl/ru. The `/terms` and `/privacy` links are placeholders pending S-09.
+- **Descoped to S-09:** real Privacy Policy + Terms of Service page content, and the accepted-policy-version + acceptance-timestamp record (NFR "Consent auditability").
+- **Status:** done (gate)
 
 ### S-04: Google sign-in + account linking
 
@@ -200,6 +201,21 @@ Foundations below assume these are present and do NOT re-scaffold them.
 - **Risk:** Immediate permanent deletion is irreversible and must purge the sign-in identity + identifying analytics PII — a delayed/recoverable delete was rejected because holding "deleted" data complicates the privacy promise. Depends on F-01 because erasure must cover the analytics identifier model established there.
 - **Status:** proposed
 
+### S-09: Legal pages + consent record
+
+- **Outcome:** a visitor can open a real Privacy Policy page (discloses AI-assisted generation) and a Terms of Service page at `/terms` and `/privacy` (the placeholder links shipped by S-03 now resolve to content), and every registration records the accepted policy version + acceptance timestamp per user, giving an auditable proof-of-consent.
+- **Change ID:** legal-pages-and-consent-record
+- **PRD refs:** FR-005, FR-006, FR-007; NFR "Consent auditability".
+- **Prerequisites:** S-03 (the consent gate that the pages link from and that this record stamps — already shipped).
+- **Parallel with:** S-04, S-06 (independent once the gate from S-03 exists).
+- **Blockers:** —
+- **Unknowns:**
+  - Privacy Policy *content* must be grounded in a real data-flow audit, not a template (PRD Open Q1). Only the Privacy Policy wording waits on the audit; the pages' scaffolding, the ToS draft, and the version/timestamp record are plannable now. — Owner: user. Block: partial (Privacy Policy copy only).
+  - ToS to be legal-reviewed before scaling marketing (PRD Open Q2). — Owner: user / legal reviewer. Block: no.
+  - Where the consent record lives — Supabase user metadata vs. a dedicated consent table — plus the policy-version constant the gate stamps. — Owner: user/team. Block: no.
+- **Risk:** The enforcing gate already shipped (S-03), so the load-bearing risk here is the Privacy Policy text being written from a template rather than the real data flows — split so the version/timestamp record and the ToS draft land independently of the audited Privacy copy. Recording consent introduces a per-user data write, so it must reuse the owner-only RLS + data-minimization posture established in F-01.
+- **Status:** proposed
+
 ## Backlog Handoff
 
 | Roadmap ID | Change ID                     | Suggested issue title                                  | Ready for `/10x-plan` | Notes |
@@ -208,20 +224,21 @@ Foundations below assume these are present and do NOT re-scaffold them.
 | F-02       | core-flow-regression-net      | Add regression net around questionnaire→generate→save→export | yes                   | Guards the existing flow before gates land |
 | S-01       | funnel-event-instrumentation  | Instrument the 8 funnel events across the existing flow | no                    | Run after F-01 |
 | S-02       | enforce-email-verification    | Enforce email verification hard wall + resend + grandfathering | no                    | Run after F-02 |
-| S-03       | consent-gated-registration    | Consent-gated registration with Privacy + Terms pages  | no                    | Run after F-02; Privacy copy waits on data-flow audit |
+| S-03       | consent-gated-registration    | Consent-gated registration (client + server gate)      | yes                   | Gate shipped; pages + consent record split to S-09 |
 | S-04       | google-signin-linking         | Add Google sign-in with verified-email account linking | no                    | Run after S-02 |
 | S-05       | post-generation-feedback      | Add Helpful/Not-Helpful feedback after generation      | no                    | Run after F-01 |
 | S-06       | daily-generation-limit        | Enforce 100/day limit + cross-account abuse guard      | no                    | Run after F-02; needs threshold numbers |
 | S-07       | centralized-error-monitoring  | Wire error monitoring across all 4 surfaces with scrubbing | no                    | Run after F-01 |
 | S-08       | account-deletion              | Self-service permanent account + data deletion         | no                    | Run after F-01 |
+| S-09       | legal-pages-and-consent-record | Author Privacy + Terms pages and record accepted version + timestamp | no                    | Run after S-03; Privacy copy waits on data-flow audit (Open Q1) |
 
 This table is the clean handoff to Jira/Linear or any MCP-backed backlog. One row per `F-NN` and `S-NN`.
 
 ## Open Roadmap Questions
 
-1. **Privacy/data-flow audit (FR-005)** — enumerate the real data flows (auth, CV/answer storage, AI processing, chosen analytics store, chosen error monitor, feedback) before writing the Privacy Policy. — Owner: user. Block: S-03 (Privacy Policy content only — partial).
+1. **Privacy/data-flow audit (FR-005)** — enumerate the real data flows (auth, CV/answer storage, AI processing, chosen analytics store, chosen error monitor, feedback) before writing the Privacy Policy. — Owner: user. Block: S-09 (Privacy Policy content only — partial).
 2. **Terms of Service legal review (FR-006)** — ship a lean draft, review before scaling marketing. — Owner: user / legal reviewer. Block: none (by: before public marketing push).
-3. **Analytics consent under GDPR (FR-008)** — confirm whether the chosen analytics tool + GDPR posture require a cookie/consent banner, or whether cookieless pseudonymous tracking avoids it. — Owner: user. Block: F-01 / S-03 (compliance surface — no hard block).
+3. **Analytics consent under GDPR (FR-008)** — confirm whether the chosen analytics tool + GDPR posture require a cookie/consent banner, or whether cookieless pseudonymous tracking avoids it. — Owner: user. Block: F-01 / S-09 (compliance surface — no hard block).
 4. **Verification email deliverability (FR-001/FR-002)** — confirm whether built-in email sending suffices at launch volume or a dedicated transactional email capability is needed. — Owner: user (resolve in stack-assessment). Block: S-02 (no hard block).
 5. **Aggregate abuse-guard thresholds (FR-012)** — set concrete numbers for the cross-account generation ceiling and any single-origin signup throttle. — Owner: user. Block: S-06 (no hard block).
 6. **Grandfathering mechanism (FR-014)** — decide exactly how pre-launch accounts are marked verified without forcing re-authentication. — Owner: user. Block: S-02 (no hard block).
