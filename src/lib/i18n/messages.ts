@@ -48,6 +48,12 @@ interface ConfirmEmailStateCopy {
   linkText: string;
 }
 
+interface ConfirmEmailPendingCopy extends ConfirmEmailStateCopy {
+  resendButton: string;
+  resendSent: string;
+  resendError: string;
+}
+
 interface QuestionnaireStepCopy {
   label: string;
   title: string;
@@ -151,7 +157,7 @@ export interface UiMessages {
     signup: AuthPanelCopy;
     confirmEmail: {
       autoConfirmed: ConfirmEmailStateCopy;
-      emailConfirmation: ConfirmEmailStateCopy;
+      emailConfirmation: ConfirmEmailPendingCopy;
     };
     form: {
       signin: SignInFormCopy;
@@ -264,6 +270,9 @@ export const messagesByLocale = {
           eyebrow: "Confirm your account",
           description: "We've sent a confirmation link to your email address. Open it to activate your CV workspace.",
           linkText: "Back to sign in",
+          resendButton: "Resend confirmation email",
+          resendSent: "We sent a new confirmation email. Check your inbox.",
+          resendError: "We could not resend the confirmation email. Please check the address and try again.",
         },
       },
       form: {
@@ -313,6 +322,7 @@ export const messagesByLocale = {
         signin_failed: "We couldn't sign you in. Check your email and password, then try again.",
         signup_failed: "We couldn't create your account. Check your details, then try again.",
         rate_limited: "Too many account attempts right now. Please wait a bit and try again.",
+        email_not_confirmed: "Your email is not verified yet. Check your inbox or resend the confirmation email.",
       },
     },
     dashboard: {
@@ -519,6 +529,9 @@ export const messagesByLocale = {
           eyebrow: "Potwierdź konto",
           description: "Wysłaliśmy link potwierdzający na Twój adres e-mail. Otwórz go, aby aktywować konto.",
           linkText: "Wróć do logowania",
+          resendButton: "Wyślij link potwierdzający ponownie",
+          resendSent: "Wysłaliśmy nowy e-mail potwierdzający. Sprawdź pocztę.",
+          resendError: "Nie udało się ponownie wysłać e-maila potwierdzającego. Sprawdź adres i spróbuj ponownie.",
         },
       },
       form: {
@@ -568,6 +581,7 @@ export const messagesByLocale = {
         signin_failed: "Nie udało się zalogować. Sprawdź e-mail i hasło, a potem spróbuj ponownie.",
         signup_failed: "Nie udało się utworzyć konta. Sprawdź dane i spróbuj ponownie.",
         rate_limited: "Zbyt wiele prób dostępu do konta. Poczekaj chwilę i spróbuj ponownie.",
+        email_not_confirmed: "Twój e-mail nie jest jeszcze potwierdzony. Sprawdź pocztę albo wyślij link ponownie.",
       },
     },
     dashboard: {
@@ -774,6 +788,9 @@ export const messagesByLocale = {
           eyebrow: "Подтвердите аккаунт",
           description: "Мы отправили ссылку подтверждения на ваш e-mail. Откройте её, чтобы активировать аккаунт.",
           linkText: "Вернуться ко входу",
+          resendButton: "Отправить письмо подтверждения ещё раз",
+          resendSent: "Мы отправили новое письмо подтверждения. Проверьте почту.",
+          resendError: "Не удалось отправить письмо подтверждения повторно. Проверьте адрес и попробуйте снова.",
         },
       },
       form: {
@@ -823,6 +840,7 @@ export const messagesByLocale = {
         signin_failed: "Не удалось войти. Проверьте e-mail и пароль, затем попробуйте снова.",
         signup_failed: "Не удалось создать аккаунт. Проверьте данные и попробуйте снова.",
         rate_limited: "Слишком много попыток доступа к аккаунту. Подождите немного и попробуйте снова.",
+        email_not_confirmed: "Ваш e-mail ещё не подтверждён. Проверьте почту или отправьте письмо повторно.",
       },
     },
     dashboard: {

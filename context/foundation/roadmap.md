@@ -3,7 +3,7 @@ project: AI CV Builder — Launch-Readiness & Validation Release
 version: 1
 status: draft
 created: 2026-06-11
-updated: 2026-06-15
+updated: 2026-06-18
 prd_version: 3
 main_goal: market-feedback
 top_blocker: capacity
@@ -32,7 +32,7 @@ The CV builder works mechanically — landing → questionnaire → AI generatio
 | F-01  | observability-baseline        | (foundation) managed analytics + error-monitor provisioned; pseudonymous no-raw-content recording contract in place | —             | FR-008, FR-009, FR-010 | done     |
 | F-02  | core-flow-regression-net      | (foundation) existing questionnaire→generate→save→export path guarded by regression tests | —             | FR-013                | done     |
 | S-01  | funnel-event-instrumentation  | (operator) see a real user move through all 8 funnel steps as tracked events | F-01          | FR-008, US-01         | done     |
-| S-02  | enforce-email-verification    | verify their email behind a hard wall, resend it, existing accounts grandfathered | F-02          | FR-001, FR-002, FR-014, US-01 | proposed |
+| S-02  | enforce-email-verification    | verify their email behind a hard wall, resend it, existing accounts grandfathered | F-02          | FR-001, FR-002, FR-014, US-01 | done     |
 | S-03  | consent-gated-registration    | accept Privacy + Terms to register and read both legal pages     | F-02          | FR-005, FR-006, FR-007, US-01 | proposed |
 | S-04  | google-signin-linking         | sign in with Google into their one existing account (no duplicate) | S-02          | FR-003, FR-004, US-02 | proposed |
 | S-05  | post-generation-feedback      | mark a generated CV Helpful / Not-Helpful with an optional comment | F-01          | FR-010, US-01         | proposed |
@@ -122,7 +122,7 @@ Foundations below assume these are present and do NOT re-scaffold them.
   - Exact grandfathering mechanism — one-time data migration vs. gating exception — without forcing re-authentication (PRD Open Q6). — Owner: user. Block: no.
   - Whether built-in Supabase email sending is reliable at launch volume or a transactional email provider is needed (PRD Open Q4). — Owner: user (resolve in stack-assessment). Block: no.
 - **Risk:** A hard wall can suppress the very funnel completion we want to measure; mitigated (not removed) by mandatory resend + inbox/spam guidance. Must not lock out existing accounts — grandfathering is the load-bearing compatibility constraint, so this depends on F-02's regression net.
-- **Status:** proposed
+- **Status:** done
 
 ### S-03: Consent-gated registration + legal pages
 
