@@ -44,7 +44,7 @@ describe("POST /api/auth/signup — funnel emission", () => {
   it("emits funnel_signup_completed with the anon identity on success", async () => {
     mocks.signUp.mockResolvedValue({ data: { session: null }, error: null });
 
-    const response = await POST(makeContext({ email: "ada@example.com", password: "pw-123456" }));
+    const response = await POST(makeContext({ email: "ada@example.com", password: "pw-123456", consent: "on" }));
 
     expect(response.headers.get("Location")).toBe("/auth/confirm-email?email=ada%40example.com");
     expect(mocks.track).toHaveBeenCalledWith("funnel_signup_completed", { locale: "en" }, { distinctId: "anon-test" });
@@ -53,9 +53,17 @@ describe("POST /api/auth/signup — funnel emission", () => {
   it("does not emit when signUp returns an error", async () => {
     mocks.signUp.mockResolvedValue({ data: {}, error: new Error("already registered") });
 
-    const response = await POST(makeContext({ email: "ada@example.com", password: "pw-123456" }));
+    const response = await POST(makeContext({ email: "ada@example.com", password: "pw-123456", consent: "on" }));
 
     expect(response.headers.get("Location")).toContain("/auth/signup?error=");
+    expect(mocks.track).not.toHaveBeenCalled();
+  });
+
+  it("rejects with consent_required and never calls signUp when consent is missing", async () => {
+    const response = await POST(makeContext({ email: "ada@example.com", password: "pw-123456" }));
+
+    expect(response.headers.get("Location")).toBe("/auth/signup?error=consent_required");
+    expect(mocks.signUp).not.toHaveBeenCalled();
     expect(mocks.track).not.toHaveBeenCalled();
   });
 });

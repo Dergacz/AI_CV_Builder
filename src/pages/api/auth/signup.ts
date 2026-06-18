@@ -8,6 +8,12 @@ export const POST: APIRoute = async (context) => {
   const email = form.get("email") as string;
   const password = form.get("password") as string;
 
+  // Consent gate (unbypassable): an unchecked checkbox sends no field at all, so absent/falsy
+  // means not-consented. Reject before any Supabase call so no account is created.
+  if (!form.get("consent")) {
+    return context.redirect("/auth/signup?error=consent_required");
+  }
+
   const supabase = createClient(context.request.headers, context.cookies);
   if (!supabase) {
     return context.redirect("/auth/signup?error=auth_unavailable");

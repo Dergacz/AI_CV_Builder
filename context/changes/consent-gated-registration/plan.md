@@ -250,27 +250,27 @@ No data model change and no migration. Consent is enforcement-only and not persi
 
 #### Automated
 
-- [x] 2.1 Type checking passes: `npx astro check`
-- [x] 2.2 Form test passes: `npm test -- src/components/auth/SignUpForm`
-- [x] 2.3 Linting passes: `npm run lint`
+- [x] 2.1 Type checking passes: `npx astro check` — 2e278f7
+- [x] 2.2 Form test passes: `npm test -- src/components/auth/SignUpForm` — 2e278f7
+- [x] 2.3 Linting passes: `npm run lint` — 2e278f7
 
 #### Manual
 
-- [x] 2.4 Unchecked box shows inline error and does not navigate
-- [x] 2.5 Terms and Privacy links point to `/terms` and `/privacy`
-- [x] 2.6 Checking the box clears the error; valid submission proceeds
-- [x] 2.7 Checkbox + error render correctly in all three locales
+- [x] 2.4 Unchecked box shows inline error and does not navigate — 2e278f7
+- [x] 2.5 Terms and Privacy links point to `/terms` and `/privacy` — 2e278f7
+- [x] 2.6 Checking the box clears the error; valid submission proceeds — 2e278f7
+- [x] 2.7 Checkbox + error render correctly in all three locales — 2e278f7
 
 ### Phase 3: Server Enforcement
 
 #### Automated
 
-- [ ] 3.1 Route tests pass: `npm test -- src/pages/api/auth/signup`
-- [ ] 3.2 Full unit suite passes: `npm test`
-- [ ] 3.3 Type checking passes: `npx astro check`
-- [ ] 3.4 Linting passes: `npm run lint`
+- [x] 3.1 Route tests pass: `npm test -- src/pages/api/auth/signup`
+- [x] 3.2 Full unit suite passes: `npm test`
+- [x] 3.3 Type checking passes: `npx astro check`
+- [x] 3.4 Linting passes: `npm run lint`
 
 #### Manual
 
-- [ ] 3.5 Direct POST without consent redirects to `?error=consent_required` and creates no user
-- [ ] 3.6 Normal browser signup with consent checked still completes
+- [x] 3.5 Direct POST without consent redirects to `?error=consent_required` and creates no user
+- [x] 3.6 Normal browser signup with consent checked still completes
