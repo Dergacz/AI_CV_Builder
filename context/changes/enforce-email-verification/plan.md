@@ -328,15 +328,15 @@ No schema or data migration. Existing unconfirmed accounts are out of scope (see
 #### Manual
 
 - [x] 3.5 Resend returns with a "sent" notice — 4aab683
-- [x] 3.6 Rapid second resend surfaces the rate-limit message, no crash
+- [x] 3.6 Rapid second resend surfaces the rate-limit message, no crash — cbf3367
 - [x] 3.7 pl / ru locales render translated button + notice copy — 4aab683
 
 ### Phase 4: Ops & Docs
 
 #### Automated
 
-- [x] 4.1 Docs present referencing guard + E2E rationale (`ls context/changes/enforce-email-verification/change.md`)
+- [x] 4.1 Docs present referencing guard + E2E rationale (`ls context/changes/enforce-email-verification/change.md`) — cbf3367
 
 #### Manual
 
-- [x] 4.2 Reader can tell why local allows unconfirmed signups and what prod must be set to
+- [x] 4.2 Reader can tell why local allows unconfirmed signups and what prod must be set to — cbf3367
