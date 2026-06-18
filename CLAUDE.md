@@ -24,10 +24,11 @@ Full server-side rendering (`output: "server"` in astro.config.mjs). All pages a
 ### Auth flow
 
 - `src/lib/supabase.ts` — creates a Supabase SSR client using `@supabase/ssr` with cookie-based sessions. Uses `astro:env/server` for `SUPABASE_URL` and `SUPABASE_KEY` (server-only secrets declared in astro.config.mjs `env.schema`).
-- `src/middleware.ts` — runs on every request, resolves the current user, attaches to `context.locals.user`. Redirects unauthenticated users away from routes listed in `PROTECTED_ROUTES`.
-- API endpoints: `src/pages/api/auth/{signin,signup,signout}.ts`
+- `src/middleware.ts` — runs on every request, resolves the current user, attaches to `context.locals.user`. Redirects unauthenticated users away from routes listed in `PROTECTED_ROUTES`, and redirects authenticated-but-unconfirmed users (`!user.email_confirmed_at`) to `/auth/confirm-email`.
+- API endpoints: `src/pages/api/auth/{signin,signup,signout,resend}.ts` (`resend` re-sends the Supabase confirmation email)
 - Auth pages: `src/pages/auth/{signin,signup,confirm-email}.astro`
 - Protected page example: `src/pages/dashboard.astro`
+- **Email verification enforcement**: the middleware `email_confirmed_at` guard is config-independent and is the source of truth — it blocks unconfirmed sessions even if the platform issued one. **Production** must also set `enable_confirmations = true` in the hosted Supabase dashboard so signups don't get a session before confirming. **Local** `supabase/config.toml` intentionally keeps `enable_confirmations = false` (auto-confirm) so E2E auth works without an inbox (`e2e/auth.setup.ts`); the confirm-email resend UI renders only outside DEV.
 
 ### Key conventions
 

@@ -320,23 +320,23 @@ No schema or data migration. Existing unconfirmed accounts are out of scope (see
 
 #### Automated
 
-- [x] 3.1 Type checking passes (`npx astro check`)
-- [x] 3.2 Linting passes (`npm run lint`)
-- [x] 3.3 Unit tests pass (`npm test`)
-- [x] 3.4 Resend endpoint test covers success / error / rate-limited
+- [x] 3.1 Type checking passes (`npx astro check`) — 4aab683
+- [x] 3.2 Linting passes (`npm run lint`) — 4aab683
+- [x] 3.3 Unit tests pass (`npm test`) — 4aab683
+- [x] 3.4 Resend endpoint test covers success / error / rate-limited — 4aab683
 
 #### Manual
 
-- [x] 3.5 Resend returns with a "sent" notice
-- [ ] 3.6 Rapid second resend surfaces the rate-limit message, no crash
-- [x] 3.7 pl / ru locales render translated button + notice copy
+- [x] 3.5 Resend returns with a "sent" notice — 4aab683
+- [x] 3.6 Rapid second resend surfaces the rate-limit message, no crash
+- [x] 3.7 pl / ru locales render translated button + notice copy — 4aab683
 
 ### Phase 4: Ops & Docs
 
 #### Automated
 
-- [ ] 4.1 Docs present referencing guard + E2E rationale (`ls context/changes/enforce-email-verification/change.md`)
+- [x] 4.1 Docs present referencing guard + E2E rationale (`ls context/changes/enforce-email-verification/change.md`)
 
 #### Manual
 
-- [ ] 4.2 Reader can tell why local allows unconfirmed signups and what prod must be set to
+- [x] 4.2 Reader can tell why local allows unconfirmed signups and what prod must be set to
