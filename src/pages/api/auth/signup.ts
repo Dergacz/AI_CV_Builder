@@ -1,5 +1,6 @@
 import type { APIRoute } from "astro";
 import { classifyAuthError } from "@/lib/i18n/auth-errors";
+import { POLICY_VERSION } from "@/lib/legal/policy";
 import { track } from "@/lib/observability";
 import { createClient } from "@/lib/supabase";
 
@@ -18,7 +19,16 @@ export const POST: APIRoute = async (context) => {
   if (!supabase) {
     return context.redirect("/auth/signup?error=auth_unavailable");
   }
-  const { data, error } = await supabase.auth.signUp({ email, password });
+  const { data, error } = await supabase.auth.signUp({
+    email,
+    password,
+    options: {
+      data: {
+        consent_version: POLICY_VERSION,
+        consent_accepted_at: new Date().toISOString(),
+      },
+    },
+  });
 
   if (error) {
     return context.redirect(`/auth/signup?error=${classifyAuthError(error, "signup_failed")}`);

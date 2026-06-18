@@ -10,6 +10,17 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 const mocks = vi.hoisted(() => ({ signUp: vi.fn(), track: vi.fn() }));
 
+interface SignUpPayload {
+  email: string;
+  password: string;
+  options: {
+    data: {
+      consent_version: string;
+      consent_accepted_at: string;
+    };
+  };
+}
+
 vi.mock("@/lib/supabase", () => ({
   createClient: () => ({ auth: { signUp: mocks.signUp } }),
 }));
@@ -17,6 +28,7 @@ vi.mock("@/lib/supabase", () => ({
 vi.mock("@/lib/observability", () => ({ track: mocks.track }));
 
 import { POST } from "@/pages/api/auth/signup";
+import { POLICY_VERSION } from "@/lib/legal/policy";
 
 function makeContext(form: Record<string, string>) {
   return {
@@ -47,6 +59,13 @@ describe("POST /api/auth/signup — funnel emission", () => {
     const response = await POST(makeContext({ email: "ada@example.com", password: "pw-123456", consent: "on" }));
 
     expect(response.headers.get("Location")).toBe("/auth/confirm-email?email=ada%40example.com");
+    const [signUpPayload] = mocks.signUp.mock.calls[0] as [SignUpPayload];
+    expect(signUpPayload).toMatchObject({
+      email: "ada@example.com",
+      password: "pw-123456",
+      options: { data: { consent_version: POLICY_VERSION } },
+    });
+    expect(signUpPayload.options.data.consent_accepted_at).toMatch(/^\d{4}-\d{2}-\d{2}T/);
     expect(mocks.track).toHaveBeenCalledWith("funnel_signup_completed", { locale: "en" }, { distinctId: "anon-test" });
   });
 
