@@ -265,12 +265,12 @@ No data model change and no migration. Consent is enforcement-only and not persi
 
 #### Automated
 
-- [x] 3.1 Route tests pass: `npm test -- src/pages/api/auth/signup`
-- [x] 3.2 Full unit suite passes: `npm test`
-- [x] 3.3 Type checking passes: `npx astro check`
-- [x] 3.4 Linting passes: `npm run lint`
+- [x] 3.1 Route tests pass: `npm test -- src/pages/api/auth/signup` — 708320e
+- [x] 3.2 Full unit suite passes: `npm test` — 708320e
+- [x] 3.3 Type checking passes: `npx astro check` — 708320e
+- [x] 3.4 Linting passes: `npm run lint` — 708320e
 
 #### Manual
 
-- [x] 3.5 Direct POST without consent redirects to `?error=consent_required` and creates no user
-- [x] 3.6 Normal browser signup with consent checked still completes
+- [x] 3.5 Direct POST without consent redirects to `?error=consent_required` and creates no user — 708320e
+- [x] 3.6 Normal browser signup with consent checked still completes — 708320e
