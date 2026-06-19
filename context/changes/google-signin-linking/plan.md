@@ -343,21 +343,21 @@ No schema/data migration. Consent for new Google accounts is stored in Supabase 
 
 #### Automated
 
-- [x] 1.1 Local Supabase starts with the new config: `npm run db:start`
-- [x] 1.2 Lint passes: `npm run lint`
+- [x] 1.1 Local Supabase starts with the new config: `npm run db:start` — 2787f45
+- [x] 1.2 Lint passes: `npm run lint` — 2787f45
 
 #### Manual
 
-- [x] 1.3 `.env.example` documents both Google env vars
-- [x] 1.4 With real Google credentials set, the local provider is reachable (no config parse errors)
+- [x] 1.3 `.env.example` documents both Google env vars — 2787f45
+- [x] 1.4 With real Google credentials set, the local provider is reachable (no config parse errors) — 2787f45
 
 ### Phase 2: OAuth Start Endpoint & Consent Cookie
 
 #### Automated
 
-- [ ] 2.1 Unit tests pass for start endpoint + consent-cookie helper: `npm test`
-- [ ] 2.2 Type check: `npx astro check`
-- [ ] 2.3 Lint passes: `npm run lint`
+- [x] 2.1 Unit tests pass for start endpoint + consent-cookie helper: `npm test`
+- [x] 2.2 Type check: `npx astro check`
+- [x] 2.3 Lint passes: `npm run lint`
 
 #### Manual
 
