@@ -1,0 +1,85 @@
+---
+import LegalDocument from "@/components/legal/LegalDocument.astro";
+import LegalTopBar from "@/components/legal/LegalTopBar.astro";
+import Layout from "@/layouts/Layout.astro";
+import { getMessages } from "@/lib/i18n/messages";
+import { POLICY_LAST_UPDATED, POLICY_VERSION } from "@/lib/legal/policy";
+
+const locale = Astro.locals.locale;
+const messages = getMessages(locale);
+const legal = messages.legal;
+---
+
+<Layout locale={locale} title={legal.terms.title}>
+  <main class="min-h-screen bg-slate-50 text-slate-950">
+    <LegalTopBar locale={locale} />
+
+    <LegalDocument
+      title={legal.terms.title}
+      version={POLICY_VERSION}
+      lastUpdated={POLICY_LAST_UPDATED}
+      versionLabel={legal.versionLabel}
+      lastUpdatedLabel={legal.lastUpdatedLabel}
+      reviewNotice={legal.reviewNotice}
+      englishNote={legal.englishNote}
+    >
+      <section class="space-y-3">
+        <h2 class="text-2xl font-semibold text-slate-950">1. Service description</h2>
+        <p>
+          AI CV Builder helps users turn questionnaire answers into an editable CV draft. The service includes account
+          access, a guided questionnaire, AI-assisted CV generation, simple section editing, saved CVs, and PDF export.
+        </p>
+      </section>
+
+      <section class="space-y-3">
+        <h2 class="text-2xl font-semibold text-slate-950">2. Your account</h2>
+        <p>
+          You are responsible for keeping your sign-in credentials secure and for using an email address you can access.
+          You should notify us if you believe your account has been accessed without permission.
+        </p>
+      </section>
+
+      <section class="space-y-3">
+        <h2 class="text-2xl font-semibold text-slate-950">3. Acceptable use</h2>
+        <p>
+          You may use the service only for lawful CV preparation. Do not use the service to upload unlawful content,
+          interfere with the application, attempt unauthorized access, or misrepresent someone else's identity,
+          qualifications, or work history.
+        </p>
+      </section>
+
+      <section class="space-y-3">
+        <h2 class="text-2xl font-semibold text-slate-950">4. AI-assisted content</h2>
+        <p>
+          CV drafts are generated with AI assistance from the answers you provide. AI output may be incomplete,
+          inaccurate, or unsuitable for a specific employer or jurisdiction. You are responsible for reviewing,
+          correcting, and approving the final CV before using it.
+        </p>
+      </section>
+
+      <section class="space-y-3">
+        <h2 class="text-2xl font-semibold text-slate-950">5. No warranty</h2>
+        <p>
+          The service is provided as is and as available. We do not promise that the service will be uninterrupted,
+          error-free, or that a generated CV will produce a particular employment outcome.
+        </p>
+      </section>
+
+      <section class="space-y-3">
+        <h2 class="text-2xl font-semibold text-slate-950">6. Account termination</h2>
+        <p>
+          We may suspend or end access if we reasonably believe the account violates these terms or creates a risk to
+          the service or other users. You may stop using the service at any time.
+        </p>
+      </section>
+
+      <section class="space-y-3">
+        <h2 class="text-2xl font-semibold text-slate-950">7. Governing law placeholder</h2>
+        <p>
+          Governing law, venue, consumer-rights language, and contact details are pending legal review before public
+          launch.
+        </p>
+      </section>
+    </LegalDocument>
+  </main>
+</Layout>

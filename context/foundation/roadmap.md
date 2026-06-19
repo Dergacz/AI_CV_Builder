@@ -3,7 +3,7 @@ project: AI CV Builder — Launch-Readiness & Validation Release
 version: 1
 status: draft
 created: 2026-06-11
-updated: 2026-06-18
+updated: 2026-06-19
 prd_version: 3
 main_goal: market-feedback
 top_blocker: capacity
@@ -39,7 +39,7 @@ The CV builder works mechanically — landing → questionnaire → AI generatio
 | S-06  | daily-generation-limit        | be limited to 100 generations/day with a clear message; cross-account abuse capped | F-02          | FR-012                | proposed |
 | S-07  | centralized-error-monitoring  | (operator) see failures across all 4 surfaces, scrubbed of sensitive content | F-01          | FR-009                | proposed |
 | S-08  | account-deletion              | permanently delete their account and all associated data via explicit confirmation | F-01          | FR-011, US-03         | proposed |
-| S-09  | legal-pages-and-consent-record | read the real Privacy + Terms pages and have their accepted policy version + acceptance timestamp recorded | S-03          | FR-005, FR-006, FR-007 | proposed |
+| S-09  | legal-pages-and-consent-record | read the real Privacy + Terms pages and have their accepted policy version + acceptance timestamp recorded | S-03          | FR-005, FR-006, FR-007 | done     |
 
 ## Streams
 
@@ -214,7 +214,8 @@ Foundations below assume these are present and do NOT re-scaffold them.
   - ToS to be legal-reviewed before scaling marketing (PRD Open Q2). — Owner: user / legal reviewer. Block: no.
   - Where the consent record lives — Supabase user metadata vs. a dedicated consent table — plus the policy-version constant the gate stamps. — Owner: user/team. Block: no.
 - **Risk:** The enforcing gate already shipped (S-03), so the load-bearing risk here is the Privacy Policy text being written from a template rather than the real data flows — split so the version/timestamp record and the ToS draft land independently of the audited Privacy copy. Recording consent introduces a per-user data write, so it must reuse the owner-only RLS + data-minimization posture established in F-01.
-- **Status:** proposed
+- **Delivered:** consent stamp (`POLICY_VERSION` + acceptance timestamp written to `user_metadata` at signup); real `/terms` + `/privacy` pages (English bodies, localized chrome across en/pl/ru) behind a shared `LegalDocument`; a global `Footer` linking both pages site-wide; Playwright E2E for page resolution + link navigation. Legal bodies remain drafts pending the data-flow audit (Open Q1) and legal review (Open Q2).
+- **Status:** done
 
 ## Backlog Handoff
 
@@ -255,3 +256,4 @@ This table is the clean handoff to Jira/Linear or any MCP-backed backlog. One ro
 ## Done
 
 - **S-01: (operator) a real user moving landing → registration → email confirmation → questionnaire started → questionnaire completed → CV generated → CV saved → PDF exported is recorded as 8 distinct tracked events, so step-to-step conversion and drop-off are visible.** — Archived 2026-06-15 → `context/archive/2026-06-12-funnel-event-instrumentation/`. Lesson: —.
+- **S-09: a visitor can open real Privacy + Terms pages at `/terms` and `/privacy` (the S-03 placeholder links now resolve), reach them from a site-wide footer, and every registration records the accepted policy version + acceptance timestamp for an auditable proof-of-consent.** — Shipped 2026-06-19 on branch `legal-pages-and-consent-record`; archival pending `/10x-archive`. Lesson: —.

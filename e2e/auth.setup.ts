@@ -21,6 +21,8 @@ setup("authenticate", async ({ page }) => {
     await page.getByLabel("Email").fill(TEST_USER.email);
     await page.getByLabel("Password", { exact: true }).fill(TEST_USER.password);
     await page.getByLabel("Confirm password").fill(TEST_USER.password);
+    // Consent gate (consent-gated-registration) makes this checkbox required for signup.
+    await page.getByRole("checkbox", { name: /Terms of Service/ }).check();
     await page.getByRole("button", { name: "Create account" }).click();
     await page.waitForURL("**/dashboard");
   }

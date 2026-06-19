@@ -1,0 +1,2 @@
+export const POLICY_VERSION = "2026-06-18";
+export const POLICY_LAST_UPDATED = POLICY_VERSION;

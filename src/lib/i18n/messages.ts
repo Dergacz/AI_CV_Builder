@@ -69,6 +69,26 @@ interface QuestionnaireStepCopy {
   body: string;
 }
 
+interface LegalCopy {
+  terms: {
+    title: string;
+  };
+  privacy: {
+    title: string;
+  };
+  versionLabel: string;
+  lastUpdatedLabel: string;
+  reviewNotice: string;
+  englishNote: string;
+  backLabel: string;
+}
+
+interface FooterCopy {
+  termsLabel: string;
+  privacyLabel: string;
+  rights: (year: number) => string;
+}
+
 export interface QuestionnaireCopy {
   ariaLabel: string;
   progressAriaLabel: string;
@@ -221,6 +241,8 @@ export interface UiMessages {
       description: string;
     };
   };
+  legal: LegalCopy;
+  footer: FooterCopy;
   questionnaire: QuestionnaireCopy;
 }
 
@@ -391,6 +413,24 @@ export const messagesByLocale = {
         eyebrow: "Saved CV",
         description: "Edit any section and save your changes. Updates overwrite this saved CV.",
       },
+    },
+    legal: {
+      terms: {
+        title: "Terms of Service",
+      },
+      privacy: {
+        title: "Privacy Policy",
+      },
+      versionLabel: "Policy version",
+      lastUpdatedLabel: "Last updated",
+      reviewNotice: "Draft pending legal review. This content is provided for launch-readiness validation.",
+      englishNote: "The binding document body is provided in English while localized legal translations are deferred.",
+      backLabel: "Back",
+    },
+    footer: {
+      termsLabel: "Terms of Service",
+      privacyLabel: "Privacy Policy",
+      rights: (year) => `© ${year} AI CV Builder. All rights reserved.`,
     },
     questionnaire: {
       ariaLabel: "CV questionnaire",
@@ -660,6 +700,24 @@ export const messagesByLocale = {
         description: "Edytuj dowolną sekcję i zapisz zmiany. Aktualizacje nadpiszą to zapisane CV.",
       },
     },
+    legal: {
+      terms: {
+        title: "Regulamin",
+      },
+      privacy: {
+        title: "Polityka prywatności",
+      },
+      versionLabel: "Wersja polityk",
+      lastUpdatedLabel: "Ostatnia aktualizacja",
+      reviewNotice: "Wersja robocza oczekuje na przegląd prawny. Treść służy walidacji gotowości do uruchomienia.",
+      englishNote: "Wiążąca treść dokumentu jest dostępna po angielsku; lokalizacje prawne są odłożone na później.",
+      backLabel: "Wstecz",
+    },
+    footer: {
+      termsLabel: "Regulamin",
+      privacyLabel: "Polityka prywatności",
+      rights: (year) => `© ${year} AI CV Builder. Wszelkie prawa zastrzeżone.`,
+    },
     questionnaire: {
       ariaLabel: "Ankieta CV",
       progressAriaLabel: "Postęp ankiety",
@@ -927,6 +985,25 @@ export const messagesByLocale = {
         eyebrow: "Сохранённое CV",
         description: "Редактируйте любой раздел и сохраняйте изменения. Обновления перезапишут это CV.",
       },
+    },
+    legal: {
+      terms: {
+        title: "Условия использования",
+      },
+      privacy: {
+        title: "Политика конфиденциальности",
+      },
+      versionLabel: "Версия политик",
+      lastUpdatedLabel: "Последнее обновление",
+      reviewNotice: "Черновик ожидает юридической проверки. Текст опубликован для проверки готовности к запуску.",
+      englishNote:
+        "Юридически значимый текст документа доступен на английском; локализованные юридические версии отложены.",
+      backLabel: "Назад",
+    },
+    footer: {
+      termsLabel: "Условия использования",
+      privacyLabel: "Политика конфиденциальности",
+      rights: (year) => `© ${year} AI CV Builder. Все права защищены.`,
     },
     questionnaire: {
       ariaLabel: "Анкета CV",

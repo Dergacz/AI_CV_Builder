@@ -1,6 +1,7 @@
 ---
 import "../styles/global.css";
 import Banner from "@/components/Banner.astro";
+import Footer from "@/components/Footer.astro";
 import { getMessages } from "@/lib/i18n/messages";
 import type { UiLocale } from "@/lib/i18n/locales";
 import { missingConfigs } from "@/lib/config-status";
@@ -48,6 +49,7 @@ const observabilityDistinctId = Astro.locals.observability.distinctId ?? "";
       ))
     }
     <slot />
+    <Footer locale={locale} />
     <script>
       // Cookieless PostHog init + browser error-hook scaffold. No-op when PUBLIC_POSTHOG_KEY is
       // unset; emits no funnel events (those land in S-01). See src/lib/observability/client.browser.ts.
