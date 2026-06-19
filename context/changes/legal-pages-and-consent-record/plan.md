@@ -288,10 +288,10 @@ No database migration. The consent record is stored in Supabase `user_metadata`,
 
 #### Automated
 
-- [ ] 3.1 Type checking passes: `npm run typecheck`
-- [ ] 3.2 Linting passes: `npm run lint`
-- [ ] 3.3 Production build succeeds: `npm run build`
-- [ ] 3.4 E2E passes: `npm run db:start` → `npm run test:e2e`
+- [x] 3.1 Type checking passes: `npm run typecheck` — dccd559
+- [x] 3.2 Linting passes: `npm run lint` — dccd559
+- [x] 3.3 Production build succeeds: `npm run build` — dccd559
+- [x] 3.4 E2E passes: `npm run db:start` → `npm run test:e2e` — dccd559
 
 #### Manual
 
