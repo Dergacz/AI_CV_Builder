@@ -261,22 +261,22 @@ No database migration. The consent record is stored in Supabase `user_metadata`,
 
 #### Automated
 
-- [x] 1.1 Type checking passes: `npm run typecheck`
-- [x] 1.2 Linting passes: `npm run lint`
-- [x] 1.3 Unit tests pass: `npm test`
+- [x] 1.1 Type checking passes: `npm run typecheck` — 1d744bc
+- [x] 1.2 Linting passes: `npm run lint` — 1d744bc
+- [x] 1.3 Unit tests pass: `npm test` — 1d744bc
 
 #### Manual
 
-- [x] 1.4 New-user registration shows `consent_version` + `consent_accepted_at` in Supabase Studio user metadata
+- [x] 1.4 New-user registration shows `consent_version` + `consent_accepted_at` in Supabase Studio user metadata — 1d744bc
 
 ### Phase 2: Legal pages (Terms + Privacy) + localized chrome
 
 #### Automated
 
-- [ ] 2.1 Astro types synced: `npx astro sync`
-- [ ] 2.2 Type checking passes: `npm run typecheck`
-- [ ] 2.3 Linting passes: `npm run lint`
-- [ ] 2.4 Production build succeeds: `npm run build`
+- [x] 2.1 Astro types synced: `npx astro sync` — f736f99
+- [x] 2.2 Type checking passes: `npm run typecheck` — f736f99
+- [x] 2.3 Linting passes: `npm run lint` — f736f99
+- [x] 2.4 Production build succeeds: `npm run build` — f736f99
 
 #### Manual
 
