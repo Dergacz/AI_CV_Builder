@@ -80,6 +80,7 @@ interface LegalCopy {
   lastUpdatedLabel: string;
   reviewNotice: string;
   englishNote: string;
+  backLabel: string;
 }
 
 interface FooterCopy {
@@ -424,6 +425,7 @@ export const messagesByLocale = {
       lastUpdatedLabel: "Last updated",
       reviewNotice: "Draft pending legal review. This content is provided for launch-readiness validation.",
       englishNote: "The binding document body is provided in English while localized legal translations are deferred.",
+      backLabel: "Back",
     },
     footer: {
       termsLabel: "Terms of Service",
@@ -709,6 +711,7 @@ export const messagesByLocale = {
       lastUpdatedLabel: "Ostatnia aktualizacja",
       reviewNotice: "Wersja robocza oczekuje na przegląd prawny. Treść służy walidacji gotowości do uruchomienia.",
       englishNote: "Wiążąca treść dokumentu jest dostępna po angielsku; lokalizacje prawne są odłożone na później.",
+      backLabel: "Wstecz",
     },
     footer: {
       termsLabel: "Regulamin",
@@ -995,6 +998,7 @@ export const messagesByLocale = {
       reviewNotice: "Черновик ожидает юридической проверки. Текст опубликован для проверки готовности к запуску.",
       englishNote:
         "Юридически значимый текст документа доступен на английском; локализованные юридические версии отложены.",
+      backLabel: "Назад",
     },
     footer: {
       termsLabel: "Условия использования",

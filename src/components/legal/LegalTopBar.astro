@@ -1,0 +1,49 @@
+---
+import LanguageSwitcher from "@/components/LanguageSwitcher.astro";
+import { getMessages } from "@/lib/i18n/messages";
+import type { UiLocale } from "@/lib/i18n/locales";
+
+interface Props {
+  locale: UiLocale;
+}
+
+const { locale } = Astro.props;
+const messages = getMessages(locale);
+const backLabel = messages.legal.backLabel;
+---
+
+<div class="mx-auto flex w-full max-w-3xl flex-wrap items-center justify-between gap-3 px-5 pt-6 sm:px-8">
+  <div class="flex items-center gap-3">
+    <a
+      href="/"
+      data-legal-back
+      class="inline-flex min-h-9 items-center gap-1.5 rounded-md border border-slate-300 bg-white px-3 text-sm font-medium text-slate-700 transition-colors hover:border-slate-400 hover:bg-slate-100 focus-visible:ring-3 focus-visible:ring-slate-500/20 focus-visible:outline-none"
+    >
+      <span aria-hidden="true">←</span>
+      {backLabel}
+    </a>
+    <a
+      href="/"
+      class="inline-flex min-h-9 items-center rounded-md border border-slate-300 bg-white px-3 text-base font-semibold text-slate-950 transition-colors hover:border-slate-400 hover:bg-slate-100 focus-visible:ring-3 focus-visible:ring-slate-500/20 focus-visible:outline-none"
+    >
+      {messages.auth.brand}
+    </a>
+  </div>
+  <LanguageSwitcher locale={locale} />
+</div>
+
+<script>
+  // Progressive enhancement: the back control returns to the previous in-app page when one exists
+  // (e.g. arrived from /auth/signup or the footer); otherwise the href="/" fallback stands so a
+  // direct visit never leaves the site.
+  document.querySelectorAll<HTMLAnchorElement>("a[data-legal-back]").forEach((link) => {
+    link.addEventListener("click", (event) => {
+      const cameFromSameOrigin =
+        document.referrer !== "" && new URL(document.referrer).origin === window.location.origin;
+      if (window.history.length > 1 && cameFromSameOrigin) {
+        event.preventDefault();
+        window.history.back();
+      }
+    });
+  });
+</script>

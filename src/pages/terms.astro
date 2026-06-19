@@ -1,6 +1,6 @@
 ---
-import LanguageSwitcher from "@/components/LanguageSwitcher.astro";
 import LegalDocument from "@/components/legal/LegalDocument.astro";
+import LegalTopBar from "@/components/legal/LegalTopBar.astro";
 import Layout from "@/layouts/Layout.astro";
 import { getMessages } from "@/lib/i18n/messages";
 import { POLICY_LAST_UPDATED, POLICY_VERSION } from "@/lib/legal/policy";
@@ -12,10 +12,7 @@ const legal = messages.legal;
 
 <Layout locale={locale} title={legal.terms.title}>
   <main class="min-h-screen bg-slate-50 text-slate-950">
-    <div class="mx-auto flex w-full max-w-3xl items-center justify-between gap-4 px-5 pt-6 sm:px-8">
-      <a href="/" class="text-base font-semibold text-slate-950">{messages.auth.brand}</a>
-      <LanguageSwitcher locale={locale} />
-    </div>
+    <LegalTopBar locale={locale} />
 
     <LegalDocument
       title={legal.terms.title}
