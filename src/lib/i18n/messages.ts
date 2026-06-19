@@ -82,6 +82,12 @@ interface LegalCopy {
   englishNote: string;
 }
 
+interface FooterCopy {
+  termsLabel: string;
+  privacyLabel: string;
+  rights: (year: number) => string;
+}
+
 export interface QuestionnaireCopy {
   ariaLabel: string;
   progressAriaLabel: string;
@@ -235,6 +241,7 @@ export interface UiMessages {
     };
   };
   legal: LegalCopy;
+  footer: FooterCopy;
   questionnaire: QuestionnaireCopy;
 }
 
@@ -417,6 +424,11 @@ export const messagesByLocale = {
       lastUpdatedLabel: "Last updated",
       reviewNotice: "Draft pending legal review. This content is provided for launch-readiness validation.",
       englishNote: "The binding document body is provided in English while localized legal translations are deferred.",
+    },
+    footer: {
+      termsLabel: "Terms of Service",
+      privacyLabel: "Privacy Policy",
+      rights: (year) => `© ${year} AI CV Builder. All rights reserved.`,
     },
     questionnaire: {
       ariaLabel: "CV questionnaire",
@@ -698,6 +710,11 @@ export const messagesByLocale = {
       reviewNotice: "Wersja robocza oczekuje na przegląd prawny. Treść służy walidacji gotowości do uruchomienia.",
       englishNote: "Wiążąca treść dokumentu jest dostępna po angielsku; lokalizacje prawne są odłożone na później.",
     },
+    footer: {
+      termsLabel: "Regulamin",
+      privacyLabel: "Polityka prywatności",
+      rights: (year) => `© ${year} AI CV Builder. Wszelkie prawa zastrzeżone.`,
+    },
     questionnaire: {
       ariaLabel: "Ankieta CV",
       progressAriaLabel: "Postęp ankiety",
@@ -978,6 +995,11 @@ export const messagesByLocale = {
       reviewNotice: "Черновик ожидает юридической проверки. Текст опубликован для проверки готовности к запуску.",
       englishNote:
         "Юридически значимый текст документа доступен на английском; локализованные юридические версии отложены.",
+    },
+    footer: {
+      termsLabel: "Условия использования",
+      privacyLabel: "Политика конфиденциальности",
+      rights: (year) => `© ${year} AI CV Builder. Все права защищены.`,
     },
     questionnaire: {
       ariaLabel: "Анкета CV",
