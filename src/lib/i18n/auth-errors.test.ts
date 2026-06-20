@@ -18,6 +18,7 @@ describe("auth error localization contract", () => {
       "consent_required",
       "rate_limited",
       "email_not_confirmed",
+      "oauth_failed",
     ]);
   });
 

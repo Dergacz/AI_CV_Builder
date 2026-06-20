@@ -355,9 +355,9 @@ No schema/data migration. Consent for new Google accounts is stored in Supabase 
 
 #### Automated
 
-- [x] 2.1 Unit tests pass for start endpoint + consent-cookie helper: `npm test`
-- [x] 2.2 Type check: `npx astro check`
-- [x] 2.3 Lint passes: `npm run lint`
+- [x] 2.1 Unit tests pass for start endpoint + consent-cookie helper: `npm test` — b177e20
+- [x] 2.2 Type check: `npx astro check` — b177e20
+- [x] 2.3 Lint passes: `npm run lint` — b177e20
 
 #### Manual
 
@@ -368,10 +368,10 @@ No schema/data migration. Consent for new Google accounts is stored in Supabase 
 
 #### Automated
 
-- [ ] 3.1 Unit tests pass for callback branches: `npm test`
-- [ ] 3.2 i18n parity test passes for the new error code across en/pl/ru: `npm test`
-- [ ] 3.3 Type check: `npx astro check`
-- [ ] 3.4 Lint passes: `npm run lint`
+- [x] 3.1 Unit tests pass for callback branches: `npm test`
+- [x] 3.2 i18n parity test passes for the new error code across en/pl/ru: `npm test`
+- [x] 3.3 Type check: `npx astro check`
+- [x] 3.4 Lint passes: `npm run lint`
 
 #### Manual
 

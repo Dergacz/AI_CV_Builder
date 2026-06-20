@@ -8,6 +8,7 @@ export const authErrorCodes = [
   "consent_required",
   "rate_limited",
   "email_not_confirmed",
+  "oauth_failed",
 ] as const;
 
 export type AuthErrorCode = (typeof authErrorCodes)[number];

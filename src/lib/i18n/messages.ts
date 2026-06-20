@@ -363,6 +363,7 @@ export const messagesByLocale = {
         consent_required: "Please accept the Terms of Service and Privacy Policy to create your account.",
         rate_limited: "Too many account attempts right now. Please wait a bit and try again.",
         email_not_confirmed: "Your email is not verified yet. Check your inbox or resend the confirmation email.",
+        oauth_failed: "We couldn't complete Google sign-in. Please try again or use your email and password.",
       },
     },
     dashboard: {
@@ -649,6 +650,7 @@ export const messagesByLocale = {
         consent_required: "Zaakceptuj Regulamin i Politykę prywatności, aby utworzyć konto.",
         rate_limited: "Zbyt wiele prób dostępu do konta. Poczekaj chwilę i spróbuj ponownie.",
         email_not_confirmed: "Twój e-mail nie jest jeszcze potwierdzony. Sprawdź pocztę albo wyślij link ponownie.",
+        oauth_failed: "Nie udało się zalogować przez Google. Spróbuj ponownie lub użyj e-maila i hasła.",
       },
     },
     dashboard: {
@@ -935,6 +937,7 @@ export const messagesByLocale = {
         consent_required: "Примите Условия использования и Политику конфиденциальности, чтобы создать аккаунт.",
         rate_limited: "Слишком много попыток доступа к аккаунту. Подождите немного и попробуйте снова.",
         email_not_confirmed: "Ваш e-mail ещё не подтверждён. Проверьте почту или отправьте письмо повторно.",
+        oauth_failed: "Не удалось завершить вход через Google. Попробуйте снова или используйте e-mail и пароль.",
       },
     },
     dashboard: {
