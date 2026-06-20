@@ -192,6 +192,11 @@ export interface UiMessages {
       signin: SignInFormCopy;
       signup: SignUpFormCopy;
     };
+    /** "Continue with Google" OAuth button copy, shared by both auth pages. */
+    google: {
+      button: string;
+      divider: string;
+    };
     errors: Record<AuthErrorCode, string>;
   };
   dashboard: {
@@ -355,6 +360,10 @@ export const messagesByLocale = {
             suffix: ".",
           },
         },
+      },
+      google: {
+        button: "Continue with Google",
+        divider: "or",
       },
       errors: {
         auth_unavailable: "Account access is temporarily unavailable. Please try again later.",
@@ -643,6 +652,10 @@ export const messagesByLocale = {
           },
         },
       },
+      google: {
+        button: "Kontynuuj z Google",
+        divider: "lub",
+      },
       errors: {
         auth_unavailable: "Dostęp do konta jest chwilowo niedostępny. Spróbuj ponownie później.",
         signin_failed: "Nie udało się zalogować. Sprawdź e-mail i hasło, a potem spróbuj ponownie.",
@@ -929,6 +942,10 @@ export const messagesByLocale = {
             suffix: ".",
           },
         },
+      },
+      google: {
+        button: "Продолжить с Google",
+        divider: "или",
       },
       errors: {
         auth_unavailable: "Доступ к аккаунту временно недоступен. Попробуйте позже.",

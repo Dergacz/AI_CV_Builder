@@ -368,10 +368,10 @@ No schema/data migration. Consent for new Google accounts is stored in Supabase 
 
 #### Automated
 
-- [x] 3.1 Unit tests pass for callback branches: `npm test`
-- [x] 3.2 i18n parity test passes for the new error code across en/pl/ru: `npm test`
-- [x] 3.3 Type check: `npx astro check`
-- [x] 3.4 Lint passes: `npm run lint`
+- [x] 3.1 Unit tests pass for callback branches: `npm test` — e3b02cc
+- [x] 3.2 i18n parity test passes for the new error code across en/pl/ru: `npm test` — e3b02cc
+- [x] 3.3 Type check: `npx astro check` — e3b02cc
+- [x] 3.4 Lint passes: `npm run lint` — e3b02cc
 
 #### Manual
 
@@ -383,16 +383,16 @@ No schema/data migration. Consent for new Google accounts is stored in Supabase 
 
 #### Automated
 
-- [ ] 4.1 i18n parity test passes: `npm test`
-- [ ] 4.2 Type check: `npx astro check`
-- [ ] 4.3 Lint passes: `npm run lint`
-- [ ] 4.4 Build passes: `npm run build`
+- [x] 4.1 i18n parity test passes: `npm test`
+- [x] 4.2 Type check: `npx astro check`
+- [x] 4.3 Lint passes: `npm run lint`
+- [x] 4.4 Build passes: `npm run build`
 
 #### Manual
 
-- [ ] 4.5 Google button renders on both `/auth/signin` and `/auth/signup`
-- [ ] 4.6 On signup, the button cannot start OAuth until the consent checkbox is checked
-- [ ] 4.7 Button copy is correct in en/pl/ru via the language switcher
+- [x] 4.5 Google button renders on both `/auth/signin` and `/auth/signup`
+- [x] 4.6 On signup, the button cannot start OAuth until the consent checkbox is checked
+- [x] 4.7 Button copy is correct in en/pl/ru via the language switcher
 
 ### Phase 5: Tests & Docs
 
