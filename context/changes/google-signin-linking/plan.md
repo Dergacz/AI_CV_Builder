@@ -383,24 +383,24 @@ No schema/data migration. Consent for new Google accounts is stored in Supabase 
 
 #### Automated
 
-- [x] 4.1 i18n parity test passes: `npm test`
-- [x] 4.2 Type check: `npx astro check`
-- [x] 4.3 Lint passes: `npm run lint`
-- [x] 4.4 Build passes: `npm run build`
+- [x] 4.1 i18n parity test passes: `npm test` — e9d93a4
+- [x] 4.2 Type check: `npx astro check` — e9d93a4
+- [x] 4.3 Lint passes: `npm run lint` — e9d93a4
+- [x] 4.4 Build passes: `npm run build` — e9d93a4
 
 #### Manual
 
-- [x] 4.5 Google button renders on both `/auth/signin` and `/auth/signup`
-- [x] 4.6 On signup, the button cannot start OAuth until the consent checkbox is checked
-- [x] 4.7 Button copy is correct in en/pl/ru via the language switcher
+- [x] 4.5 Google button renders on both `/auth/signin` and `/auth/signup` — e9d93a4
+- [x] 4.6 On signup, the button cannot start OAuth until the consent checkbox is checked — e9d93a4
+- [x] 4.7 Button copy is correct in en/pl/ru via the language switcher — e9d93a4
 
 ### Phase 5: Tests & Docs
 
 #### Automated
 
-- [ ] 5.1 E2E passes with local Supabase up: `npm run db:start` → `npm run test:e2e`
-- [ ] 5.2 Full unit suite green: `npm test`
-- [ ] 5.3 Lint passes: `npm run lint`
+- [x] 5.1 E2E passes with local Supabase up: `npm run db:start` → `npm run test:e2e`
+- [x] 5.2 Full unit suite green: `npm test`
+- [x] 5.3 Lint passes: `npm run lint`
 
 #### Manual
 
