@@ -398,9 +398,9 @@ No schema/data migration. Consent for new Google accounts is stored in Supabase 
 
 #### Automated
 
-- [x] 5.1 E2E passes with local Supabase up: `npm run db:start` → `npm run test:e2e`
-- [x] 5.2 Full unit suite green: `npm test`
-- [x] 5.3 Lint passes: `npm run lint`
+- [x] 5.1 E2E passes with local Supabase up: `npm run db:start` → `npm run test:e2e` — 4da4fff
+- [x] 5.2 Full unit suite green: `npm test` — 4da4fff
+- [x] 5.3 Lint passes: `npm run lint` — 4da4fff
 
 #### Manual
 
