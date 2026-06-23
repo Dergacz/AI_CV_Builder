@@ -29,13 +29,16 @@ test("the legal pages resolve directly", async ({ page }) => {
 test("the signup consent links navigate to the legal pages", async ({ page }) => {
   await page.goto("/auth/signup");
 
-  // Consent links live in <main>; the footer carries identically-named links, so scope to main.
-  await page.getByRole("main").getByRole("link", { name: "Terms of Service" }).click();
+  // The signup page now carries TWO consent blocks (the email/password form's and the Google
+  // button's), plus the footer — all with identically-named legal links. Scope to the signup
+  // form by its action contract so this asserts the form's own consent links specifically.
+  const signupForm = page.locator('form[action="/api/auth/signup"]');
+  await signupForm.getByRole("link", { name: "Terms of Service" }).click();
   await page.waitForURL("**/terms");
   await expect(page.getByRole("heading", { level: 1, name: "Terms of Service" })).toBeVisible();
 
   await page.goto("/auth/signup");
-  await page.getByRole("main").getByRole("link", { name: "Privacy Policy" }).click();
+  await page.locator('form[action="/api/auth/signup"]').getByRole("link", { name: "Privacy Policy" }).click();
   await page.waitForURL("**/privacy");
   await expect(page.getByRole("heading", { level: 1, name: "Privacy Policy" })).toBeVisible();
 });

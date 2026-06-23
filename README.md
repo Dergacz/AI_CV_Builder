@@ -148,6 +148,23 @@ Users can then sign in immediately after sign-up without clicking a confirmation
 
 Route protection is handled in `src/middleware.ts`. Add paths to the `PROTECTED_ROUTES` array there to require authentication.
 
+### Google sign-in (OAuth)
+
+"Continue with Google" is wired through Supabase's external Google provider, enabled in `supabase/config.toml` under `[auth.external.google]` via `env()` substitution. To exercise it locally:
+
+1. In the [Google Cloud Console](https://console.cloud.google.com/apis/credentials), create an **OAuth 2.0 Client ID** of type **Web application**.
+2. Add the Supabase auth callback as an **authorized redirect URI**: `http://127.0.0.1:54321/auth/v1/callback` (the local Supabase auth endpoint).
+3. Put the client id and secret in your `.env` (see `.env.example`):
+
+   ```bash
+   SUPABASE_AUTH_EXTERNAL_GOOGLE_CLIENT_ID=<client id>
+   SUPABASE_AUTH_EXTERNAL_GOOGLE_SECRET=<client secret>
+   ```
+
+4. Export these into the shell (or `source .env`) **before** running `npx supabase start` — the local Supabase container reads them via env substitution. `skip_nonce_check = true` is set for local; the app's own callback URL (`/auth/callback`) is allow-listed in `additional_redirect_urls`.
+
+In production, set the same two values in the hosted Supabase dashboard (**Authentication → Providers → Google**) rather than in env files.
+
 ## PostHog Observability Configuration
 
 This project uses PostHog EU Cloud for product analytics and error monitoring. PostHog is optional in local development; when `POSTHOG_API_KEY` is absent, observability emission is disabled and the app shows the configuration banner.

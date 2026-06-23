@@ -10,6 +10,7 @@ export const allowedPropertyKeys = [
   "model_provider",
   "locale",
   "success",
+  "method",
 ] as const;
 
 export type SafePropertyKey = (typeof allowedPropertyKeys)[number];

@@ -3,7 +3,7 @@ project: AI CV Builder — Launch-Readiness & Validation Release
 version: 1
 status: draft
 created: 2026-06-11
-updated: 2026-06-19
+updated: 2026-06-22
 prd_version: 3
 main_goal: market-feedback
 top_blocker: capacity
@@ -34,7 +34,7 @@ The CV builder works mechanically — landing → questionnaire → AI generatio
 | S-01  | funnel-event-instrumentation  | (operator) see a real user move through all 8 funnel steps as tracked events | F-01          | FR-008, US-01         | done     |
 | S-02  | enforce-email-verification    | verify their email behind a hard wall, resend it, existing accounts grandfathered | F-02          | FR-001, FR-002, FR-014, US-01 | done     |
 | S-03  | consent-gated-registration    | accept the combined Privacy + Terms consent to register (gate enforced client + server) | F-02          | FR-005, FR-006, FR-007, US-01 | done (gate) |
-| S-04  | google-signin-linking         | sign in with Google into their one existing account (no duplicate) | S-02          | FR-003, FR-004, US-02 | proposed |
+| S-04  | google-signin-linking         | sign in with Google into their one existing account (no duplicate) | S-02          | FR-003, FR-004, US-02 | done     |
 | S-05  | post-generation-feedback      | mark a generated CV Helpful / Not-Helpful with an optional comment | F-01          | FR-010, US-01         | proposed |
 | S-06  | daily-generation-limit        | be limited to 100 generations/day with a clear message; cross-account abuse capped | F-02          | FR-012                | proposed |
 | S-07  | centralized-error-monitoring  | (operator) see failures across all 4 surfaces, scrubbed of sensitive content | F-01          | FR-009                | proposed |
@@ -149,7 +149,8 @@ Foundations below assume these are present and do NOT re-scaffold them.
 - **Blockers:** —
 - **Unknowns:** —
 - **Risk:** Auto-linking by email could risk an unintended merge / takeover; constrained to verified-on-both-sides only (Google emails are provider-verified). Depends on S-02 because "Google email counts as verified" only means something once the verification model exists.
-- **Status:** proposed
+- **Delivered:** "Continue with Google" on `/auth/signin` + `/auth/signup` (signup consent-gated, client + server); server-side OAuth start endpoint with a signed short-lived consent cookie; `/auth/callback` that exchanges the code, branches new-vs-returning (Supabase auto-links by verified email — no duplicate), stamps consent + emits `funnel_signup_completed{method:"google"}` for new accounts only, and maps failures to localized `?error=` banners; en/pl/ru copy. Unit coverage for start/callback/consent-cookie/i18n + Playwright E2E for button render, consent gate, and provider-redirect initiation (provider hop mocked). The real Google round-trip is manual-only.
+- **Status:** done
 
 ### S-05: Post-generation feedback
 
@@ -257,3 +258,4 @@ This table is the clean handoff to Jira/Linear or any MCP-backed backlog. One ro
 
 - **S-01: (operator) a real user moving landing → registration → email confirmation → questionnaire started → questionnaire completed → CV generated → CV saved → PDF exported is recorded as 8 distinct tracked events, so step-to-step conversion and drop-off are visible.** — Archived 2026-06-15 → `context/archive/2026-06-12-funnel-event-instrumentation/`. Lesson: —.
 - **S-09: a visitor can open real Privacy + Terms pages at `/terms` and `/privacy` (the S-03 placeholder links now resolve), reach them from a site-wide footer, and every registration records the accepted policy version + acceptance timestamp for an auditable proof-of-consent.** — Shipped 2026-06-19 on branch `legal-pages-and-consent-record`; archival pending `/10x-archive`. Lesson: —.
+- **S-04: a user can sign up / sign in with Google alongside email/password; a Google sign-in whose verified email matches an existing account resolves to that one profile (no duplicate) and satisfies verification without a separate step.** — Automated work shipped 2026-06-22 on branch `google-signin-linking` (p1–p5: `2787f45`, `b177e20`, `e3b02cc`, `e9d93a4`, `4da4fff`); real-Google manual verification + `/10x-archive` pending. Lesson: —.

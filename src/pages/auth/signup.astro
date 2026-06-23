@@ -2,6 +2,7 @@
 import Layout from "@/layouts/Layout.astro";
 import LanguageSwitcher from "@/components/LanguageSwitcher.astro";
 import SignUpForm from "@/components/auth/SignUpForm";
+import GoogleSignInButton from "@/components/auth/GoogleSignInButton";
 import { getAuthErrorMessage, resolveAuthErrorCode } from "@/lib/i18n/auth-errors";
 import { getMessages } from "@/lib/i18n/messages";
 
@@ -29,6 +30,12 @@ const serverError = error ? getAuthErrorMessage(locale, resolveAuthErrorCode(err
         <h2 class="mb-2 text-2xl font-semibold text-slate-950">{content.formTitle}</h2>
         <p class="mb-6 text-sm leading-6 text-slate-600">{content.formDescription}</p>
         <SignUpForm locale={locale} serverError={serverError} client:only="react" />
+        <div class="my-6 flex items-center gap-3 text-xs text-slate-400">
+          <span class="h-px flex-1 bg-slate-200"></span>
+          {messages.auth.google.divider}
+          <span class="h-px flex-1 bg-slate-200"></span>
+        </div>
+        <GoogleSignInButton locale={locale} intent="signup" client:only="react" />
         <p class="mt-4 text-center text-sm text-slate-600">
           {content.alternatePrompt}{" "}
           <a href="/auth/signin" class="font-medium text-emerald-700 hover:underline">{content.alternateLink}</a>

@@ -10,6 +10,7 @@ describe("scrub", () => {
       status: 503,
       duration_ms: 123,
       success: false,
+      method: "google",
       answers: "raw answer text",
       prompt: "raw prompt",
       draft: "raw draft",
@@ -23,6 +24,7 @@ describe("scrub", () => {
       status: 503,
       duration_ms: 123,
       success: false,
+      method: "google",
     });
   });
 
