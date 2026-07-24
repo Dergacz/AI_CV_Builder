@@ -8,7 +8,7 @@ const POSTHOG_CAPTURE_PATH = "/i/v0/e/";
 const OBSERVABILITY_TIMEOUT_MS = 1_500;
 const ERROR_EVENT = "observability_error";
 
-export type ObservabilityEvent = "observability_smoke" | typeof ERROR_EVENT | FunnelEvent;
+export type ObservabilityEvent = "observability_smoke" | typeof ERROR_EVENT | FunnelEvent | "feedback_submitted";
 
 export interface Identity {
   distinctId: string | null;

@@ -28,6 +28,28 @@ describe("scrub", () => {
     });
   });
 
+  it("passes generation_event_id (uuid string) and helpful (boolean) through the allowlist", () => {
+    const result = scrub({
+      generation_event_id: "550e8400-e29b-41d4-a716-446655440000",
+      helpful: true,
+    });
+
+    expect(result).toEqual({
+      generation_event_id: "550e8400-e29b-41d4-a716-446655440000",
+      helpful: true,
+    });
+  });
+
+  it("still drops keys not on the allowlist", () => {
+    const result = scrub({
+      generation_event_id: "550e8400-e29b-41d4-a716-446655440000",
+      comment: "raw user comment text",
+      draft: "raw cv content",
+    });
+
+    expect(result).toEqual({ generation_event_id: "550e8400-e29b-41d4-a716-446655440000" });
+  });
+
   it("drops nested values and oversized strings", () => {
     const result = scrub({
       surface: "client",

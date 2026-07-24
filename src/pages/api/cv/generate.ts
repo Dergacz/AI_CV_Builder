@@ -52,20 +52,25 @@ export const POST: APIRoute = async (context) => {
   const result = await generateCvDraft(parsed.data, { apiKey: OPENAI_API_KEY, model: OPENAI_MODEL });
   const status = result.ok ? 200 : result.error === "service_unavailable" ? 503 : 422;
 
-  // Funnel step 6: emit only on a successful generation. Failures show as drop-off (absence of the
-  // next step); their cause is covered by S-07 error monitoring, not this event.
-  if (result.ok) {
-    await track(
-      "funnel_cv_generated",
-      {
-        locale: context.locals.locale,
-        model_provider: MODEL_PROVIDER,
-        duration_ms: Date.now() - startedAt,
-        success: true,
-      },
-      context.locals.observability,
-    );
+  if (!result.ok) {
+    return json(status, result);
   }
 
-  return json(status, result);
+  const generationEventId = crypto.randomUUID();
+
+  // Funnel step 6: emit only on a successful generation. Failures show as drop-off (absence of the
+  // next step); their cause is covered by S-07 error monitoring, not this event.
+  await track(
+    "funnel_cv_generated",
+    {
+      locale: context.locals.locale,
+      model_provider: MODEL_PROVIDER,
+      duration_ms: Date.now() - startedAt,
+      success: true,
+      generation_event_id: generationEventId,
+    },
+    context.locals.observability,
+  );
+
+  return json(200, { ok: true, draft: result.draft, generationEventId });
 };

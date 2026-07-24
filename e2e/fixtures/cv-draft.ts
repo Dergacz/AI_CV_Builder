@@ -16,6 +16,7 @@ import type { GenerateDraftResponse } from "@/lib/cv-draft";
 export function buildGeneratedDraftResponse(): GenerateDraftResponse {
   return {
     ok: true,
+    generationEventId: "00000000-0000-0000-0000-000000000001",
     draft: {
       schemaVersion: 1,
       language: "en",

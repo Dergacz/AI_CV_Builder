@@ -101,7 +101,12 @@ export type DraftWarningCode = z.infer<typeof draftWarningCodeSchema>;
 export type DraftWarning = z.infer<typeof draftWarningSchema>;
 export type GeneratedCvDraft = z.infer<typeof generatedCvDraftSchema>;
 
-/** Discriminated result returned by the generation service and the API route. */
-export type GenerateDraftResponse =
+/** Discriminated result returned by the generation service (no event id). */
+export type GenerateDraftServiceResult =
   | { ok: true; draft: GeneratedCvDraft }
+  | { ok: false; error: GenerationErrorBucket; message: string };
+
+/** Wire response from POST /api/cv/generate — success case carries the event id. */
+export type GenerateDraftResponse =
+  | { ok: true; draft: GeneratedCvDraft; generationEventId: string }
   | { ok: false; error: GenerationErrorBucket; message: string };

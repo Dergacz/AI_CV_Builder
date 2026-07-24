@@ -77,6 +77,20 @@ describe("POST /api/cv/generate — funnel emission", () => {
     expect(identity).toEqual({ distinctId: "anon-test" });
   });
 
+  it("returns generationEventId in the 200 body and includes it in the funnel event", async () => {
+    mocks.generateCvDraft.mockResolvedValue({ ok: true, draft: { sections: {} } });
+
+    const response = await POST(makeContext({ user: { id: "user-123" }, body: validAnswers }));
+    const body = (await response.json()) as Record<string, unknown>;
+
+    expect(response.status).toBe(200);
+    expect(typeof body.generationEventId).toBe("string");
+    expect((body.generationEventId as string).length).toBeGreaterThan(0);
+
+    const [, props] = mocks.track.mock.calls[0] as [string, Record<string, unknown>];
+    expect(props.generation_event_id).toBe(body.generationEventId);
+  });
+
   it("does not emit when generation fails", async () => {
     mocks.generateCvDraft.mockResolvedValue({ ok: false, error: "generation_failed", message: "nope" });
 
