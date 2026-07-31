@@ -3,7 +3,7 @@ project: AI CV Builder — Launch-Readiness & Validation Release
 version: 1
 status: draft
 created: 2026-06-11
-updated: 2026-06-22
+updated: 2026-07-31
 prd_version: 3
 main_goal: market-feedback
 top_blocker: capacity
@@ -35,7 +35,7 @@ The CV builder works mechanically — landing → questionnaire → AI generatio
 | S-02  | enforce-email-verification    | verify their email behind a hard wall, resend it, existing accounts grandfathered | F-02          | FR-001, FR-002, FR-014, US-01 | done     |
 | S-03  | consent-gated-registration    | accept the combined Privacy + Terms consent to register (gate enforced client + server) | F-02          | FR-005, FR-006, FR-007, US-01 | done (gate) |
 | S-04  | google-signin-linking         | sign in with Google into their one existing account (no duplicate) | S-02          | FR-003, FR-004, US-02 | done     |
-| S-05  | post-generation-feedback      | mark a generated CV Helpful / Not-Helpful with an optional comment | F-01          | FR-010, US-01         | proposed |
+| S-05  | post-generation-feedback      | mark a generated CV Helpful / Not-Helpful with an optional comment | F-01          | FR-010, US-01         | done     |
 | S-06  | daily-generation-limit        | be limited to 100 generations/day with a clear message; cross-account abuse capped | F-02          | FR-012                | proposed |
 | S-07  | centralized-error-monitoring  | (operator) see failures across all 4 surfaces, scrubbed of sensitive content | F-01          | FR-009                | proposed |
 | S-08  | account-deletion              | permanently delete their account and all associated data via explicit confirmation | F-01          | FR-011, US-03         | proposed |
@@ -162,7 +162,8 @@ Foundations below assume these are present and do NOT re-scaffold them.
 - **Blockers:** —
 - **Unknowns:** —
 - **Risk:** Low risk; the only trap is re-exposing CV content by linking feedback to the draft — store against the generation event id only, reusing F-01's no-raw-content contract.
-- **Status:** proposed
+- **Delivered:** a content-free `generationEventId` minted per generation in `POST /api/cv/generate`, returned to the client and attached to `funnel_cv_generated`; `public.feedback` (owner-only RLS, `unique (user_id, generation_event_id)`, **no FK to `public.cvs`**, cascade from `auth.users`) behind a fail-soft `POST /api/cv/feedback` that upserts a verdict + optional ≤1000-char comment; a Helpful / Not-helpful widget with an optional comment rendered inline under the generated draft, en/pl/ru, keyed on the generation id so regeneration resets it and scoped away from the reopen-saved-CV flow. The `feedback_submitted` analytics event carries only `helpful` / `locale` / `generation_event_id` — the comment never leaves the database. Unit + contract coverage for the schema, route, repository, scrub allowlist and copy; Playwright E2E for submit, no-comment submit, and the fail-soft retry path.
+- **Status:** done
 
 ### S-06: Daily generation limit + aggregate abuse guard
 
@@ -259,3 +260,4 @@ This table is the clean handoff to Jira/Linear or any MCP-backed backlog. One ro
 - **S-01: (operator) a real user moving landing → registration → email confirmation → questionnaire started → questionnaire completed → CV generated → CV saved → PDF exported is recorded as 8 distinct tracked events, so step-to-step conversion and drop-off are visible.** — Archived 2026-06-15 → `context/archive/2026-06-12-funnel-event-instrumentation/`. Lesson: —.
 - **S-09: a visitor can open real Privacy + Terms pages at `/terms` and `/privacy` (the S-03 placeholder links now resolve), reach them from a site-wide footer, and every registration records the accepted policy version + acceptance timestamp for an auditable proof-of-consent.** — Shipped 2026-06-19 on branch `legal-pages-and-consent-record`; archival pending `/10x-archive`. Lesson: —.
 - **S-04: a user can sign up / sign in with Google alongside email/password; a Google sign-in whose verified email matches an existing account resolves to that one profile (no duplicate) and satisfies verification without a separate step.** — Automated work shipped 2026-06-22 on branch `google-signin-linking` (p1–p5: `2787f45`, `b177e20`, `e3b02cc`, `e9d93a4`, `4da4fff`); real-Google manual verification + `/10x-archive` pending. Lesson: —.
+- **S-05: after a CV is generated, a user can mark the result Helpful or Not Helpful and add an optional text comment; feedback is stored against the generation event identifier only — no CV/answer content stored alongside.** — Shipped 2026-07-31 on branch `post-generation-feedback` (p1–p4 + epilogue: `97a056e`, `4912334`, `1fbb1d9`, `185d296`, `566dc9c`); all four phases automated- and manually-verified, `/10x-archive` pending. Lesson: the E2E harness carried two latent breaks that only surfaced when a new spec ran it — an ambiguous consent-checkbox locator left behind by S-04 and a fixture UUID the server schema rejects; adding a spec to an unexercised suite is worth budgeting repair time for.
