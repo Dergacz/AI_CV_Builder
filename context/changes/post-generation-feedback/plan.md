@@ -315,23 +315,23 @@ Single additive migration creating `public.feedback`; no backfill. `on delete ca
 
 #### Automated
 
-- [x] 1.1 Type checking passes (`npm run build` / `astro check`)
-- [x] 1.2 Linting passes (`npm run lint`)
-- [x] 1.3 Unit tests: generate returns `generationEventId`, event carries `generation_event_id`, scrub passes new keys / drops disallowed
+- [x] 1.1 Type checking passes (`npm run build` / `astro check`) — 97a056e
+- [x] 1.2 Linting passes (`npm run lint`) — 97a056e
+- [x] 1.3 Unit tests: generate returns `generationEventId`, event carries `generation_event_id`, scrub passes new keys / drops disallowed — 97a056e
 
 #### Manual
 
-- [x] 1.4 Generating in-app returns `generationEventId` in the response
-- [x] 1.5 PostHog `funnel_cv_generated` shows `generation_event_id`
+- [x] 1.4 Generating in-app returns `generationEventId` in the response — 97a056e
+- [x] 1.5 PostHog `funnel_cv_generated` shows `generation_event_id` — 97a056e
 
 ### Phase 2: Feedback store + API
 
 #### Automated
 
-- [ ] 2.1 Migration applies cleanly (local supabase)
-- [ ] 2.2 Type checking passes (`npm run build`)
-- [ ] 2.3 Linting passes (`npm run lint`)
-- [ ] 2.4 Contract tests: auth 401, invalid 400, valid upsert ok, event content-free (no comment), re-submit updates not duplicates
+- [x] 2.1 Migration applies cleanly (local supabase) — cda82f0
+- [x] 2.2 Type checking passes (`npm run build`) — cda82f0
+- [x] 2.3 Linting passes (`npm run lint`) — cda82f0
+- [x] 2.4 Contract tests: auth 401, invalid 400, valid upsert ok, event content-free (no comment), re-submit updates not duplicates — cda82f0
 
 #### Manual
 
