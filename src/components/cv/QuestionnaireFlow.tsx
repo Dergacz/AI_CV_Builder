@@ -40,6 +40,8 @@ export default function QuestionnaireFlow({ locale }: { locale: UiLocale }) {
   const [errors, setErrors] = useState<RequiredErrors>({});
   const [status, setStatus] = useState<GenerationStatus>("idle");
   const [draft, setDraft] = useState<GeneratedCvDraft | null>(null);
+  // S-05: content-free id of the generation behind the current draft; keys the feedback widget.
+  const [generationEventId, setGenerationEventId] = useState<string | null>(null);
   const [generationError, setGenerationError] = useState<string | null>(null);
   const editor = useCvDraftEditor(setDraft);
   const save = useCvSave({ locale });
@@ -70,6 +72,7 @@ export default function QuestionnaireFlow({ locale }: { locale: UiLocale }) {
       const data = (await response.json()) as GenerateDraftResponse;
       if (data.ok) {
         setDraft(data.draft);
+        setGenerationEventId(data.generationEventId);
         setStatus("success");
         // Seed an editable default title now that the answers are final.
         if (!save.title.trim()) {
@@ -95,6 +98,8 @@ export default function QuestionnaireFlow({ locale }: { locale: UiLocale }) {
   function handleEditAnswers() {
     setStatus("idle");
     setGenerationError(null);
+    // Drop the id with the draft it belonged to: a regeneration mints a fresh one.
+    setGenerationEventId(null);
     setActiveStepIndex(STEP_KEYS.length - 1);
   }
 
@@ -144,6 +149,7 @@ export default function QuestionnaireFlow({ locale }: { locale: UiLocale }) {
         answers={answers}
         locale={locale}
         onEditAnswers={handleEditAnswers}
+        generationEventId={generationEventId ?? undefined}
       />
     );
   }

@@ -328,24 +328,24 @@ Single additive migration creating `public.feedback`; no backfill. `on delete ca
 
 #### Automated
 
-- [x] 2.1 Migration applies cleanly (local supabase) — cda82f0
-- [x] 2.2 Type checking passes (`npm run build`) — cda82f0
-- [x] 2.3 Linting passes (`npm run lint`) — cda82f0
-- [x] 2.4 Contract tests: auth 401, invalid 400, valid upsert ok, event content-free (no comment), re-submit updates not duplicates — cda82f0
+- [x] 2.1 Migration applies cleanly (local supabase) — 4912334
+- [x] 2.2 Type checking passes (`npm run build`) — 4912334
+- [x] 2.3 Linting passes (`npm run lint`) — 4912334
+- [x] 2.4 Contract tests: auth 401, invalid 400, valid upsert ok, event content-free (no comment), re-submit updates not duplicates — 4912334
 
 #### Manual
 
-- [ ] 2.5 POST inserts then updates a single `public.feedback` row
-- [ ] 2.6 RLS blocks cross-user access
-- [ ] 2.7 Stored row has no draft/answer content
+- [x] 2.5 POST inserts then updates a single `public.feedback` row — 4912334
+- [x] 2.6 RLS blocks cross-user access — 4912334
+- [x] 2.7 Stored row has no draft/answer content — 4912334
 
 ### Phase 3: Feedback widget UI + i18n
 
 #### Automated
 
-- [ ] 3.1 Type checking passes (`npm run build`)
-- [ ] 3.2 Linting passes (`npm run lint`)
-- [ ] 3.3 Component tests: submit payload, optional comment, fail-soft retry, all locales resolve
+- [x] 3.1 Type checking passes (`npm run build`)
+- [x] 3.2 Linting passes (`npm run lint`)
+- [x] 3.3 Component tests: submit payload, optional comment, fail-soft retry, all locales resolve
 
 #### Manual
 

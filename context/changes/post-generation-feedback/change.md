@@ -3,7 +3,7 @@ change_id: post-generation-feedback
 title: Post generation feedback
 status: implementing
 created: 2026-06-23
-updated: 2026-07-24
+updated: 2026-07-31
 archived_at: null
 ---
 
