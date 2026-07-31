@@ -358,10 +358,10 @@ Single additive migration creating `public.feedback`; no backfill. `on delete ca
 
 #### Automated
 
-- [x] 4.1 E2E passes (`npm run test:e2e`)
-- [x] 4.2 Full unit suite passes (`npm test`)
-- [x] 4.3 Build + lint pass
+- [x] 4.1 E2E passes (`npm run test:e2e`) — 185d296
+- [x] 4.2 Full unit suite passes (`npm test`) — 185d296
+- [x] 4.3 Build + lint pass — 185d296
 
 #### Manual
 
-- [x] 4.4 Browser end-to-end: generate → feedback → thank-you, no save/export regression
+- [x] 4.4 Browser end-to-end: generate → feedback → thank-you, no save/export regression — 185d296
