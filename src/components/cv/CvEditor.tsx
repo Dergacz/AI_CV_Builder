@@ -10,6 +10,7 @@ import type { CvDraftEditor, CvSectionKey } from "@/components/hooks/useCvDraftE
 import { useCvExport } from "@/components/hooks/useCvExport";
 import type { CvSaveController } from "@/components/hooks/useCvSave";
 import ConfirmDialog from "@/components/cv/ConfirmDialog";
+import CvFeedback from "@/components/cv/CvFeedback";
 import {
   DraftSection,
   EducationContent,
@@ -45,6 +46,7 @@ export default function CvEditor({
   answers,
   locale,
   onEditAnswers,
+  generationEventId,
 }: {
   draft: GeneratedCvDraft;
   editor: CvDraftEditor;
@@ -53,6 +55,12 @@ export default function CvEditor({
   locale: UiLocale;
   /** Omitted on the reopen flow (Phase 5), which hides the edit-answers/regenerate path. */
   onEditAnswers?: () => void;
+  /**
+   * Content-free id of the generation that produced this draft (S-05). Present only on the
+   * fresh-generation flow; its absence (like `onEditAnswers`'s) means this is a reopened
+   * saved CV, which gets no feedback widget.
+   */
+  generationEventId?: string;
 }) {
   const copy = getCvEditorCopy(locale);
   const libraryCopy = getCvLibraryCopy(locale);
@@ -317,6 +325,11 @@ export default function CvEditor({
             ))}
           </ul>
         </section>
+      )}
+
+      {/* Scoped to fresh generations: the reopen flow passes neither prop. */}
+      {onEditAnswers && generationEventId && (
+        <CvFeedback key={generationEventId} generationEventId={generationEventId} locale={locale} />
       )}
 
       {onEditAnswers && (

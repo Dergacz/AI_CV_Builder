@@ -1,5 +1,5 @@
 import { QUESTIONNAIRE_VERSION, type CvQuestionnaireAnswers } from "@/lib/cv-questionnaire";
-import { generatedCvDraftSchema, generationErrorMessages, type GenerateDraftResponse } from "@/lib/cv-draft";
+import { generatedCvDraftSchema, generationErrorMessages, type GenerateDraftServiceResult } from "@/lib/cv-draft";
 
 /**
  * CV generation service.
@@ -200,18 +200,18 @@ function stripNulls(value: unknown): unknown {
   return value;
 }
 
-function genFailed(): GenerateDraftResponse {
+function genFailed(): GenerateDraftServiceResult {
   return { ok: false, error: "generation_failed", message: generationErrorMessages.generation_failed };
 }
 
-function unavailable(): GenerateDraftResponse {
+function unavailable(): GenerateDraftServiceResult {
   return { ok: false, error: "service_unavailable", message: generationErrorMessages.service_unavailable };
 }
 
 export async function generateCvDraft(
   answers: CvQuestionnaireAnswers,
   config: { apiKey: string; model?: string },
-): Promise<GenerateDraftResponse> {
+): Promise<GenerateDraftServiceResult> {
   if (!config.apiKey) {
     return unavailable();
   }

@@ -11,6 +11,8 @@ export const allowedPropertyKeys = [
   "locale",
   "success",
   "method",
+  "generation_event_id",
+  "helpful",
 ] as const;
 
 export type SafePropertyKey = (typeof allowedPropertyKeys)[number];

@@ -70,6 +70,15 @@ export type SaveCvResponse = { ok: true; cv: SavedCvSummary } | CvErrorResponse;
 export type DeleteCvResponse = { ok: true } | CvErrorResponse;
 
 /**
+ * Feedback API response envelope (S-05 / FR-010).
+ * The submit endpoint is fail-soft: success is `{ ok: true }`, errors carry a
+ * stable bucket so the client can show an inline retry without crashing.
+ */
+export type SubmitFeedbackResponse =
+  | { ok: true }
+  | { ok: false; error: "feedback_failed" | "service_unavailable"; message: string };
+
+/**
  * Entitlement contract (F-01). The single shape every gated path reads to decide
  * a user's generation quality. Resolved server-side from the `subscriptions` store
  * against the DB clock; absence of a subscription ⇒ Basic. Presented to users only
