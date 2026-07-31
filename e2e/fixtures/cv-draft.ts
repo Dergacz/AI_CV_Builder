@@ -16,7 +16,9 @@ import type { GenerateDraftResponse } from "@/lib/cv-draft";
 export function buildGeneratedDraftResponse(): GenerateDraftResponse {
   return {
     ok: true,
-    generationEventId: "00000000-0000-0000-0000-000000000001",
+    // Must satisfy the server's z.uuid() (RFC version nibble 1-8, variant 8/9/a/b) so a test
+    // that lets a real POST /api/cv/feedback through is not rejected as a malformed id.
+    generationEventId: "00000000-0000-4000-8000-000000000001",
     draft: {
       schemaVersion: 1,
       language: "en",

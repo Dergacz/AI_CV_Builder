@@ -343,25 +343,25 @@ Single additive migration creating `public.feedback`; no backfill. `on delete ca
 
 #### Automated
 
-- [x] 3.1 Type checking passes (`npm run build`)
-- [x] 3.2 Linting passes (`npm run lint`)
-- [x] 3.3 Component tests: submit payload, optional comment, fail-soft retry, all locales resolve
+- [x] 3.1 Type checking passes (`npm run build`) — 1fbb1d9
+- [x] 3.2 Linting passes (`npm run lint`) — 1fbb1d9
+- [x] 3.3 Component tests: submit payload, optional comment, fail-soft retry, all locales resolve — 1fbb1d9
 
 #### Manual
 
-- [ ] 3.4 Widget appears after generation; submit shows thank-you
-- [ ] 3.5 Changing verdict re-submits/updates same row
-- [ ] 3.6 Regenerate resets widget; reopen-saved-CV shows no widget
-- [ ] 3.7 Renders + accessible in en/pl/ru
+- [x] 3.4 Widget appears after generation; submit shows thank-you — 1fbb1d9
+- [x] 3.5 Changing verdict re-submits/updates same row — 1fbb1d9
+- [x] 3.6 Regenerate resets widget; reopen-saved-CV shows no widget — 1fbb1d9
+- [x] 3.7 Renders + accessible in en/pl/ru — 1fbb1d9
 
 ### Phase 4: E2E + regression
 
 #### Automated
 
-- [ ] 4.1 E2E passes (`npm run test:e2e`)
-- [ ] 4.2 Full unit suite passes (`npm test`)
-- [ ] 4.3 Build + lint pass
+- [x] 4.1 E2E passes (`npm run test:e2e`)
+- [x] 4.2 Full unit suite passes (`npm test`)
+- [x] 4.3 Build + lint pass
 
 #### Manual
 
-- [ ] 4.4 Browser end-to-end: generate → feedback → thank-you, no save/export regression
+- [x] 4.4 Browser end-to-end: generate → feedback → thank-you, no save/export regression

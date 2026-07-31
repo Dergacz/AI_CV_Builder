@@ -22,8 +22,11 @@ setup("authenticate", async ({ page }) => {
     await page.getByLabel("Password", { exact: true }).fill(TEST_USER.password);
     await page.getByLabel("Confirm password").fill(TEST_USER.password);
     // Consent gate (consent-gated-registration) makes this checkbox required for signup.
-    await page.getByRole("checkbox", { name: /Terms of Service/ }).check();
-    await page.getByRole("button", { name: "Create account" }).click();
+    // S-04 added a second, identically-labelled consent checkbox for the Google button, so
+    // scope to the email/password form by its action contract (see e2e/README.md).
+    const signUpForm = page.locator('form[action="/api/auth/signup"]');
+    await signUpForm.getByRole("checkbox").check();
+    await signUpForm.getByRole("button", { name: "Create account" }).click();
     await page.waitForURL("**/dashboard");
   }
 
