@@ -3,7 +3,7 @@ project: AI CV Builder — Launch-Readiness & Validation Release
 version: 1
 status: draft
 created: 2026-06-11
-updated: 2026-07-31
+updated: 2026-08-07
 prd_version: 3
 main_goal: market-feedback
 top_blocker: capacity
@@ -36,7 +36,7 @@ The CV builder works mechanically — landing → questionnaire → AI generatio
 | S-03  | consent-gated-registration    | accept the combined Privacy + Terms consent to register (gate enforced client + server) | F-02          | FR-005, FR-006, FR-007, US-01 | done (gate) |
 | S-04  | google-signin-linking         | sign in with Google into their one existing account (no duplicate) | S-02          | FR-003, FR-004, US-02 | done     |
 | S-05  | post-generation-feedback      | mark a generated CV Helpful / Not-Helpful with an optional comment | F-01          | FR-010, US-01         | done     |
-| S-06  | daily-generation-limit        | be limited to 100 generations/day with a clear message; cross-account abuse capped | F-02          | FR-012                | proposed |
+| S-06  | daily-generation-limit        | be limited to 100 generations/day with a clear message; cross-account abuse capped | F-02          | FR-012                | done     |
 | S-07  | centralized-error-monitoring  | (operator) see failures across all 4 surfaces, scrubbed of sensitive content | F-01          | FR-009                | proposed |
 | S-08  | account-deletion              | permanently delete their account and all associated data via explicit confirmation | F-01          | FR-011, US-03         | proposed |
 | S-09  | legal-pages-and-consent-record | read the real Privacy + Terms pages and have their accepted policy version + acceptance timestamp recorded | S-03          | FR-005, FR-006, FR-007 | done     |
@@ -174,9 +174,11 @@ Foundations below assume these are present and do NOT re-scaffold them.
 - **Parallel with:** S-02, S-03
 - **Blockers:** —
 - **Unknowns:**
-  - Concrete aggregate/cross-account ceiling and any single-origin signup throttle numbers (PRD Open Q5). — Owner: user. Block: no.
+  - ~~Concrete aggregate/cross-account ceiling and any single-origin signup throttle numbers (PRD Open Q5).~~ Resolved: **500 successful generations per rolling hour** product-wide. The signup throttle stays deferred — this slice covers the generation ceiling only.
 - **Risk:** This is abuse protection, not a paywall — the load-bearing constraint is that it never blocks a legitimate user under normal use; the per-user cap is straightforward, the aggregate guard's thresholds need real numbers. Touches the generation path, so it depends on F-02. Must not be built on the dormant billing scaffolding.
-- **Status:** proposed
+- **Delivered:** an append-only `public.generation_usage` ledger (RLS on, **no policies at all**) plus two `security definer` functions — `check_generation_quota` (per-user UTC-day cap, then product-wide rolling-hour ceiling) and `record_generation`, which re-checks the cap on write so the ledger is self-bounding and cannot be turned into a DoS vector by a direct PostgREST call. `POST /api/cv/generate` is now check → generate → record: the check sits after zod validation but **before** the provider-key check, so a refused user costs no LLM spend. `user_daily` → 429 with a new `daily_limit_reached` bucket (number-free copy in en/pl/ru, since both limits are env-tunable); `global_hourly` → 503 reusing `service_unavailable`, deliberately indistinguishable from an ordinary outage. **Fails open in both directions** — a counter outage still generates, and a failed ledger write still returns the draft. Limits tunable via `GENERATION_DAILY_LIMIT` / `GENERATION_HOURLY_CEILING` (defaults 100 / 500 in code). `generation_limit_reached` carries only `limit_kind` + `locale`. Zero client changes — the questionnaire already localizes arbitrary buckets. Unit + route-contract coverage for every branch incl. both fail-open postures; Playwright E2E drives the real, unmocked wall under its own config (`playwright.quota.config.ts`, port 4322, `GENERATION_DAILY_LIMIT=0`).
+- **Not covered:** the counting arithmetic is proven by SQL-level checks and route contract tests, not end-to-end — driving a real 100-generation count through a browser would cost 100 OpenAI calls. The 500/hour ceiling is an educated guess, unvalidated against real traffic; `generation_limit_reached` exists so it can be revisited.
+- **Status:** done
 
 ### S-07: Centralized error monitoring
 
@@ -230,7 +232,7 @@ Foundations below assume these are present and do NOT re-scaffold them.
 | S-03       | consent-gated-registration    | Consent-gated registration (client + server gate)      | yes                   | Gate shipped; pages + consent record split to S-09 |
 | S-04       | google-signin-linking         | Add Google sign-in with verified-email account linking | no                    | Run after S-02 |
 | S-05       | post-generation-feedback      | Add Helpful/Not-Helpful feedback after generation      | no                    | Run after F-01 |
-| S-06       | daily-generation-limit        | Enforce 100/day limit + cross-account abuse guard      | no                    | Run after F-02; needs threshold numbers |
+| S-06       | daily-generation-limit        | Enforce 100/day limit + cross-account abuse guard      | no                    | Shipped 2026-08-07; thresholds set at 100/day + 500/hour |
 | S-07       | centralized-error-monitoring  | Wire error monitoring across all 4 surfaces with scrubbing | no                    | Run after F-01 |
 | S-08       | account-deletion              | Self-service permanent account + data deletion         | no                    | Run after F-01 |
 | S-09       | legal-pages-and-consent-record | Author Privacy + Terms pages and record accepted version + timestamp | no                    | Run after S-03; Privacy copy waits on data-flow audit (Open Q1) |
@@ -243,7 +245,7 @@ This table is the clean handoff to Jira/Linear or any MCP-backed backlog. One ro
 2. **Terms of Service legal review (FR-006)** — ship a lean draft, review before scaling marketing. — Owner: user / legal reviewer. Block: none (by: before public marketing push).
 3. **Analytics consent under GDPR (FR-008)** — confirm whether the chosen analytics tool + GDPR posture require a cookie/consent banner, or whether cookieless pseudonymous tracking avoids it. — Owner: user. Block: F-01 / S-09 (compliance surface — no hard block).
 4. **Verification email deliverability (FR-001/FR-002)** — confirm whether built-in email sending suffices at launch volume or a dedicated transactional email capability is needed. — Owner: user (resolve in stack-assessment). Block: S-02 (no hard block).
-5. **Aggregate abuse-guard thresholds (FR-012)** — set concrete numbers for the cross-account generation ceiling and any single-origin signup throttle. — Owner: user. Block: S-06 (no hard block).
+5. ~~**Aggregate abuse-guard thresholds (FR-012)**~~ — **Answered by S-06 (2026-08-07):** 100 generations per user per UTC day, 500 product-wide per rolling hour, both env-tunable. Unvalidated against real traffic — revisit once `generation_limit_reached` has data. The single-origin signup throttle was explicitly descoped and remains unanswered; re-open it if signup abuse appears.
 6. **Grandfathering mechanism (FR-014)** — decide exactly how pre-launch accounts are marked verified without forcing re-authentication. — Owner: user. Block: S-02 (no hard block).
 7. **Specific managed analytics + error-monitor tools** — the PRD fixes "managed, not built" but defers the tool choice to stack-assessment; F-01's contract is tool-agnostic, so this does not block planning. — Owner: user. Block: F-01 (no hard block).
 
@@ -260,4 +262,5 @@ This table is the clean handoff to Jira/Linear or any MCP-backed backlog. One ro
 - **S-01: (operator) a real user moving landing → registration → email confirmation → questionnaire started → questionnaire completed → CV generated → CV saved → PDF exported is recorded as 8 distinct tracked events, so step-to-step conversion and drop-off are visible.** — Archived 2026-06-15 → `context/archive/2026-06-12-funnel-event-instrumentation/`. Lesson: —.
 - **S-09: a visitor can open real Privacy + Terms pages at `/terms` and `/privacy` (the S-03 placeholder links now resolve), reach them from a site-wide footer, and every registration records the accepted policy version + acceptance timestamp for an auditable proof-of-consent.** — Shipped 2026-06-19 on branch `legal-pages-and-consent-record`; archival pending `/10x-archive`. Lesson: —.
 - **S-04: a user can sign up / sign in with Google alongside email/password; a Google sign-in whose verified email matches an existing account resolves to that one profile (no duplicate) and satisfies verification without a separate step.** — Automated work shipped 2026-06-22 on branch `google-signin-linking` (p1–p5: `2787f45`, `b177e20`, `e3b02cc`, `e9d93a4`, `4da4fff`); real-Google manual verification + `/10x-archive` pending. Lesson: —.
+- **S-06: a user is limited to 100 CV generations per UTC day with a clear localized message when the wall is reached, a product-wide 500/hour ceiling caps cross-account abuse, and the limit is server-authoritative — decided in Postgres, unbypassable from the device.** — Shipped 2026-08-07 on branch `daily-generation-limit` (p1–p3 + epilogue: `050e479`, `518b1e2`, `15374bf`, `de2ea2c`); all three phases automated- and manually-verified, `/10x-archive` pending. Lesson: the planned "second `webServer` entry" for the quota-limited E2E server was built and rejected on evidence — two Astro dev servers booting concurrently starved each other enough on a cold Vite cache that an unrelated spec (`legal-pages`) blew its 30 s timeout, reproducibly, while the pre-change baseline stayed green. Separate Playwright configs run sequentially and cost nothing. When a plan calls for a second long-running server inside one test run, budget a baseline comparison before trusting the green.
 - **S-05: after a CV is generated, a user can mark the result Helpful or Not Helpful and add an optional text comment; feedback is stored against the generation event identifier only — no CV/answer content stored alongside.** — Shipped 2026-07-31 on branch `post-generation-feedback` (p1–p4 + epilogue: `97a056e`, `4912334`, `1fbb1d9`, `185d296`, `566dc9c`); all four phases automated- and manually-verified, `/10x-archive` pending. Lesson: the E2E harness carried two latent breaks that only surfaced when a new spec ran it — an ambiguous consent-checkbox locator left behind by S-04 and a fixture UUID the server schema rejects; adding a spec to an unexercised suite is worth budgeting repair time for.
