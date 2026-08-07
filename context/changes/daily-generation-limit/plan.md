@@ -377,11 +377,11 @@ The gate adds one round-trip to Postgres on the generation path. Against a call 
 
 #### Automated
 
-- [x] 3.1 E2E suite passes (`npm run test:e2e`)
-- [x] 3.2 Pre-existing specs still pass on port 4321, including the real-generation spec
-- [x] 3.3 Linting passes (`npm run lint`)
+- [x] 3.1 E2E suite passes (`npm run test:e2e`) — 15374bf
+- [x] 3.2 Pre-existing specs still pass on port 4321, including the real-generation spec — 15374bf
+- [x] 3.3 Linting passes (`npm run lint`) — 15374bf
 
 #### Manual
 
-- [x] 3.4 The new spec fails when the `daily_limit_reached` copy is removed
-- [x] 3.5 Both dev servers boot cleanly in a cold E2E run
+- [x] 3.4 The new spec fails when the `daily_limit_reached` copy is removed — 15374bf
+- [x] 3.5 Both dev servers boot cleanly in a cold E2E run — 15374bf
