@@ -97,6 +97,24 @@ export type Database = {
         }
         Relationships: []
       }
+      generation_usage: {
+        Row: {
+          created_at: string
+          id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       subscriptions: {
         Row: {
           created_at: string
@@ -129,6 +147,11 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      check_generation_quota: {
+        Args: { p_daily_limit: number; p_hourly_ceiling: number }
+        Returns: string
+      }
+      generation_usage_day_start: { Args: never; Returns: string }
       get_entitlement: {
         Args: never
         Returns: {
@@ -136,6 +159,7 @@ export type Database = {
           is_advanced: boolean
         }[]
       }
+      record_generation: { Args: { p_daily_limit: number }; Returns: boolean }
     }
     Enums: {
       [_ in never]: never

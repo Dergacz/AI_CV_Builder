@@ -13,6 +13,8 @@ export const allowedPropertyKeys = [
   "method",
   "generation_event_id",
   "helpful",
+  // S-06: which abuse guard refused a generation ("user_daily" | "global_hourly"). Content-free.
+  "limit_kind",
 ] as const;
 
 export type SafePropertyKey = (typeof allowedPropertyKeys)[number];

@@ -154,5 +154,8 @@ describe("CvPdfDocument — bytes smoke", () => {
 
     expect(buffer.length).toBeGreaterThan(1000);
     expect(buffer.subarray(0, 5).toString("latin1")).toBe("%PDF-");
-  });
+    // A real font-loading renderToBuffer costs ~4.5 s standalone — 90% of vitest's 5 s default,
+    // so it went red purely from CPU contention once the suite grew past ~37 files. The work is
+    // inherently slow, not hung; give it room rather than letting file count decide the outcome.
+  }, 30_000);
 });

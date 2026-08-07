@@ -14,6 +14,10 @@ const baseURL = `http://localhost:${PORT}`;
 
 export default defineConfig({
   testDir: "./e2e",
+  // S-06's wall spec needs a server booted with the quota exhausted, which this one must NOT be —
+  // post-generation-feedback.spec.ts makes a real generation call here and expects a 200. It runs
+  // from playwright.quota.config.ts instead; see that file for why it isn't a second webServer.
+  testIgnore: /daily-generation-limit\.spec\.ts/,
   fullyParallel: true,
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 1 : 0,

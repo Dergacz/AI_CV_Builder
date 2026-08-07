@@ -11,6 +11,14 @@ generating a new E2E test here.
 - `npm run db:start` (local Supabase, Docker) → `npm run test:e2e`.
 - `playwright.config.ts` boots `npm run dev -- --port 4321` via `webServer`, so the
   app starts automatically. `baseURL` = `http://localhost:4321`.
+- **Two configs, run sequentially.** `npm run test:e2e` runs the main config and then
+  `npm run test:e2e:quota` (`playwright.quota.config.ts`), which owns
+  `daily-generation-limit.spec.ts` on port 4322 with `GENERATION_DAILY_LIMIT=0`. The main
+  config `testIgnore`s that spec. Keep them sequential: two Astro dev servers booting at
+  once contend for CPU hard enough that the first compile of `/terms` and `/privacy` blew
+  the 30 s test timeout on a cold cache (reproducible; separate Vite cache dirs did not
+  help). If you ever need another server-env variant, add a config — not a second
+  `webServer` entry.
 
 ## Auth (storageState)
 
