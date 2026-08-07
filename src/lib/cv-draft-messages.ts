@@ -18,7 +18,11 @@ import type { UiLocale } from "@/lib/i18n/locales";
  * `generation_failed` and `service_unavailable`; `export_failed` is owned by S-07
  * but kept here so the bucket set stays complete.
  */
-export type GenerationErrorBucket = "generation_failed" | "export_failed" | "service_unavailable";
+export type GenerationErrorBucket =
+  | "generation_failed"
+  | "export_failed"
+  | "service_unavailable"
+  | "daily_limit_reached";
 
 /**
  * English copy for each bucket (no provider/internal detail leaks). Server-facing:
@@ -28,6 +32,10 @@ export const generationErrorMessages: Record<GenerationErrorBucket, string> = {
   generation_failed: "We couldn't build your CV draft from these answers. Please try again.",
   export_failed: "We couldn't export your CV. Your edits are safe — please try again.",
   service_unavailable: "CV generation is temporarily unavailable. Please try again in a little while.",
+  // S-06: deliberately number-free — both limits are env-tunable, so naming a figure here would
+  // start lying the moment GENERATION_DAILY_LIMIT changes. Reads correctly with the questionnaire's
+  // errorRetrySuffix appended.
+  daily_limit_reached: "You've reached today's CV generation limit. Please try again tomorrow.",
 };
 
 /** Locale-indexed generation error copy for client-side display by stable bucket. */
@@ -37,11 +45,13 @@ export const generationErrorMessagesByLocale = {
     generation_failed: "Nie udało się utworzyć szkicu CV na podstawie tych odpowiedzi. Spróbuj ponownie.",
     export_failed: "Nie udało się wyeksportować CV. Twoje zmiany są bezpieczne — spróbuj ponownie.",
     service_unavailable: "Generowanie CV jest chwilowo niedostępne. Spróbuj ponownie za chwilę.",
+    daily_limit_reached: "Osiągnięto dzienny limit generowania CV. Spróbuj ponownie jutro.",
   },
   ru: {
     generation_failed: "Не удалось создать черновик CV из этих ответов. Попробуйте снова.",
     export_failed: "Не удалось экспортировать CV. Ваши изменения сохранены — попробуйте снова.",
     service_unavailable: "Генерация CV временно недоступна. Попробуйте чуть позже.",
+    daily_limit_reached: "Достигнут дневной лимит генераций CV. Попробуйте снова завтра.",
   },
 } satisfies Record<UiLocale, Record<GenerationErrorBucket, string>>;
 

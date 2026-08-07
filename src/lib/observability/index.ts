@@ -8,7 +8,15 @@ const POSTHOG_CAPTURE_PATH = "/i/v0/e/";
 const OBSERVABILITY_TIMEOUT_MS = 1_500;
 const ERROR_EVENT = "observability_error";
 
-export type ObservabilityEvent = "observability_smoke" | typeof ERROR_EVENT | FunnelEvent | "feedback_submitted";
+export type ObservabilityEvent =
+  | "observability_smoke"
+  | typeof ERROR_EVENT
+  | FunnelEvent
+  | "feedback_submitted"
+  // S-06: emitted when a generation is refused by either abuse guard. Without it the guard is
+  // blind — a real attack and a mis-set ceiling look identical, and the hourly threshold (a guess
+  // with no traffic data behind it) can never be validated.
+  | "generation_limit_reached";
 
 export interface Identity {
   distinctId: string | null;

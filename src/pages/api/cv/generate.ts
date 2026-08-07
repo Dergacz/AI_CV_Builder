@@ -1,7 +1,14 @@
 import type { APIRoute } from "astro";
 import { OPENAI_API_KEY, OPENAI_MODEL } from "astro:env/server";
-import { track } from "@/lib/observability";
+import { reportError, track } from "@/lib/observability";
 import { generateCvDraft } from "@/lib/services/cv-generation";
+import {
+  checkGenerationQuota,
+  getGenerationLimits,
+  recordGeneration,
+  type QuotaVerdict,
+} from "@/lib/services/generation-quota";
+import { createClient } from "@/lib/supabase";
 import { generationErrorMessages, type GenerateDraftResponse } from "@/lib/cv-draft";
 import { cvAnswersSchema } from "@/lib/cv-answers.schema";
 
@@ -44,6 +51,50 @@ export const POST: APIRoute = async (context) => {
     return json(400, { ok: false, error: "generation_failed", message: generationErrorMessages.generation_failed });
   }
 
+  // Abuse guards (FR-012). Deliberately placed after schema validation — so a malformed request
+  // costs no DB round-trip — but BEFORE the provider-key check and the LLM call, so a refused user
+  // costs nothing and the refusal never depends on provider configuration.
+  const supabase = createClient(context.request.headers, context.cookies);
+  const limits = getGenerationLimits();
+
+  if (supabase) {
+    let verdict: QuotaVerdict = "ok";
+    try {
+      verdict = await checkGenerationQuota(supabase, limits);
+    } catch (error) {
+      // Fail open. This is abuse protection, not a paywall: a counter outage must never take down
+      // the core feature. Reported so a sustained unmetered window does not pass unnoticed.
+      await reportError(
+        error,
+        { error_location: "api/cv/generate:checkGenerationQuota" },
+        context.locals.observability,
+      );
+    }
+
+    if (verdict !== "ok") {
+      await track(
+        "generation_limit_reached",
+        { limit_kind: verdict, locale: context.locals.locale },
+        context.locals.observability,
+      );
+
+      // Only the per-user wall is named. The aggregate guard reuses service_unavailable so it stays
+      // indistinguishable from an ordinary outage — accurate for the user, and it does not confirm
+      // to an attacker that they found the product-wide ceiling.
+      return verdict === "user_daily"
+        ? json(429, {
+            ok: false,
+            error: "daily_limit_reached",
+            message: generationErrorMessages.daily_limit_reached,
+          })
+        : json(503, {
+            ok: false,
+            error: "service_unavailable",
+            message: generationErrorMessages.service_unavailable,
+          });
+    }
+  }
+
   if (!OPENAI_API_KEY) {
     return json(503, { ok: false, error: "service_unavailable", message: generationErrorMessages.service_unavailable });
   }
@@ -57,6 +108,18 @@ export const POST: APIRoute = async (context) => {
   }
 
   const generationEventId = crypto.randomUUID();
+
+  // Only successful generations count against the quota — a user is never charged for our own
+  // failures. `record_generation` re-checks the daily cap itself, so a `false` return just means a
+  // concurrent request already claimed the last slot; either way the draft below is returned.
+  if (supabase) {
+    try {
+      await recordGeneration(supabase, limits);
+    } catch (error) {
+      // Bookkeeping failure must not destroy work the user already waited for.
+      await reportError(error, { error_location: "api/cv/generate:recordGeneration" }, context.locals.observability);
+    }
+  }
 
   // Funnel step 6: emit only on a successful generation. Failures show as drop-off (absence of the
   // next step); their cause is covered by S-07 error monitoring, not this event.

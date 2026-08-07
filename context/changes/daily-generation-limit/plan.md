@@ -340,36 +340,36 @@ The gate adds one round-trip to Postgres on the generation path. Against a call 
 
 #### Automated
 
-- [x] 1.1 Migration applies cleanly (`npm run db:reset`)
-- [x] 1.2 DB types regenerate cleanly (`npm run db:types`)
-- [x] 1.3 Type checking passes (`npm run typecheck`)
-- [x] 1.4 Linting passes (`npm run lint`)
-- [x] 1.5 Unit tests pass (`npm test`)
+- [x] 1.1 Migration applies cleanly (`npm run db:reset`) — 050e479
+- [x] 1.2 DB types regenerate cleanly (`npm run db:types`) — 050e479
+- [x] 1.3 Type checking passes (`npm run typecheck`) — 050e479
+- [x] 1.4 Linting passes (`npm run lint`) — 050e479
+- [x] 1.5 Unit tests pass (`npm test`) — 050e479
 
 #### Manual
 
-- [x] 1.6 RLS denies direct `select` and `insert` on `public.generation_usage`
-- [x] 1.7 `record_generation(2)` ×3 returns `true, true, false` and leaves 2 rows
-- [x] 1.8 `check_generation_quota` returns `user_daily` at the cap, `ok` below it
-- [x] 1.9 App behaviorally unchanged end to end
+- [x] 1.6 RLS denies direct `select` and `insert` on `public.generation_usage` — 050e479
+- [x] 1.7 `record_generation(2)` ×3 returns `true, true, false` and leaves 2 rows — 050e479
+- [x] 1.8 `check_generation_quota` returns `user_daily` at the cap, `ok` below it — 050e479
+- [x] 1.9 App behaviorally unchanged end to end — 050e479
 
 ### Phase 2: Route enforcement + localized wall + telemetry
 
 #### Automated
 
-- [ ] 2.1 Type checking passes (`npm run typecheck`)
-- [ ] 2.2 Linting passes (`npm run lint`)
-- [ ] 2.3 Unit + contract tests pass (`npm test`)
-- [ ] 2.4 Production build succeeds (`npm run build`)
+- [x] 2.1 Type checking passes (`npm run typecheck`)
+- [x] 2.2 Linting passes (`npm run lint`)
+- [x] 2.3 Unit + contract tests pass (`npm test`)
+- [x] 2.4 Production build succeeds (`npm run build`)
 
 #### Manual
 
-- [ ] 2.5 Second generation at `GENERATION_DAILY_LIMIT=1` shows the localized wall in en, pl, ru
-- [ ] 2.6 `GENERATION_HOURLY_CEILING=0` refuses with the "temporarily unavailable" message
-- [ ] 2.7 Generation still works with Supabase stopped (fail-open)
-- [ ] 2.8 One ledger row per successful generation, none for failures
-- [ ] 2.9 PostHog `generation_limit_reached` carries only `limit_kind` + `locale`
-- [ ] 2.10 Default-limit flow generate → edit → save → export unchanged
+- [x] 2.5 Second generation at `GENERATION_DAILY_LIMIT=1` shows the localized wall in en, pl, ru
+- [x] 2.6 `GENERATION_HOURLY_CEILING=0` refuses with the "temporarily unavailable" message
+- [x] 2.7 Generation still works with Supabase stopped (fail-open)
+- [x] 2.8 One ledger row per successful generation, none for failures
+- [x] 2.9 PostHog `generation_limit_reached` carries only `limit_kind` + `locale`
+- [x] 2.10 Default-limit flow generate → edit → save → export unchanged
 
 ### Phase 3: E2E verification of the user-facing wall
 
