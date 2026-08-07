@@ -254,6 +254,8 @@ Prove in a real browser that an over-limit generation surfaces the localized wal
 
 **Contract**: `webServer` becomes an array of two entries. The existing one is unchanged on port 4321. The second boots the same dev command on **port 4322** with `env: { GENERATION_DAILY_LIMIT: "0" }`. With the limit at 0 the pre-flight check refuses immediately, so the spec needs no OpenAI key, spends nothing, and cannot interfere with any other spec.
 
+> **Deviation as built (2026-08-07).** The two-entry `webServer` array was implemented and rejected on evidence: both dev servers boot simultaneously, and on a cold Vite cache their concurrent dependency optimization + first-compile starved each other badly enough that `e2e/legal-pages.spec.ts` (first compile of `/terms`, `/privacy`) exceeded the 30 s test timeout — twice, reproducibly, while the same suite was green on the pre-change baseline. Giving the second server its own `cacheDir` did not help, so the cause is CPU contention, not cache collision. Shipped instead as a **second Playwright config**, `playwright.quota.config.ts`, owning that one spec on port 4322; the main config `testIgnore`s it and `npm run test:e2e` chains the two (`playwright test && npm run test:e2e:quota`). The servers therefore never overlap and the pre-existing suite keeps its original timing. Everything else in this phase is as planned.
+
 Auth carries over for free: cookies are not port-scoped, so the `storageState` written by `e2e/auth.setup.ts` against `localhost:4321` is sent to `localhost:4322`, and both servers talk to the same local Supabase.
 
 #### 2. Limit spec
@@ -357,29 +359,29 @@ The gate adds one round-trip to Postgres on the generation path. Against a call 
 
 #### Automated
 
-- [x] 2.1 Type checking passes (`npm run typecheck`)
-- [x] 2.2 Linting passes (`npm run lint`)
-- [x] 2.3 Unit + contract tests pass (`npm test`)
-- [x] 2.4 Production build succeeds (`npm run build`)
+- [x] 2.1 Type checking passes (`npm run typecheck`) — 518b1e2
+- [x] 2.2 Linting passes (`npm run lint`) — 518b1e2
+- [x] 2.3 Unit + contract tests pass (`npm test`) — 518b1e2
+- [x] 2.4 Production build succeeds (`npm run build`) — 518b1e2
 
 #### Manual
 
-- [x] 2.5 Second generation at `GENERATION_DAILY_LIMIT=1` shows the localized wall in en, pl, ru
-- [x] 2.6 `GENERATION_HOURLY_CEILING=0` refuses with the "temporarily unavailable" message
-- [x] 2.7 Generation still works with Supabase stopped (fail-open)
-- [x] 2.8 One ledger row per successful generation, none for failures
-- [x] 2.9 PostHog `generation_limit_reached` carries only `limit_kind` + `locale`
-- [x] 2.10 Default-limit flow generate → edit → save → export unchanged
+- [x] 2.5 Second generation at `GENERATION_DAILY_LIMIT=1` shows the localized wall in en, pl, ru — 518b1e2
+- [x] 2.6 `GENERATION_HOURLY_CEILING=0` refuses with the "temporarily unavailable" message — 518b1e2
+- [x] 2.7 Generation still works with Supabase stopped (fail-open) — 518b1e2
+- [x] 2.8 One ledger row per successful generation, none for failures — 518b1e2
+- [x] 2.9 PostHog `generation_limit_reached` carries only `limit_kind` + `locale` — 518b1e2
+- [x] 2.10 Default-limit flow generate → edit → save → export unchanged — 518b1e2
 
 ### Phase 3: E2E verification of the user-facing wall
 
 #### Automated
 
-- [ ] 3.1 E2E suite passes (`npm run test:e2e`)
-- [ ] 3.2 Pre-existing specs still pass on port 4321, including the real-generation spec
-- [ ] 3.3 Linting passes (`npm run lint`)
+- [x] 3.1 E2E suite passes (`npm run test:e2e`)
+- [x] 3.2 Pre-existing specs still pass on port 4321, including the real-generation spec
+- [x] 3.3 Linting passes (`npm run lint`)
 
 #### Manual
 
-- [ ] 3.4 The new spec fails when the `daily_limit_reached` copy is removed
-- [ ] 3.5 Both dev servers boot cleanly in a cold E2E run
+- [x] 3.4 The new spec fails when the `daily_limit_reached` copy is removed
+- [x] 3.5 Both dev servers boot cleanly in a cold E2E run
