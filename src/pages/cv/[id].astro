@@ -1,8 +1,10 @@
 ---
+import { z } from "zod";
 import Layout from "@/layouts/Layout.astro";
 import SavedCvView from "@/components/cv/SavedCvView";
 import { createClient, safeGetUser } from "@/lib/supabase";
 import { getMessages } from "@/lib/i18n/messages";
+import { scheduleErrorReport } from "@/lib/observability/schedule";
 import { getCv } from "@/lib/services/cv-repository";
 
 // Route is already auth-protected by middleware (PROTECTED_ROUTES includes "/cv").
@@ -12,11 +14,14 @@ const locale = Astro.locals.locale;
 const copy = getMessages(locale).cvPages.saved;
 const supabase = createClient(Astro.request.headers, Astro.cookies);
 
-if (!supabase || !id) {
+// Validate the id shape BEFORE touching the DB, mirroring `api/cv/[id].ts`. This is what lets the
+// catch below stay meaningful: a malformed id is user input (silent redirect, no report), whereas a
+// throw from a well-formed id is our defect and worth reporting. Previously both collapsed here.
+if (!supabase || !id || !z.uuid().safeParse(id).success) {
   return Astro.redirect("/dashboard");
 }
 
-const user = await safeGetUser(supabase);
+const user = await safeGetUser(supabase, Astro.locals);
 if (!user) {
   return Astro.redirect("/auth/signin");
 }
@@ -24,8 +29,10 @@ if (!user) {
 let cv;
 try {
   cv = await getCv(supabase, user.id, id);
-} catch {
-  // Invalid id (e.g. non-uuid) or transient DB error — send back to the library.
+} catch (error) {
+  // S-07 (added in review): the user is bounced to the library with no message, so they cannot
+  // report this themselves — without the report it is completely invisible.
+  scheduleErrorReport(error, { error_location: "pages/cv/[id]:getCv" }, Astro.locals);
   return Astro.redirect("/dashboard");
 }
 

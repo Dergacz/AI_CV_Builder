@@ -1,6 +1,7 @@
 import type { APIRoute } from "astro";
 import { OPENAI_API_KEY, OPENAI_MODEL } from "astro:env/server";
-import { reportError, track } from "@/lib/observability";
+import { track } from "@/lib/observability";
+import { scheduleErrorReport } from "@/lib/observability/schedule";
 import { generateCvDraft } from "@/lib/services/cv-generation";
 import {
   checkGenerationQuota,
@@ -63,12 +64,9 @@ export const POST: APIRoute = async (context) => {
       verdict = await checkGenerationQuota(supabase, limits);
     } catch (error) {
       // Fail open. This is abuse protection, not a paywall: a counter outage must never take down
-      // the core feature. Reported so a sustained unmetered window does not pass unnoticed.
-      await reportError(
-        error,
-        { error_location: "api/cv/generate:checkGenerationQuota" },
-        context.locals.observability,
-      );
+      // the core feature. Reported so a sustained unmetered window does not pass unnoticed —
+      // scheduled off the response path so a slow PostHog cannot compound a Supabase fault.
+      scheduleErrorReport(error, { error_location: "api/cv/generate:checkGenerationQuota" }, context.locals);
     }
 
     if (verdict !== "ok") {
@@ -100,7 +98,16 @@ export const POST: APIRoute = async (context) => {
   }
 
   const startedAt = Date.now();
-  const result = await generateCvDraft(parsed.data, { apiKey: OPENAI_API_KEY, model: OPENAI_MODEL });
+  const result = await generateCvDraft(parsed.data, {
+    apiKey: OPENAI_API_KEY,
+    model: OPENAI_MODEL,
+    // S-07: the service reports the specific cause; the route only supplies identity and the
+    // scheduler. Deliberately no second report on the `!result.ok` branch below — the cause is
+    // already recorded, and double-reporting would make failure rates meaningless.
+    reportFailure: (error, location, props) => {
+      scheduleErrorReport(error, { error_location: location, ...props }, context.locals);
+    },
+  });
   const status = result.ok ? 200 : result.error === "service_unavailable" ? 503 : 422;
 
   if (!result.ok) {
@@ -116,8 +123,9 @@ export const POST: APIRoute = async (context) => {
     try {
       await recordGeneration(supabase, limits);
     } catch (error) {
-      // Bookkeeping failure must not destroy work the user already waited for.
-      await reportError(error, { error_location: "api/cv/generate:recordGeneration" }, context.locals.observability);
+      // Bookkeeping failure must not destroy work the user already waited for — so the report is
+      // scheduled, never awaited: the draft is already in hand and owes nothing to PostHog.
+      scheduleErrorReport(error, { error_location: "api/cv/generate:recordGeneration" }, context.locals);
     }
   }
 

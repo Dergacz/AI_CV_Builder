@@ -3,6 +3,7 @@ import Layout from "@/layouts/Layout.astro";
 import LanguageSwitcher from "@/components/LanguageSwitcher.astro";
 import SavedCvList from "@/components/cv/SavedCvList";
 import { createClient, safeGetUser } from "@/lib/supabase";
+import { scheduleErrorReport } from "@/lib/observability/schedule";
 import { listCvs } from "@/lib/services/cv-repository";
 import type { SavedCvSummary } from "@/types";
 import { getMessages } from "@/lib/i18n/messages";
@@ -19,11 +20,14 @@ const supabase = createClient(Astro.request.headers, Astro.cookies);
 let cvs: SavedCvSummary[] = [];
 let loadError = false;
 if (supabase) {
-  const verifiedUser = await safeGetUser(supabase);
+  const verifiedUser = await safeGetUser(supabase, Astro.locals);
   if (verifiedUser) {
     try {
       cvs = await listCvs(supabase, verifiedUser.id);
-    } catch {
+    } catch (error) {
+      // S-07 (added in review): this is the path users actually hit for their library — the GET
+      // API route may be cold in production. Same failure class as `api/cv/index:load`.
+      scheduleErrorReport(error, { error_location: "pages/dashboard:listCvs" }, Astro.locals);
       loadError = true;
     }
   } else {

@@ -20,6 +20,7 @@ const mocks = vi.hoisted(() => ({
   createCv: vi.fn(),
   listCvs: vi.fn(),
   track: vi.fn(),
+  reportError: vi.fn(),
 }));
 
 vi.mock("@/lib/supabase", () => ({
@@ -34,6 +35,7 @@ vi.mock("@/lib/services/cv-repository", () => ({
 
 vi.mock("@/lib/observability", () => ({
   track: mocks.track,
+  reportError: mocks.reportError,
 }));
 
 import { GET, POST } from "@/pages/api/cv/index";
@@ -89,7 +91,17 @@ beforeEach(() => {
   mocks.createCv.mockReset();
   mocks.listCvs.mockReset();
   mocks.track.mockReset();
+  mocks.reportError.mockReset();
 });
+
+/** Helper: the error_location of the single report a test expects. */
+function reportedLocation(): string {
+  const call = mocks.reportError.mock.calls[0] as [unknown, Record<string, unknown>] | undefined;
+  if (!call) {
+    throw new Error("expected exactly one error report");
+  }
+  return call[1].error_location as string;
+}
 
 afterEach(() => {
   vi.clearAllMocks();
@@ -115,6 +127,24 @@ describe("POST /api/cv — guards", () => {
     expect(mocks.createCv).not.toHaveBeenCalled();
   });
 
+  /**
+   * S-07 "ours, not theirs": user-input and auth rejections are normal traffic, not defects.
+   * Reporting them would bury the real failures within a week.
+   */
+  it("reports nothing for validation, auth, or oversize rejections", async () => {
+    const oversized = new Request("http://localhost/api/cv", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "content-length": "999999" },
+      body: JSON.stringify(validSavePayload),
+    });
+
+    await POST(makeContext({ user: null, request: jsonRequest("POST", validSavePayload) })); // 401
+    await POST(makeContext({ user: { id: "user-123" }, request: jsonRequest("POST", { foo: 1 }) })); // 400
+    await POST(makeContext({ user: { id: "user-123" }, request: oversized })); // 413
+
+    expect(mocks.reportError).not.toHaveBeenCalled();
+  });
+
   it("returns 400 with a save_failed bucket for an invalid body", async () => {
     const response = await POST(makeContext({ user: { id: "user-123" }, request: jsonRequest("POST", { foo: 1 }) }));
 
@@ -136,6 +166,8 @@ describe("POST /api/cv — guards", () => {
     const body = await readJson(response);
     expect(body.ok).toBe(false);
     expect(body.error).toBe("save_failed");
+    expect(mocks.reportError).toHaveBeenCalledOnce();
+    expect(reportedLocation()).toBe("api/cv/index:save");
     expect(mocks.track).not.toHaveBeenCalled();
   });
 
@@ -185,6 +217,9 @@ describe("GET /api/cv — list", () => {
 
     expect(response.status).toBe(500);
     expect((await readJson(response)).error).toBe("load_failed");
+    // S-07: the envelope above is unchanged; the report is purely additive.
+    expect(mocks.reportError).toHaveBeenCalledOnce();
+    expect(reportedLocation()).toBe("api/cv/index:load");
   });
 
   it("returns 200 with the user's CV summaries", async () => {

@@ -4,6 +4,7 @@ import type { GeneratedCvDraft } from "@/lib/cv-draft";
 import type { CvQuestionnaireAnswers } from "@/lib/cv-questionnaire";
 import { getCvSaveErrorMessages } from "@/lib/cv-save-messages";
 import type { UiLocale } from "@/lib/i18n/locales";
+import { reportErrorClient } from "@/lib/observability/client.browser";
 import type { SaveCvResponse } from "@/types";
 
 export type CvSaveStatus = "idle" | "saving" | "saved" | "error";
@@ -23,6 +24,33 @@ export interface CvSaveController {
 }
 
 const CV_ENDPOINT = "/api/cv";
+
+/**
+ * Network seam for the save request, extracted so it is testable without a DOM (same shape as
+ * `postCvFeedback` from S-05). Returns the parsed envelope, or `null` when the request never
+ * completed — transport failure, or a response that was not usable JSON.
+ *
+ * S-07: `null` is the ONLY path that reports. A non-ok envelope means the server answered and
+ * already reported the failure itself with a precise location (p2); reporting it again here would
+ * double-count every save failure.
+ */
+export async function postCvSave(
+  url: string,
+  method: "POST" | "PUT",
+  payload: Record<string, unknown>,
+): Promise<SaveCvResponse | null> {
+  try {
+    const response = await fetch(url, {
+      method,
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    });
+    return (await response.json()) as SaveCvResponse;
+  } catch (caught) {
+    reportErrorClient(caught, { error_location: "hooks/useCvSave:transport" });
+    return null;
+  }
+}
 
 /**
  * Owns saved-CV identity and persistence for the editor (S-06).
@@ -61,31 +89,25 @@ export function useCvSave(init?: { cvId?: string; title?: string; locale?: UiLoc
       const trimmed = title.trim();
       const url = cvId ? `${CV_ENDPOINT}/${cvId}` : CV_ENDPOINT;
       const method = cvId ? "PUT" : "POST";
-      try {
-        const response = await fetch(url, {
-          method,
-          headers: { "Content-Type": "application/json" },
-          // Empty title → undefined so the server fills a default (create) or keeps it (update).
-          body: JSON.stringify({ id: cvId, title: trimmed || undefined, draft, answers }),
-        });
-        const data = (await response.json()) as SaveCvResponse;
-        if (data.ok) {
-          setCvId(data.cv.id);
-          setTitleState(data.cv.title);
-          setStatus("saved");
-        } else {
-          // Localize the stable error bucket (server prose is ignored on the client).
-          const bucket = data.error as string;
-          setError(
-            Object.prototype.hasOwnProperty.call(errors, bucket)
-              ? errors[bucket as keyof typeof errors]
-              : errors.service_unavailable,
-          );
-          setStatus("error");
-        }
-      } catch {
+      // Empty title → undefined so the server fills a default (create) or keeps it (update).
+      const data = await postCvSave(url, method, { id: cvId, title: trimmed || undefined, draft, answers });
+
+      if (data === null) {
         // Network failure or non-JSON response — temporary, not the user's fault.
         setError(errors.service_unavailable);
+        setStatus("error");
+      } else if (data.ok) {
+        setCvId(data.cv.id);
+        setTitleState(data.cv.title);
+        setStatus("saved");
+      } else {
+        // Localize the stable error bucket (server prose is ignored on the client).
+        const bucket = data.error as string;
+        setError(
+          Object.prototype.hasOwnProperty.call(errors, bucket)
+            ? errors[bucket as keyof typeof errors]
+            : errors.service_unavailable,
+        );
         setStatus("error");
       }
     },

@@ -2,6 +2,7 @@ import posthog from "posthog-js";
 import { PUBLIC_POSTHOG_HOST, PUBLIC_POSTHOG_KEY } from "astro:env/client";
 
 import type { FunnelEvent } from "./events";
+import type { ClientErrorLocation } from "./locations";
 import { scrub, type TrackProps } from "./scrub";
 
 // Browser-side mirror of the server recording contract in ./index.ts. Kept self-contained
@@ -13,7 +14,8 @@ const ERROR_EVENT = "observability_error";
 export type ClientObservabilityEvent = "observability_smoke" | typeof ERROR_EVENT | FunnelEvent;
 
 export interface ClientErrorContext extends TrackProps {
-  error_location: string;
+  /** Typed rather than `string` so a typo cannot silently split a PostHog bucket. */
+  error_location: ClientErrorLocation;
 }
 
 interface InitOptions {
@@ -37,8 +39,40 @@ interface ListenerTarget {
   addEventListener(type: string, listener: (event: unknown) => void): void;
 }
 
+// S-07: collapse repeats of the same failure. The unbounded risk is genuinely client-side — a
+// render loop, a retry storm, or a listener firing on every frame can emit without limit, whereas
+// server emits are bounded by request rate (and by S-06's quota guard). The key is `error_type` +
+// `error_location` and nothing else: anything message-derived would put content into a comparison
+// the scrubber never sees.
+const ERROR_DEDUPE_WINDOW_MS = 10_000;
+const recentErrorKeys = new Map<string, number>();
+
 let initialized = false;
 let handlersInstalled = false;
+
+/**
+ * Record the key and report whether this error was already captured inside the window. Also prunes
+ * expired keys, so the map stays bounded by the number of *distinct* failures in a 10s window
+ * rather than growing for the life of the page.
+ */
+function isDuplicateError(key: string, now: number): boolean {
+  for (const [seenKey, seenAt] of recentErrorKeys) {
+    if (now - seenAt >= ERROR_DEDUPE_WINDOW_MS) {
+      recentErrorKeys.delete(seenKey);
+    }
+  }
+
+  if (recentErrorKeys.has(key)) {
+    return true;
+  }
+  recentErrorKeys.set(key, now);
+  return false;
+}
+
+/** Test seam: drop the dedupe window so specs can assert suppression and re-emission separately. */
+export function resetClientErrorDedupe(): void {
+  recentErrorKeys.clear();
+}
 
 function errorType(error: unknown): string {
   if (error instanceof Error && error.name.trim()) {
@@ -99,11 +133,25 @@ export function trackClient(event: ClientObservabilityEvent, props: TrackProps =
   captureClient(event, props);
 }
 
-/** Report a browser error carrying only its type and location — never message or stack content. */
+/**
+ * Report a browser error carrying only its type and location — never message or stack content.
+ * Repeats of the same type+location inside `ERROR_DEDUPE_WINDOW_MS` are suppressed.
+ */
 export function reportErrorClient(error: unknown, context: ClientErrorContext): void {
+  if (!initialized) {
+    // Bail before the dedupe bookkeeping: an error thrown before init is never captured, and
+    // recording its key here would suppress the *first* real capture of the same failure.
+    return;
+  }
+
+  const type = errorType(error);
+  if (isDuplicateError(`${type}|${context.error_location}`, Date.now())) {
+    return;
+  }
+
   captureClient(ERROR_EVENT, {
     ...context,
-    error_type: errorType(error),
+    error_type: type,
   });
 }
 
@@ -125,7 +173,7 @@ export function installBrowserErrorHandlers(target: ListenerTarget = window): vo
 
   target.addEventListener("unhandledrejection", (event) => {
     const { reason } = event as BrowserRejectionEvent;
-    reportErrorClient(reason, { error_location: "unhandledrejection" });
+    reportErrorClient(reason, { error_location: "client:unhandledrejection" });
   });
 }
 

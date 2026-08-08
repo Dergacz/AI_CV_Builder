@@ -2,6 +2,7 @@ import { createServerClient, parseCookieHeader } from "@supabase/ssr";
 import type { SupabaseClient, User } from "@supabase/supabase-js";
 import type { AstroCookies } from "astro";
 import { SUPABASE_URL, SUPABASE_KEY } from "astro:env/server";
+import { scheduleErrorReport, type SchedulableLocals } from "@/lib/observability/schedule";
 import type { Database } from "@/db/database.types";
 
 export function createClient(requestHeaders: Headers, cookies: AstroCookies) {
@@ -36,29 +37,37 @@ export function createClient(requestHeaders: Headers, cookies: AstroCookies) {
  * return null. Any other failure is also swallowed to null with a breadcrumb so
  * genuine misconfig stays visible.
  */
-export async function safeGetUser(supabase: SupabaseClient<Database>): Promise<User | null> {
+export async function safeGetUser(
+  supabase: SupabaseClient<Database>,
+  locals?: SchedulableLocals,
+): Promise<User | null> {
   try {
     const {
       data: { user },
       error,
     } = await supabase.auth.getUser();
     if (error) {
-      await clearStaleSession(supabase);
+      await clearStaleSession(supabase, locals);
       return null;
     }
     return user ?? null;
   } catch {
-    await clearStaleSession(supabase);
+    await clearStaleSession(supabase, locals);
     return null;
   }
 }
 
-async function clearStaleSession(supabase: SupabaseClient<Database>): Promise<void> {
+async function clearStaleSession(supabase: SupabaseClient<Database>, locals?: SchedulableLocals): Promise<void> {
   try {
     await supabase.auth.signOut();
-  } catch {
-    // Best-effort cookie purge; nothing actionable if sign-out itself fails.
-    // eslint-disable-next-line no-console
-    console.warn("supabase/safeGetUser: failed to clear stale session");
+  } catch (error) {
+    // S-07: replaces a pre-F-01 `console.warn`. A failed purge means the poisoned cookies survive
+    // and this path re-runs on every subsequent request, so a sustained failure is worth seeing.
+    //
+    // `locals` is optional because middleware calls `safeGetUser` BEFORE it resolves the request's
+    // observability identity — and `reportError` no-ops without a distinct_id. So the middleware
+    // path stays unreported by construction; route call sites, which run after identity exists,
+    // do report. Resolving identity earlier would mean resolving it twice per request.
+    scheduleErrorReport(error, { error_location: "lib/supabase:safeGetUser" }, locals);
   }
 }

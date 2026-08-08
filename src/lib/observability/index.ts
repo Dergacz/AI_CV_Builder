@@ -1,6 +1,7 @@
 import { POSTHOG_API_KEY, POSTHOG_HOST } from "astro:env/server";
 
 import type { FunnelEvent } from "./events";
+import type { ServerErrorLocation } from "./locations";
 import { scrub, type SafeProps, type TrackProps } from "./scrub";
 
 const DEFAULT_POSTHOG_HOST = "https://eu.i.posthog.com";
@@ -23,7 +24,8 @@ export interface Identity {
 }
 
 export interface ErrorContext extends TrackProps {
-  error_location: string;
+  /** Typed rather than `string` so a typo cannot silently split a PostHog bucket. */
+  error_location: ServerErrorLocation;
 }
 
 interface PostHogPayload {

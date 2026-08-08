@@ -89,12 +89,20 @@ describe("server observability", () => {
     vi.stubGlobal("fetch", fetchMock);
     const { reportError } = await import("./index");
 
-    await reportError(new TypeError("secret answer leaked"), { error_location: "generate" }, { distinctId: "anon" });
+    await reportError(
+      new TypeError("secret answer leaked"),
+      { error_location: "api/cv/generate:recordGeneration" },
+      { distinctId: "anon" },
+    );
 
     const body = JSON.parse(capturedBody) as Record<string, unknown>;
     expect(body).toMatchObject({
       event: "observability_error",
-      properties: { error_type: "TypeError", error_location: "generate", $process_person_profile: false },
+      properties: {
+        error_type: "TypeError",
+        error_location: "api/cv/generate:recordGeneration",
+        $process_person_profile: false,
+      },
     });
     expect(JSON.stringify(body)).not.toContain("secret answer leaked");
     expect(JSON.stringify(body)).not.toContain("stack");
