@@ -384,35 +384,35 @@ None. No schema changes, no migrations, no new environment variables, no changes
 
 #### Automated
 
-- [x] 3.1 Unit tests pass: `npm test`
-- [x] 3.2 Type checking passes: `npx astro sync && npx astro check`
-- [x] 3.3 Linting passes: `npm run lint`
-- [x] 3.4 One test per failure mode: distinct location, unchanged bucket
-- [x] 3.5 `generateCvDraft` works with no reporter supplied
-- [x] 3.6 Successful generation reports zero times
-- [x] 3.7 No answer or draft content reaches the reporter
+- [x] 3.1 Unit tests pass: `npm test` — 85cd240
+- [x] 3.2 Type checking passes: `npx astro sync && npx astro check` — 85cd240
+- [x] 3.3 Linting passes: `npm run lint` — 85cd240
+- [x] 3.4 One test per failure mode: distinct location, unchanged bucket — 85cd240
+- [x] 3.5 `generateCvDraft` works with no reporter supplied — 85cd240
+- [x] 3.6 Successful generation reports zero times — 85cd240
+- [x] 3.7 No answer or draft content reaches the reporter — 85cd240
 
 #### Manual
 
-- [x] 3.8 Invalid `OPENAI_API_KEY` shows existing copy and produces one event at the provider-response location
-- [x] 3.9 Answer and prompt content absent from the captured event
+- [x] 3.8 Invalid `OPENAI_API_KEY` shows existing copy and produces one event at the provider-response location — 85cd240
+- [x] 3.9 Answer and prompt content absent from the captured event — 85cd240
 
 ### Phase 4: Client surfaces
 
 #### Automated
 
-- [ ] 4.1 Unit tests pass: `npm test`
-- [ ] 4.2 Type checking passes: `npx astro sync && npx astro check`
-- [ ] 4.3 Linting passes: `npm run lint`
-- [ ] 4.4 Production build succeeds: `npm run build`
-- [ ] 4.5 Export failure reports once with classification-derived location; copy unchanged
-- [ ] 4.6 Save/delete/generate transport failure reports once; quota-refused and auth-rejected report zero times
-- [ ] 4.7 Dedupe collapses a repeated identical client failure
+- [x] 4.1 Unit tests pass: `npm test`
+- [x] 4.2 Type checking passes: `npx astro sync && npx astro check`
+- [x] 4.3 Linting passes: `npm run lint`
+- [x] 4.4 Production build succeeds: `npm run build`
+- [x] 4.5 Export failure reports once with classification-derived location; copy unchanged
+- [x] 4.6 Save/delete/generate transport failure reports once; quota-refused and auth-rejected report zero times
+- [x] 4.7 Dedupe collapses a repeated identical client failure
 
 #### Manual
 
-- [ ] 4.8 Forced export failure shows existing copy and produces exactly one PostHog error
-- [ ] 4.9 Offline mid-save produces one error with no CV content
-- [ ] 4.10 Repeated rapid failure produces one capture, not many
-- [ ] 4.11 With `PUBLIC_POSTHOG_KEY` unset, every surface behaves normally and emits nothing
-- [ ] 4.12 Roadmap S-07 status updated to `done` with a Delivered summary
+- [x] 4.8 Forced export failure shows existing copy and produces exactly one PostHog error
+- [x] 4.9 Offline mid-save produces one error with no CV content
+- [x] 4.10 Repeated rapid failure produces one capture, not many
+- [x] 4.11 With `PUBLIC_POSTHOG_KEY` unset, every surface behaves normally and emits nothing
+- [x] 4.12 Roadmap S-07 status updated to `done` with a Delivered summary

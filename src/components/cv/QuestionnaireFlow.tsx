@@ -16,7 +16,7 @@ import CvEditor from "@/components/cv/CvEditor";
 import { TextAreaField, TextField } from "@/components/cv/CvFormFields";
 import { useCvDraftEditor } from "@/components/hooks/useCvDraftEditor";
 import { useCvSave } from "@/components/hooks/useCvSave";
-import { trackClient } from "@/lib/observability/client.browser";
+import { reportErrorClient, trackClient } from "@/lib/observability/client.browser";
 import { cn } from "@/lib/utils";
 
 type StepKey = "basics" | "experienceEducation" | "skillsLanguages" | "extraContext" | "review";
@@ -24,6 +24,30 @@ type RequiredErrors = Partial<Record<"fullName" | "targetRoleOrGoal", string>>;
 type GenerationStatus = "idle" | "loading" | "success" | "error";
 
 const GENERATE_ENDPOINT = "/api/cv/generate";
+
+/**
+ * Network seam for the generate request, extracted so it is testable without a DOM. Returns the
+ * parsed envelope, or `null` when the request never completed.
+ *
+ * S-07: `null` is the ONLY path that reports, and it is the most valuable client report in the
+ * slice. Every failure the SERVER sees is already reported by p3 with its precise mode — but if
+ * the request never lands, or its answer never arrives, the entire AI surface is dark on both
+ * sides. Non-ok envelopes (including the 429 daily-limit wall, which has its own
+ * `generation_limit_reached` event) are deliberately not reported here.
+ */
+export async function postCvGenerate(answers: CvQuestionnaireAnswers): Promise<GenerateDraftResponse | null> {
+  try {
+    const response = await fetch(GENERATE_ENDPOINT, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(answers),
+    });
+    return (await response.json()) as GenerateDraftResponse;
+  } catch (caught) {
+    reportErrorClient(caught, { error_location: "components/QuestionnaireFlow:transport" });
+    return null;
+  }
+}
 
 const STEP_KEYS: StepKey[] = ["basics", "experienceEducation", "skillsLanguages", "extraContext", "review"];
 
@@ -63,34 +87,29 @@ export default function QuestionnaireFlow({ locale }: { locale: UiLocale }) {
     trackClient("funnel_questionnaire_completed", { locale });
     setStatus("loading");
     setGenerationError(null);
-    try {
-      const response = await fetch(GENERATE_ENDPOINT, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(answers),
-      });
-      const data = (await response.json()) as GenerateDraftResponse;
-      if (data.ok) {
-        setDraft(data.draft);
-        setGenerationEventId(data.generationEventId);
-        setStatus("success");
-        // Seed an editable default title now that the answers are final.
-        if (!save.title.trim()) {
-          save.setTitle(defaultCvTitle(answers, new Date()));
-        }
-      } else {
-        // Localize the stable error bucket (server prose is ignored on the client).
-        const bucket = data.error as string;
-        setGenerationError(
-          Object.prototype.hasOwnProperty.call(genErrors, bucket)
-            ? genErrors[bucket as keyof typeof genErrors]
-            : genErrors.service_unavailable,
-        );
-        setStatus("error");
-      }
-    } catch {
+
+    const data = await postCvGenerate(answers);
+
+    if (data === null) {
       // Network failure or non-JSON response — treat as a temporary service issue.
       setGenerationError(genErrors.service_unavailable);
+      setStatus("error");
+    } else if (data.ok) {
+      setDraft(data.draft);
+      setGenerationEventId(data.generationEventId);
+      setStatus("success");
+      // Seed an editable default title now that the answers are final.
+      if (!save.title.trim()) {
+        save.setTitle(defaultCvTitle(answers, new Date()));
+      }
+    } else {
+      // Localize the stable error bucket (server prose is ignored on the client).
+      const bucket = data.error as string;
+      setGenerationError(
+        Object.prototype.hasOwnProperty.call(genErrors, bucket)
+          ? genErrors[bucket as keyof typeof genErrors]
+          : genErrors.service_unavailable,
+      );
       setStatus("error");
     }
   }

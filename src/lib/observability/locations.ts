@@ -61,12 +61,12 @@ export type ClientErrorLocation =
   // PDF export — split by `classifyExportError`'s verdict (S-07 p4).
   | "hooks/useCvExport:assetFetch"
   | "hooks/useCvExport:render"
-  // CV mutation + transport failures (S-07 p4).
+  // CV mutation + transport failures (S-07 p4). Transport ONLY — a non-ok response is already
+  // reported server-side with a precise location (p2/p3), so reporting it here as well would
+  // double-count every server-side failure and make the rates unusable.
   | "hooks/useCvSave:transport"
-  | "hooks/useCvSave:server"
   | "components/SavedCvList:delete"
   | "components/QuestionnaireFlow:transport"
-  | "components/QuestionnaireFlow:server"
   // Global browser hooks. `unhandledrejection` has no filename/lineno to synthesize from.
   | "client:unhandledrejection"
   | BrowserRuntimeErrorLocation;

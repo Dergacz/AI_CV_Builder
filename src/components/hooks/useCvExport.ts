@@ -5,8 +5,8 @@ import type { CvOutputLanguage } from "@/lib/cv-questionnaire";
 import { getCvExportCopy } from "@/lib/cv-export-copy";
 import type { UiLocale } from "@/lib/i18n/locales";
 import { buildCvPdfFilename } from "@/lib/cv-export-filename";
-import { classifyExportError } from "@/lib/cv-export-error";
-import { trackClient } from "@/lib/observability/client.browser";
+import { classifyExportError, exportErrorLocation } from "@/lib/cv-export-error";
+import { reportErrorClient, trackClient } from "@/lib/observability/client.browser";
 
 export type CvExportStatus = "idle" | "exporting" | "done" | "error";
 
@@ -70,8 +70,14 @@ export function useCvExport(locale: UiLocale): CvExportController {
         // Funnel step 8: PDF exported — the terminal step. Pure client (no server round-trip).
         trackClient("funnel_pdf_exported", { locale });
       } catch (caught) {
-        setError(getCvExportCopy(locale).errors[classifyExportError(caught)]);
+        const bucket = classifyExportError(caught);
+        setError(getCvExportCopy(locale).errors[bucket]);
         setStatus("error");
+        // S-07: export is the terminal funnel step and runs entirely in the browser — no server
+        // ever sees this failure, so without this report a silent loss at the last inch of the
+        // funnel is invisible. Reuse the classification rather than re-deriving it: a font/asset
+        // fetch failure is a dependency problem, a render failure is ours.
+        reportErrorClient(caught, { error_location: exportErrorLocation(bucket) });
       }
     },
     [locale],

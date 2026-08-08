@@ -37,7 +37,7 @@ The CV builder works mechanically — landing → questionnaire → AI generatio
 | S-04  | google-signin-linking         | sign in with Google into their one existing account (no duplicate) | S-02          | FR-003, FR-004, US-02 | done     |
 | S-05  | post-generation-feedback      | mark a generated CV Helpful / Not-Helpful with an optional comment | F-01          | FR-010, US-01         | done     |
 | S-06  | daily-generation-limit        | be limited to 100 generations/day with a clear message; cross-account abuse capped | F-02          | FR-012                | done     |
-| S-07  | centralized-error-monitoring  | (operator) see failures across all 4 surfaces, scrubbed of sensitive content | F-01          | FR-009                | proposed |
+| S-07  | centralized-error-monitoring  | (operator) see failures across all 4 surfaces, scrubbed of sensitive content | F-01          | FR-009                | done     |
 | S-08  | account-deletion              | permanently delete their account and all associated data via explicit confirmation | F-01          | FR-011, US-03         | proposed |
 | S-09  | legal-pages-and-consent-record | read the real Privacy + Terms pages and have their accepted policy version + acceptance timestamp recorded | S-03          | FR-005, FR-006, FR-007 | done     |
 
@@ -190,7 +190,9 @@ Foundations below assume these are present and do NOT re-scaffold them.
 - **Blockers:** —
 - **Unknowns:** —
 - **Risk:** Error payloads are the easiest place to leak raw answers/draft content to a third-party monitor; mandatory field scrubbing (reusing F-01's contract) is the load-bearing requirement — report only error type, location, and non-sensitive metadata.
-- **Status:** proposed
+- **Delivered:** a closed typed `ErrorLocation` union (`src/lib/observability/locations.ts`) so a mistyped location is a compile error rather than a silently split PostHog bucket; a `waitUntil`-else-detached emit scheduler so broadening from 1 to ~18 report sites puts no PostHog round-trip on any response. **Backend:** a middleware catch-all around `next()` that reports and re-throws the *original* value (so Astro's error handling is unperturbed) and sends `routePattern`, never `pathname` — keeping CV ids out of the monitor; plus explicit reports at all six previously-bare `catch {}` blocks in the CV routes, and the two pre-F-01 `console.warn` breadcrumbs promoted to real reports. **AI:** `cv-generation.ts` now distinguishes its **seven** failure modes via an injected reporter (kept injected so the service stays dependency-free), with the provider's HTTP status attached on the non-ok path — "OpenAI is down" is finally distinguishable from "the model returned unparseable output". **Client:** PDF export reports with a location derived from the same verdict as the user-facing copy; the save / delete / generate fetches report **transport failures only**, since every non-ok response is already reported server-side. Emission is deduped client-side on `error_type` + `error_location` within 10s. Every user-facing response, status code, and error bucket is unchanged — this slice adds observation only. 36 new unit/contract tests (283 total), incl. a privacy assertion per surface.
+- **Not covered:** React island render crashes (declined — `window.onerror` does not catch them, so a crashed island still blanks silently) and feedback-submit failures (declined; fail-soft by design). `lib/supabase:safeGetUser` reports from route call sites but not from middleware, which runs before the observability identity is resolved. Validation, auth, 404, and quota refusals are deliberately unreported under the "ours, not theirs" rule — a validation schema that is wrong for real users will read as silence, not a spike.
+- **Status:** done
 
 ### S-08: Permanent account deletion
 
@@ -233,7 +235,7 @@ Foundations below assume these are present and do NOT re-scaffold them.
 | S-04       | google-signin-linking         | Add Google sign-in with verified-email account linking | no                    | Run after S-02 |
 | S-05       | post-generation-feedback      | Add Helpful/Not-Helpful feedback after generation      | no                    | Run after F-01 |
 | S-06       | daily-generation-limit        | Enforce 100/day limit + cross-account abuse guard      | no                    | Shipped 2026-08-07; thresholds set at 100/day + 500/hour |
-| S-07       | centralized-error-monitoring  | Wire error monitoring across all 4 surfaces with scrubbing | no                    | Run after F-01 |
+| S-07       | centralized-error-monitoring  | Wire error monitoring across all 4 surfaces with scrubbing | no                    | Shipped 2026-08-08; transport-only on the client to avoid double-counting |
 | S-08       | account-deletion              | Self-service permanent account + data deletion         | no                    | Run after F-01 |
 | S-09       | legal-pages-and-consent-record | Author Privacy + Terms pages and record accepted version + timestamp | no                    | Run after S-03; Privacy copy waits on data-flow audit (Open Q1) |
 
@@ -259,6 +261,7 @@ This table is the clean handoff to Jira/Linear or any MCP-backed backlog. One ro
 
 ## Done
 
+- **S-07: (operator) failures across all four surfaces — frontend, backend/API, AI generation, PDF export — are reported to the centralized monitor, with request bodies, prompts, answers, and draft/CV content structurally incapable of leaving the product.** — Shipped 2026-08-08 on branch `centralized-error-monitoring` (p1–p4: `12a0ee2`, `6ab0a13`, `85cd240`, + p4); all four phases automated- and manually-verified, `/10x-archive` pending. Lesson: the plan said the client should report transport failures *and* non-ok responses — but phases 2 and 3 had already put a precise server-side report on every one of those responses, so following the plan literally would have double-counted the most common failures and made the rates unusable. Coverage plans written per-surface should state, per site, *who already reports it*; "add reporting here" is not the same question as "is this failure currently invisible".
 - **S-01: (operator) a real user moving landing → registration → email confirmation → questionnaire started → questionnaire completed → CV generated → CV saved → PDF exported is recorded as 8 distinct tracked events, so step-to-step conversion and drop-off are visible.** — Archived 2026-06-15 → `context/archive/2026-06-12-funnel-event-instrumentation/`. Lesson: —.
 - **S-09: a visitor can open real Privacy + Terms pages at `/terms` and `/privacy` (the S-03 placeholder links now resolve), reach them from a site-wide footer, and every registration records the accepted policy version + acceptance timestamp for an auditable proof-of-consent.** — Shipped 2026-06-19 on branch `legal-pages-and-consent-record`; archival pending `/10x-archive`. Lesson: —.
 - **S-04: a user can sign up / sign in with Google alongside email/password; a Google sign-in whose verified email matches an existing account resolves to that one profile (no duplicate) and satisfies verification without a separate step.** — Automated work shipped 2026-06-22 on branch `google-signin-linking` (p1–p5: `2787f45`, `b177e20`, `e3b02cc`, `e9d93a4`, `4da4fff`); real-Google manual verification + `/10x-archive` pending. Lesson: —.

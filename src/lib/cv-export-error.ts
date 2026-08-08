@@ -30,3 +30,14 @@ function messageOf(error: unknown): string {
 export function classifyExportError(error: unknown): ExportErrorBucket {
   return FETCH_FAILURE.test(messageOf(error)) ? "service_unavailable" : "export_failed";
 }
+
+/**
+ * S-07: map an already-classified export failure onto its monitor location. Derived from the same
+ * verdict the user-facing copy uses, so the two can never disagree — a font/asset fetch failure is
+ * a dependency problem, anything else is our render.
+ */
+export function exportErrorLocation(
+  bucket: ExportErrorBucket,
+): "hooks/useCvExport:assetFetch" | "hooks/useCvExport:render" {
+  return bucket === "service_unavailable" ? "hooks/useCvExport:assetFetch" : "hooks/useCvExport:render";
+}
