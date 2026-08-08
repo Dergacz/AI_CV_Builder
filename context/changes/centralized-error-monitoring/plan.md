@@ -401,18 +401,18 @@ None. No schema changes, no migrations, no new environment variables, no changes
 
 #### Automated
 
-- [x] 4.1 Unit tests pass: `npm test`
-- [x] 4.2 Type checking passes: `npx astro sync && npx astro check`
-- [x] 4.3 Linting passes: `npm run lint`
-- [x] 4.4 Production build succeeds: `npm run build`
-- [x] 4.5 Export failure reports once with classification-derived location; copy unchanged
-- [x] 4.6 Save/delete/generate transport failure reports once; quota-refused and auth-rejected report zero times
-- [x] 4.7 Dedupe collapses a repeated identical client failure
+- [x] 4.1 Unit tests pass: `npm test` — b8c85a6
+- [x] 4.2 Type checking passes: `npx astro sync && npx astro check` — b8c85a6
+- [x] 4.3 Linting passes: `npm run lint` — b8c85a6
+- [x] 4.4 Production build succeeds: `npm run build` — b8c85a6
+- [x] 4.5 Export failure reports once with classification-derived location; copy unchanged — b8c85a6
+- [x] 4.6 Save/delete/generate transport failure reports once; quota-refused and auth-rejected report zero times — b8c85a6
+- [x] 4.7 Dedupe collapses a repeated identical client failure — b8c85a6
 
 #### Manual
 
-- [x] 4.8 Forced export failure shows existing copy and produces exactly one PostHog error
-- [x] 4.9 Offline mid-save produces one error with no CV content
-- [x] 4.10 Repeated rapid failure produces one capture, not many
-- [x] 4.11 With `PUBLIC_POSTHOG_KEY` unset, every surface behaves normally and emits nothing
-- [x] 4.12 Roadmap S-07 status updated to `done` with a Delivered summary
+- [x] 4.8 Forced export failure shows existing copy and produces exactly one PostHog error — b8c85a6
+- [x] 4.9 Offline mid-save produces one error with no CV content — b8c85a6
+- [x] 4.10 Repeated rapid failure produces one capture, not many — b8c85a6
+- [x] 4.11 With `PUBLIC_POSTHOG_KEY` unset, every surface behaves normally and emits nothing — b8c85a6
+- [x] 4.12 Roadmap S-07 status updated to `done` with a Delivered summary — b8c85a6
