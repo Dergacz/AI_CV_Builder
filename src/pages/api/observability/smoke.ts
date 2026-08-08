@@ -57,7 +57,7 @@ const handler: APIRoute = async (context) => {
   // Fire both emits concurrently so the worst-case added latency stays at one timeout, not two.
   await Promise.all([
     track("observability_smoke", { surface: "server" }, identity),
-    reportError(new Error("smoke-test"), { error_location: "smoke" }, identity),
+    reportError(new Error("smoke-test"), { error_location: "api/observability/smoke:smoke" }, identity),
   ]);
 
   return json(200, { ok: true });

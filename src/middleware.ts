@@ -2,6 +2,7 @@ import { defineMiddleware } from "astro:middleware";
 import { UI_LOCALE_COOKIE, resolveUiLocale } from "@/lib/i18n/locales";
 import { trackEmailConfirmedOnce } from "@/lib/observability/funnel";
 import { resolveRequestIdentity } from "@/lib/observability/identity";
+import { scheduleEmit } from "@/lib/observability/schedule";
 import { createClient, safeGetUser } from "@/lib/supabase";
 
 const PROTECTED_ROUTES = ["/dashboard", "/cv"];
@@ -25,17 +26,10 @@ export const onRequest = defineMiddleware(async (context, next) => {
   // (guarded once-only). The marker cookie is set synchronously inside the helper before the
   // PostHog fetch, so we fire-and-forget the emit — via Cloudflare's waitUntil when available,
   // else let it run detached (dev/node) — to keep the up-to-1.5s round-trip off the response path.
-  const emailConfirmed = trackEmailConfirmedOnce(
-    context.locals.user,
-    context.cookies,
-    context.locals.observability,
-    context.locals.locale,
-  ).catch(() => false);
-  const cloudflareContext = (context.locals as { cfContext?: { waitUntil?(promise: Promise<unknown>): void } })
-    .cfContext;
-  if (cloudflareContext?.waitUntil) {
-    cloudflareContext.waitUntil(emailConfirmed);
-  }
+  scheduleEmit(
+    trackEmailConfirmedOnce(context.locals.user, context.cookies, context.locals.observability, context.locals.locale),
+    context.locals,
+  );
 
   if (PROTECTED_ROUTES.some((route) => context.url.pathname.startsWith(route))) {
     const user = context.locals.user;

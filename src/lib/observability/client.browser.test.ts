@@ -109,11 +109,11 @@ describe("client observability", () => {
     const { initClientObservability, reportErrorClient } = await loadClient();
     initClientObservability({ key: "phc_public", installErrorHandlers: false });
 
-    reportErrorClient(new TypeError("secret answer leaked"), { error_location: "browser" });
+    reportErrorClient(new TypeError("secret answer leaked"), { error_location: "client:unhandledrejection" });
 
     expect(captureMock).toHaveBeenCalledWith("observability_error", {
       $process_person_profile: false,
-      error_location: "browser",
+      error_location: "client:unhandledrejection",
       error_type: "TypeError",
     });
     expect(JSON.stringify(captureMock.mock.calls)).not.toContain("secret answer leaked");
@@ -140,5 +140,67 @@ describe("client observability", () => {
       error_type: "RangeError",
     });
     expect(JSON.stringify(captureMock.mock.calls)).not.toContain("secret");
+  });
+});
+
+/**
+ * S-07 dedupe. The unbounded emission risk is client-side — a render loop or a retry storm can
+ * fire without limit, unlike server emits which are bounded by request rate.
+ */
+describe("client error dedupe", () => {
+  beforeEach(() => {
+    // `loadClient` re-imports the module, so the dedupe map starts empty per test.
+    vi.resetModules();
+    captureMock.mockReset();
+    initMock.mockReset();
+  });
+
+  it("suppresses a repeat of the same error type and location inside the window", async () => {
+    const { initClientObservability, reportErrorClient } = await loadClient();
+    initClientObservability({ key: "phc_public", installErrorHandlers: false });
+
+    reportErrorClient(new TypeError("boom"), { error_location: "hooks/useCvExport:render" });
+    reportErrorClient(new TypeError("boom again"), { error_location: "hooks/useCvExport:render" });
+    reportErrorClient(new TypeError("and again"), { error_location: "hooks/useCvExport:render" });
+
+    expect(captureMock).toHaveBeenCalledOnce();
+  });
+
+  it("does not suppress a different error type or a different location", async () => {
+    const { initClientObservability, reportErrorClient } = await loadClient();
+    initClientObservability({ key: "phc_public", installErrorHandlers: false });
+
+    reportErrorClient(new TypeError("boom"), { error_location: "hooks/useCvExport:render" });
+    // Same location, different type.
+    reportErrorClient(new RangeError("boom"), { error_location: "hooks/useCvExport:render" });
+    // Same type, different location.
+    reportErrorClient(new TypeError("boom"), { error_location: "hooks/useCvSave:transport" });
+
+    expect(captureMock).toHaveBeenCalledTimes(3);
+  });
+
+  it("re-emits after the window is cleared", async () => {
+    const { initClientObservability, reportErrorClient, resetClientErrorDedupe } = await loadClient();
+    initClientObservability({ key: "phc_public", installErrorHandlers: false });
+
+    reportErrorClient(new TypeError("boom"), { error_location: "hooks/useCvExport:render" });
+    resetClientErrorDedupe();
+    reportErrorClient(new TypeError("boom"), { error_location: "hooks/useCvExport:render" });
+
+    expect(captureMock).toHaveBeenCalledTimes(2);
+  });
+
+  it("does not consume the dedupe slot for errors raised before initialization", async () => {
+    const { initClientObservability, reportErrorClient } = await loadClient();
+
+    // Uninitialized: captures nothing, and must not record the key — otherwise the first *real*
+    // capture of the same failure would be silently swallowed.
+    reportErrorClient(new TypeError("boom"), { error_location: "hooks/useCvExport:render" });
+    expect(captureMock).not.toHaveBeenCalled();
+
+    initClientObservability({ key: "phc_public", installErrorHandlers: false });
+    reportErrorClient(new TypeError("boom"), { error_location: "hooks/useCvExport:render" });
+
+    expect(captureMock).toHaveBeenCalledOnce();
   });
 });

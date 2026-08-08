@@ -24,6 +24,14 @@ vi.mock("@/lib/observability/identity", () => ({
   resolveRequestIdentity: mocks.resolveRequestIdentity,
 }));
 
+// Stub the emit contract (it reads `astro:env/server`, which does not resolve under Vitest) but
+// deliberately leave `@/lib/observability/schedule` REAL — the cfContext/waitUntil assertion below
+// is a regression test for the scheduler's behavior, and mocking it would make that test vacuous.
+vi.mock("@/lib/observability", () => ({
+  track: vi.fn(),
+  reportError: vi.fn(),
+}));
+
 import { onRequest } from "@/middleware";
 
 interface MiddlewareTestContext {
