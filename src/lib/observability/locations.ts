@@ -41,6 +41,11 @@ export type ServerErrorLocation =
   // Generation route — the two F-01 fail-open paths already in production.
   | "api/cv/generate:checkGenerationQuota"
   | "api/cv/generate:recordGeneration"
+  // SSR page loads. These call the repository DIRECTLY, bypassing the API routes below — and since
+  // the library and reopen views are server-rendered, they are the paths users actually hit. Added
+  // in review: the plan surveyed `src/pages/api/**` only and missed them.
+  | "pages/dashboard:listCvs"
+  | "pages/cv/[id]:getCv"
   // CV persistence routes (S-07 p2).
   | "api/cv/index:load"
   | "api/cv/index:save"
@@ -67,6 +72,9 @@ export type ClientErrorLocation =
   | "hooks/useCvSave:transport"
   | "components/SavedCvList:delete"
   | "components/QuestionnaireFlow:transport"
+  // Last-resort guard so an unexpected throw while applying a response cannot strand the
+  // questionnaire in "loading" with no error and no retry (added in review).
+  | "components/QuestionnaireFlow:postResponse"
   // Global browser hooks. `unhandledrejection` has no filename/lineno to synthesize from.
   | "client:unhandledrejection"
   | BrowserRuntimeErrorLocation;

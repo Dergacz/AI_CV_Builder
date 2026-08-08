@@ -90,27 +90,37 @@ export default function QuestionnaireFlow({ locale }: { locale: UiLocale }) {
 
     const data = await postCvGenerate(answers);
 
-    if (data === null) {
-      // Network failure or non-JSON response — treat as a temporary service issue.
+    // The try is a last-resort guard, not error handling for the request itself (postCvGenerate
+    // owns that). Before S-07 p4 extracted the fetch, this whole body sat inside one try/catch;
+    // without this the flow could be stranded in "loading" — spinner, no error, no retry — if
+    // anything below threw. The user is never left without a way forward.
+    try {
+      if (data === null) {
+        // Network failure or non-JSON response — treat as a temporary service issue.
+        setGenerationError(genErrors.service_unavailable);
+        setStatus("error");
+      } else if (data.ok) {
+        setDraft(data.draft);
+        setGenerationEventId(data.generationEventId);
+        setStatus("success");
+        // Seed an editable default title now that the answers are final.
+        if (!save.title.trim()) {
+          save.setTitle(defaultCvTitle(answers, new Date()));
+        }
+      } else {
+        // Localize the stable error bucket (server prose is ignored on the client).
+        const bucket = data.error as string;
+        setGenerationError(
+          Object.prototype.hasOwnProperty.call(genErrors, bucket)
+            ? genErrors[bucket as keyof typeof genErrors]
+            : genErrors.service_unavailable,
+        );
+        setStatus("error");
+      }
+    } catch (caught) {
       setGenerationError(genErrors.service_unavailable);
       setStatus("error");
-    } else if (data.ok) {
-      setDraft(data.draft);
-      setGenerationEventId(data.generationEventId);
-      setStatus("success");
-      // Seed an editable default title now that the answers are final.
-      if (!save.title.trim()) {
-        save.setTitle(defaultCvTitle(answers, new Date()));
-      }
-    } else {
-      // Localize the stable error bucket (server prose is ignored on the client).
-      const bucket = data.error as string;
-      setGenerationError(
-        Object.prototype.hasOwnProperty.call(genErrors, bucket)
-          ? genErrors[bucket as keyof typeof genErrors]
-          : genErrors.service_unavailable,
-      );
-      setStatus("error");
+      reportErrorClient(caught, { error_location: "components/QuestionnaireFlow:postResponse" });
     }
   }
 
