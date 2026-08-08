@@ -98,7 +98,16 @@ export const POST: APIRoute = async (context) => {
   }
 
   const startedAt = Date.now();
-  const result = await generateCvDraft(parsed.data, { apiKey: OPENAI_API_KEY, model: OPENAI_MODEL });
+  const result = await generateCvDraft(parsed.data, {
+    apiKey: OPENAI_API_KEY,
+    model: OPENAI_MODEL,
+    // S-07: the service reports the specific cause; the route only supplies identity and the
+    // scheduler. Deliberately no second report on the `!result.ok` branch below — the cause is
+    // already recorded, and double-reporting would make failure rates meaningless.
+    reportFailure: (error, location, props) => {
+      scheduleErrorReport(error, { error_location: location, ...props }, context.locals);
+    },
+  });
   const status = result.ok ? 200 : result.error === "service_unavailable" ? 503 : 422;
 
   if (!result.ok) {

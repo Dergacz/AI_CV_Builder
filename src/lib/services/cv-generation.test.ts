@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 
-import { generateCvDraft } from "@/lib/services/cv-generation";
+import { generateCvDraft, type GenerationFailureReporter } from "@/lib/services/cv-generation";
 import { generationErrorMessages, type GenerateDraftResponse } from "@/lib/cv-draft";
 import { QUESTIONNAIRE_VERSION, type CvOutputLanguage, type CvQuestionnaireAnswers } from "@/lib/cv-questionnaire";
 
@@ -181,6 +181,17 @@ describe("generateCvDraft — failure buckets", () => {
     expect(result.error).toBe("service_unavailable");
   });
 
+  it("maps an unparseable provider response body to service_unavailable", async () => {
+    // 200 with a non-JSON body: `response.json()` throws inside the parse try.
+    stubFetch(() => new Response("<html>gateway</html>", { status: 200 }));
+
+    const result = await generateCvDraft(buildAnswers(), { apiKey: "sk-test" });
+
+    expect(result.ok).toBe(false);
+    if (result.ok) return;
+    expect(result.error).toBe("service_unavailable");
+  });
+
   it("maps a provider non-ok response to service_unavailable", async () => {
     stubFetch(() => new Response("upstream error", { status: 500 }));
 
@@ -235,6 +246,169 @@ describe("generateCvDraft — failure buckets", () => {
     expect(result.ok).toBe(false);
     if (result.ok) return;
     expect(result.error).toBe("generation_failed");
+  });
+});
+
+/**
+ * S-07 phase 3. Before this, a total OpenAI outage produced ZERO error signal — only the absence
+ * of `funnel_cv_generated`, which S-01 explicitly deferred here. The point is not merely that
+ * failures are reported, but that the seven modes stay *distinguishable*: at 3am the question is
+ * "is the provider down, or is the model returning garbage?", and the two user-facing buckets
+ * cannot answer it.
+ */
+describe("generateCvDraft — failure reporting", () => {
+  interface Reported {
+    error: unknown;
+    location: string;
+    props?: { status?: number };
+  }
+
+  function recordingReporter(): { calls: Reported[]; report: GenerationFailureReporter } {
+    const calls: Reported[] = [];
+    return {
+      calls,
+      report: (error, location, props) => {
+        calls.push({ error, location, props });
+      },
+    };
+  }
+
+  it.each([
+    {
+      mode: "network/timeout/abort",
+      stub: () => {
+        throw new DOMException("aborted", "AbortError");
+      },
+      location: "services/cv-generation:providerFetch",
+      bucket: "service_unavailable",
+    },
+    {
+      mode: "provider non-ok",
+      stub: () => new Response("upstream error", { status: 503 }),
+      location: "services/cv-generation:providerResponse",
+      bucket: "service_unavailable",
+    },
+    {
+      mode: "response-JSON parse",
+      stub: () => new Response("<html>gateway</html>", { status: 200 }),
+      location: "services/cv-generation:responseParse",
+      bucket: "service_unavailable",
+    },
+    {
+      mode: "model refusal",
+      stub: () => okResponse({ refusal: "I can't help with that", content: null }),
+      location: "services/cv-generation:modelRefusal",
+      bucket: "generation_failed",
+    },
+    {
+      mode: "empty content",
+      stub: () => okResponse({ content: "" }),
+      location: "services/cv-generation:emptyContent",
+      bucket: "generation_failed",
+    },
+    {
+      mode: "content-JSON parse",
+      stub: () => okResponse({ content: "this is not json" }),
+      location: "services/cv-generation:contentParse",
+      bucket: "generation_failed",
+    },
+    {
+      mode: "schema mismatch",
+      stub: () =>
+        okResponse({
+          content: JSON.stringify({
+            sections: { summary: { body: "" }, experience: [], education: [], skills: [], languages: [] },
+            assumptions: [],
+            warnings: [],
+          }),
+        }),
+      location: "services/cv-generation:schemaMismatch",
+      bucket: "generation_failed",
+    },
+  ])("reports $mode at its own location without changing the bucket", async ({ stub, location, bucket }) => {
+    stubFetch(stub);
+    const reporter = recordingReporter();
+
+    const result = await generateCvDraft(buildAnswers(), { apiKey: "sk-test", reportFailure: reporter.report });
+
+    // The user-facing envelope is unchanged — this phase adds observation only.
+    expect(result.ok).toBe(false);
+    if (result.ok) return;
+    expect(result.error).toBe(bucket);
+
+    expect(reporter.calls).toHaveLength(1);
+    expect(reporter.calls[0].location).toBe(location);
+  });
+
+  it("attaches the provider status on the non-ok path, so 429 and 5xx stay distinguishable", async () => {
+    stubFetch(() => new Response("slow down", { status: 429 }));
+    const reporter = recordingReporter();
+
+    await generateCvDraft(buildAnswers(), { apiKey: "sk-test", reportFailure: reporter.report });
+
+    expect(reporter.calls[0].props?.status).toBe(429);
+  });
+
+  it("works with no reporter supplied — the service stays usable standalone", async () => {
+    stubFetch(() => new Response("upstream error", { status: 500 }));
+
+    const result = await generateCvDraft(buildAnswers(), { apiKey: "sk-test" });
+
+    expect(result.ok).toBe(false);
+  });
+
+  it("reports nothing on a successful generation", async () => {
+    stubFetch(() => okResponse({ content: JSON.stringify(buildModelContent()) }));
+    const reporter = recordingReporter();
+
+    const result = await generateCvDraft(buildAnswers(), { apiKey: "sk-test", reportFailure: reporter.report });
+
+    expect(result.ok).toBe(true);
+    expect(reporter.calls).toHaveLength(0);
+  });
+
+  it("reports nothing when the API key is absent — that is config, not a runtime failure", async () => {
+    const reporter = recordingReporter();
+
+    await generateCvDraft(buildAnswers(), { apiKey: "", reportFailure: reporter.report });
+
+    expect(reporter.calls).toHaveLength(0);
+  });
+
+  /**
+   * The load-bearing privacy check for this surface. The refusal text and the zod issue list are
+   * both derived from the user's answers; neither may reach the reporter.
+   */
+  it("never passes answers, draft content, or refusal text to the reporter", async () => {
+    const cases = [
+      () => okResponse({ refusal: `Cannot help with ${SECRET_EXPERIENCE}`, content: null }),
+      () => okResponse({ content: `{"broken": "${SECRET_NAME}"` }),
+      () =>
+        okResponse({
+          content: JSON.stringify({
+            sections: { summary: { body: "" }, experience: [], education: [], skills: [], languages: [] },
+            assumptions: [{ field: SECRET_NAME, reason: SECRET_EXPERIENCE }],
+            warnings: [],
+          }),
+        }),
+    ];
+
+    for (const stub of cases) {
+      stubFetch(stub);
+      const reporter = recordingReporter();
+
+      await generateCvDraft(buildAnswers(), { apiKey: "sk-test", reportFailure: reporter.report });
+
+      const serialized = JSON.stringify(
+        reporter.calls.map((call) => ({
+          location: call.location,
+          props: call.props,
+          error: call.error instanceof Error ? { name: call.error.name, message: call.error.message } : call.error,
+        })),
+      );
+      expect(serialized).not.toContain(SECRET_NAME);
+      expect(serialized).not.toContain(SECRET_EXPERIENCE);
+    }
   });
 });
 

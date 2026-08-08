@@ -19,6 +19,21 @@
  */
 export type BrowserRuntimeErrorLocation = `${string}:${number}`;
 
+/**
+ * AI generation failure modes. Named separately so `cv-generation.ts` can type its injected
+ * reporter without importing the whole server union — the service stays free of any
+ * observability dependency, and these seven stay distinguishable in the monitor. A collapsed
+ * bucket cannot tell "the provider is down" from "the model returned unparseable output".
+ */
+export type GenerationErrorLocation =
+  | "services/cv-generation:providerFetch"
+  | "services/cv-generation:providerResponse"
+  | "services/cv-generation:responseParse"
+  | "services/cv-generation:modelRefusal"
+  | "services/cv-generation:emptyContent"
+  | "services/cv-generation:contentParse"
+  | "services/cv-generation:schemaMismatch";
+
 /** Locations emitted from the server (Astro routes, middleware, services). */
 export type ServerErrorLocation =
   // Catch-all for anything thrown out of a route or downstream middleware (S-07 p2).
@@ -36,15 +51,8 @@ export type ServerErrorLocation =
   // Pre-F-01 console.warn breadcrumbs, promoted to real reports (S-07 p2).
   | "api/auth/signout:signout"
   | "lib/supabase:safeGetUser"
-  // AI generation service — one per failure mode, so "the provider is down" stays
-  // distinguishable from "the model returned unparseable output" (S-07 p3).
-  | "services/cv-generation:providerFetch"
-  | "services/cv-generation:providerResponse"
-  | "services/cv-generation:responseParse"
-  | "services/cv-generation:modelRefusal"
-  | "services/cv-generation:emptyContent"
-  | "services/cv-generation:contentParse"
-  | "services/cv-generation:schemaMismatch"
+  // AI generation service — see GenerationErrorLocation above (S-07 p3).
+  | GenerationErrorLocation
   // F-01 proof-of-life route (debug-guarded).
   | "api/observability/smoke:smoke";
 

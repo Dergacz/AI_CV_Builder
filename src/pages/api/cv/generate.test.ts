@@ -142,6 +142,38 @@ describe("POST /api/cv/generate — funnel emission", () => {
     expect(mocks.track).not.toHaveBeenCalled();
   });
 
+  /**
+   * S-07 p3 wiring. The service owns *which* mode failed; the route owns identity and scheduling.
+   * The service's own tests cannot see this seam, so it is asserted here.
+   */
+  it("passes a reporter that forwards the service's location and identity to reportError", async () => {
+    mocks.generateCvDraft.mockImplementation(
+      (_answers: unknown, config: { reportFailure?: (e: unknown, l: string, p?: object) => void }) => {
+        config.reportFailure?.(new Error("upstream"), "services/cv-generation:providerResponse", { status: 503 });
+        return Promise.resolve({ ok: false, error: "service_unavailable", message: "nope" });
+      },
+    );
+
+    const response = await POST(makeContext({ user: { id: "user-123" }, body: validAnswers }));
+
+    expect(response.status).toBe(503);
+    // Exactly one report: the service named the cause, so the route must NOT add a second on the
+    // `!result.ok` branch — double-reporting would make failure rates meaningless.
+    expect(mocks.reportError).toHaveBeenCalledOnce();
+    const [, context, identity] = mocks.reportError.mock.calls[0] as [unknown, Record<string, unknown>, unknown];
+    expect(context.error_location).toBe("services/cv-generation:providerResponse");
+    expect(context.status).toBe(503);
+    expect(identity).toEqual({ distinctId: "anon-test" });
+  });
+
+  it("reports nothing on a successful generation", async () => {
+    mocks.generateCvDraft.mockResolvedValue({ ok: true, draft: { sections: {} } });
+
+    await POST(makeContext({ user: { id: "user-123" }, body: validAnswers }));
+
+    expect(mocks.reportError).not.toHaveBeenCalled();
+  });
+
   it("does not emit without a session", async () => {
     const response = await POST(makeContext({ user: null, body: validAnswers }));
 

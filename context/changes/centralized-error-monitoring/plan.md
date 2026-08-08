@@ -368,34 +368,34 @@ None. No schema changes, no migrations, no new environment variables, no changes
 
 #### Automated
 
-- [x] 2.1 Unit tests pass: `npm test`
-- [x] 2.2 Type checking passes: `npx astro sync && npx astro check`
-- [x] 2.3 Linting passes: `npm run lint`
-- [x] 2.4 Middleware test: thrown route error reported and re-thrown unchanged
-- [x] 2.5 Route-contract tests: each 500 path reports once with expected location; validation/auth paths report zero times
-- [x] 2.6 Response status and body byte-identical to pre-change behavior on a reporting path
+- [x] 2.1 Unit tests pass: `npm test` — 6ab0a13
+- [x] 2.2 Type checking passes: `npx astro sync && npx astro check` — 6ab0a13
+- [x] 2.3 Linting passes: `npm run lint` — 6ab0a13
+- [x] 2.4 Middleware test: thrown route error reported and re-thrown unchanged — 6ab0a13
+- [x] 2.5 Route-contract tests: each 500 path reports once with expected location; validation/auth paths report zero times — 6ab0a13
+- [x] 2.6 Response status and body byte-identical to pre-change behavior on a reporting path — 6ab0a13
 
 #### Manual
 
-- [x] 2.7 Forced CV save failure shows existing message with no visible latency change
-- [x] 2.8 Corresponding PostHog error has expected location and no request-body content
+- [x] 2.7 Forced CV save failure shows existing message with no visible latency change — 6ab0a13
+- [x] 2.8 Corresponding PostHog error has expected location and no request-body content — 6ab0a13
 
 ### Phase 3: AI generation surface
 
 #### Automated
 
-- [ ] 3.1 Unit tests pass: `npm test`
-- [ ] 3.2 Type checking passes: `npx astro sync && npx astro check`
-- [ ] 3.3 Linting passes: `npm run lint`
-- [ ] 3.4 One test per failure mode: distinct location, unchanged bucket
-- [ ] 3.5 `generateCvDraft` works with no reporter supplied
-- [ ] 3.6 Successful generation reports zero times
-- [ ] 3.7 No answer or draft content reaches the reporter
+- [x] 3.1 Unit tests pass: `npm test`
+- [x] 3.2 Type checking passes: `npx astro sync && npx astro check`
+- [x] 3.3 Linting passes: `npm run lint`
+- [x] 3.4 One test per failure mode: distinct location, unchanged bucket
+- [x] 3.5 `generateCvDraft` works with no reporter supplied
+- [x] 3.6 Successful generation reports zero times
+- [x] 3.7 No answer or draft content reaches the reporter
 
 #### Manual
 
-- [ ] 3.8 Invalid `OPENAI_API_KEY` shows existing copy and produces one event at the provider-response location
-- [ ] 3.9 Answer and prompt content absent from the captured event
+- [x] 3.8 Invalid `OPENAI_API_KEY` shows existing copy and produces one event at the provider-response location
+- [x] 3.9 Answer and prompt content absent from the captured event
 
 ### Phase 4: Client surfaces
 
