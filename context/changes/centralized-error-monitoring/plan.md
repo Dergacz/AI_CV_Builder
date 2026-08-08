@@ -352,33 +352,33 @@ None. No schema changes, no migrations, no new environment variables, no changes
 
 #### Automated
 
-- [x] 1.1 Unit tests pass: `npm test`
-- [x] 1.2 Type checking passes: `npx astro sync && npx astro check`
-- [x] 1.3 Linting passes: `npm run lint`
-- [x] 1.4 Scheduler test: `waitUntil` when present, detached when absent
-- [x] 1.5 Dedupe test: repeated identical client report emits once; distinct type/location not suppressed
-- [x] 1.6 Existing `generate.ts` route tests pass against non-awaited report sites
+- [x] 1.1 Unit tests pass: `npm test` — 12a0ee2
+- [x] 1.2 Type checking passes: `npx astro sync && npx astro check` — 12a0ee2
+- [x] 1.3 Linting passes: `npm run lint` — 12a0ee2
+- [x] 1.4 Scheduler test: `waitUntil` when present, detached when absent — 12a0ee2
+- [x] 1.5 Dedupe test: repeated identical client report emits once; distinct type/location not suppressed — 12a0ee2
+- [x] 1.6 Existing `generate.ts` route tests pass against non-awaited report sites — 12a0ee2
 
 #### Manual
 
-- [x] 1.7 App runs normally with PostHog unconfigured (emission is a no-op)
-- [x] 1.8 No unhandled-rejection warnings in the dev server console
+- [x] 1.7 App runs normally with PostHog unconfigured (emission is a no-op) — 12a0ee2
+- [x] 1.8 No unhandled-rejection warnings in the dev server console — 12a0ee2
 
 ### Phase 2: Backend / API surface
 
 #### Automated
 
-- [ ] 2.1 Unit tests pass: `npm test`
-- [ ] 2.2 Type checking passes: `npx astro sync && npx astro check`
-- [ ] 2.3 Linting passes: `npm run lint`
-- [ ] 2.4 Middleware test: thrown route error reported and re-thrown unchanged
-- [ ] 2.5 Route-contract tests: each 500 path reports once with expected location; validation/auth paths report zero times
-- [ ] 2.6 Response status and body byte-identical to pre-change behavior on a reporting path
+- [x] 2.1 Unit tests pass: `npm test`
+- [x] 2.2 Type checking passes: `npx astro sync && npx astro check`
+- [x] 2.3 Linting passes: `npm run lint`
+- [x] 2.4 Middleware test: thrown route error reported and re-thrown unchanged
+- [x] 2.5 Route-contract tests: each 500 path reports once with expected location; validation/auth paths report zero times
+- [x] 2.6 Response status and body byte-identical to pre-change behavior on a reporting path
 
 #### Manual
 
-- [ ] 2.7 Forced CV save failure shows existing message with no visible latency change
-- [ ] 2.8 Corresponding PostHog error has expected location and no request-body content
+- [x] 2.7 Forced CV save failure shows existing message with no visible latency change
+- [x] 2.8 Corresponding PostHog error has expected location and no request-body content
 
 ### Phase 3: AI generation surface
 

@@ -1,5 +1,6 @@
 import type { APIRoute } from "astro";
 import { track } from "@/lib/observability";
+import { scheduleErrorReport } from "@/lib/observability/schedule";
 import { createClient, safeGetUser } from "@/lib/supabase";
 import { feedbackSchema } from "@/lib/feedback.schema";
 import { readBoundedJson } from "@/lib/request-body";
@@ -46,7 +47,7 @@ export const POST: APIRoute = async (context) => {
     return json(503, { ok: false, error: "service_unavailable", message: SERVICE_UNAVAILABLE });
   }
 
-  const user = await safeGetUser(supabase);
+  const user = await safeGetUser(supabase, context.locals);
   if (!user) {
     return json(401, { ok: false, error: "service_unavailable", message: SESSION_EXPIRED });
   }
@@ -57,7 +58,10 @@ export const POST: APIRoute = async (context) => {
       helpful: parsed.data.helpful,
       comment: parsed.data.comment,
     });
-  } catch {
+  } catch (error) {
+    // The widget is fail-soft for the user, but a persistent store failure is still our defect —
+    // without this, feedback silently stops arriving and nothing says so.
+    scheduleErrorReport(error, { error_location: "api/cv/feedback:store" }, context.locals);
     return json(500, { ok: false, error: "feedback_failed", message: FEEDBACK_FAILED });
   }
 

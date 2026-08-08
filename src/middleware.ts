@@ -2,7 +2,7 @@ import { defineMiddleware } from "astro:middleware";
 import { UI_LOCALE_COOKIE, resolveUiLocale } from "@/lib/i18n/locales";
 import { trackEmailConfirmedOnce } from "@/lib/observability/funnel";
 import { resolveRequestIdentity } from "@/lib/observability/identity";
-import { scheduleEmit } from "@/lib/observability/schedule";
+import { scheduleEmit, scheduleErrorReport } from "@/lib/observability/schedule";
 import { createClient, safeGetUser } from "@/lib/supabase";
 
 const PROTECTED_ROUTES = ["/dashboard", "/cv"];
@@ -41,5 +41,20 @@ export const onRequest = defineMiddleware(async (context, next) => {
     }
   }
 
-  return next();
+  // S-07 catch-all: anything thrown out of a route or a downstream middleware. This is the only
+  // thing that makes coverage rot-proof — routes added later are reported without opting in, and
+  // an *unhandled* throw (the worst kind, since no bucket was chosen for it) can no longer vanish.
+  // Routes that catch internally and return their own 500 never reach here; those report at their
+  // own call sites, with a precise location.
+  try {
+    return await next();
+  } catch (error) {
+    // `routePattern` (e.g. "/api/cv/[id]") rather than `url.pathname` — the pattern is
+    // low-cardinality and, crucially, content-free: a real pathname would carry CV ids into the
+    // monitor, which is exactly the identifier leakage F-01's contract exists to prevent.
+    scheduleErrorReport(error, { error_location: "middleware:unhandled", route: context.routePattern }, context.locals);
+    // Re-throw the ORIGINAL value, not a wrapped one: Astro's error handling (dev overlay, 500
+    // response) is downstream of this, and must behave exactly as it did before S-07.
+    throw error;
+  }
 });

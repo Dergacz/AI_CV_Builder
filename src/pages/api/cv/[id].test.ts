@@ -21,6 +21,7 @@ const mocks = vi.hoisted(() => ({
   updateCv: vi.fn(),
   deleteCv: vi.fn(),
   track: vi.fn(),
+  reportError: vi.fn(),
 }));
 
 vi.mock("@/lib/supabase", () => ({
@@ -36,6 +37,7 @@ vi.mock("@/lib/services/cv-repository", () => ({
 
 vi.mock("@/lib/observability", () => ({
   track: mocks.track,
+  reportError: mocks.reportError,
 }));
 
 import { DELETE, GET, PUT } from "@/pages/api/cv/[id]";
@@ -93,7 +95,17 @@ beforeEach(() => {
   mocks.updateCv.mockReset();
   mocks.deleteCv.mockReset();
   mocks.track.mockReset();
+  mocks.reportError.mockReset();
 });
+
+/** Helper: the error_location of the single report a test expects. */
+function reportedLocation(): string {
+  const call = mocks.reportError.mock.calls[0] as [unknown, Record<string, unknown>] | undefined;
+  if (!call) {
+    throw new Error("expected exactly one error report");
+  }
+  return call[1].error_location as string;
+}
 
 afterEach(() => {
   vi.clearAllMocks();
@@ -131,6 +143,9 @@ describe("GET /api/cv/[id]", () => {
 
     expect(response.status).toBe(500);
     expect((await readJson(response)).error).toBe("load_failed");
+    // S-07: the envelope above is unchanged; the report is purely additive.
+    expect(mocks.reportError).toHaveBeenCalledOnce();
+    expect(reportedLocation()).toBe("api/cv/[id]:load");
   });
 
   it("returns 200 with the loaded CV on success", async () => {
@@ -179,6 +194,8 @@ describe("PUT /api/cv/[id]", () => {
     expect(response.status).toBe(500);
     expect((await readJson(response)).error).toBe("save_failed");
     expect(mocks.track).not.toHaveBeenCalled();
+    expect(mocks.reportError).toHaveBeenCalledOnce();
+    expect(reportedLocation()).toBe("api/cv/[id]:save");
   });
 
   it("returns 200 with the updated summary on success", async () => {
@@ -240,6 +257,22 @@ describe("DELETE /api/cv/[id]", () => {
 
     expect(response.status).toBe(500);
     expect((await readJson(response)).error).toBe("delete_failed");
+    expect(mocks.reportError).toHaveBeenCalledOnce();
+    expect(reportedLocation()).toBe("api/cv/[id]:delete");
+  });
+
+  /**
+   * S-07 "ours, not theirs": a 404 for a CV that is missing or not owned is a normal outcome —
+   * and on the not-owned path, reporting would also make the monitor a probe oracle.
+   */
+  it("reports nothing for a missing/not-owned CV or a malformed id", async () => {
+    mocks.deleteCv.mockResolvedValue(false);
+
+    await DELETE(makeContext({ user: { id: "user-123" } })); // 404 — not found / not owned
+    await DELETE(makeContext({ user: { id: "user-123" }, id: "not-a-uuid" })); // 404 — malformed id
+    await DELETE(makeContext({ user: null })); // 401
+
+    expect(mocks.reportError).not.toHaveBeenCalled();
   });
 
   it("returns 200 on a successful delete", async () => {

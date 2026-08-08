@@ -10,12 +10,13 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 const mocks = vi.hoisted(() => ({
   upsertFeedback: vi.fn(),
   track: vi.fn(),
+  reportError: vi.fn(),
   safeGetUser: vi.fn(),
   createClient: vi.fn(),
 }));
 
 vi.mock("@/lib/services/feedback-repository", () => ({ upsertFeedback: mocks.upsertFeedback }));
-vi.mock("@/lib/observability", () => ({ track: mocks.track }));
+vi.mock("@/lib/observability", () => ({ track: mocks.track, reportError: mocks.reportError }));
 vi.mock("@/lib/supabase", () => ({
   createClient: mocks.createClient,
   safeGetUser: mocks.safeGetUser,
@@ -152,6 +153,18 @@ describe("POST /api/cv/feedback", () => {
     );
     expect(res.status).toBe(500);
     expect(mocks.track).not.toHaveBeenCalled();
+    // S-07: fail-soft for the user, but a persistent store failure is still our defect. The
+    // envelope is unchanged; only the report is new — and it carries no comment.
+    expect(mocks.reportError).toHaveBeenCalledOnce();
+    const [, reported] = mocks.reportError.mock.calls[0] as [unknown, Record<string, unknown>];
+    expect(reported.error_location).toBe("api/cv/feedback:store");
+  });
+
+  it("reports nothing when feedback is rejected for validation or auth", async () => {
+    await POST(makeContext({ user: null, body: {} })); // 401
+    await POST(makeContext({ user: { id: "u1" }, body: { helpful: "yes" } })); // 400
+
+    expect(mocks.reportError).not.toHaveBeenCalled();
   });
 
   it("returns 503 when supabase client is unavailable", async () => {
