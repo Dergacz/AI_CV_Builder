@@ -83,7 +83,7 @@ Six months after launch, Cloudflare looked like the obvious choice but failed be
 - **Secrets**: Store `SUPABASE_URL` and `SUPABASE_KEY` as Worker secrets with `npx wrangler secret put SUPABASE_URL` and `npx wrangler secret put SUPABASE_KEY`; keep `.env` for local Astro/Node and `.dev.vars` for Cloudflare local dev. Do not commit secrets into `wrangler.jsonc` or MCP config.
 - **Rollback**: Use `npx wrangler deployments list` to inspect versions and `npx wrangler rollback <VERSION_ID>` to promote a previous Worker version. Rollback is immediate for Worker code, but bindings, secrets, and Supabase schema/data changes must be handled separately.
 - **Approval**: Agents may run read-only log checks and preview deploys after token setup. A human approves production deploy, primary secret rotation, deletion of Worker resources, domain changes, and any Supabase schema/data migration.
-- **Logs**: Use `npx wrangler tail 10x-astro-starter` for live runtime logs, `npx wrangler deployments status` for deployment state, GitHub Actions logs for CI, and Cloudflare dashboard observability read-only for production investigation.
+- **Logs**: Use `npx wrangler tail ai-cv-builder` for live runtime logs, `npx wrangler deployments status` for deployment state, GitHub Actions logs for CI, and Cloudflare dashboard observability read-only for production investigation.
 
 ## Risk Register
 
@@ -104,7 +104,7 @@ Six months after launch, Cloudflare looked like the obvious choice but failed be
 2. Authenticate Wrangler locally with `npx wrangler login`.
 3. Add production secrets with `npx wrangler secret put SUPABASE_URL` and `npx wrangler secret put SUPABASE_KEY`.
 4. Run `npm run build`, then deploy with `npx wrangler deploy`.
-5. After deployment, verify with the deployed URL and watch runtime logs with `npx wrangler tail 10x-astro-starter`.
+5. After deployment, verify with the deployed URL and watch runtime logs with `npx wrangler tail ai-cv-builder`.
 
 ## Out of Scope
 

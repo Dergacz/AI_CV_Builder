@@ -14,13 +14,15 @@ AI CV Builder is an Astro 6 SSR app that turns user answers into a professional 
 
 - `npm run dev` starts the Astro dev server.
 - `npm run lint` runs ESLint with type-checked TypeScript, Astro, React, accessibility, React Compiler, and Prettier rules.
+- `npm run test` runs the vitest suite.
 - `npm run build` runs the production build for the Cloudflare adapter.
 - `npm run format` formats the repo with Prettier, including Astro and Tailwind class ordering.
-- `npx astro sync` regenerates Astro types; CI runs it before lint/build.
+- `npx astro sync` regenerates Astro types; CI runs it before lint/test/build.
+- `npm run db:reset` applies @supabase/migrations/ to the local database; `npm run db:types` regenerates @src/db/database.types.ts from it. Both need `npx supabase start` and Docker.
 
 ## Project Structure
 
-`src/pages/` contains Astro routes, with auth POST endpoints in `src/pages/api/auth/`. `src/components/auth/` holds interactive React auth form pieces; shared shadcn/ui components live in `src/components/ui/`. `src/lib/` holds Supabase, config-status, and utility helpers. `supabase/config.toml` is local Supabase config; there are no migrations yet.
+`src/pages/` contains Astro routes: auth endpoints in `src/pages/api/auth/`, saved-CV endpoints in `src/pages/api/cv/` (`index.ts` list/create, `[id].ts` read/update/delete, `generate.ts` draft generation), and the CV screens in `src/pages/cv/`. `src/components/auth/` and `src/components/cv/` hold the React islands; shared shadcn/ui components live in `src/components/ui/`. `src/lib/` holds schemas, copy, and helpers, with extracted business logic in `src/lib/services/` (`cv-generation.ts`, `cv-repository.ts`) and interface localization in `src/lib/i18n/`. `src/tests/` holds route/API tests and shared fakes. `supabase/migrations/` holds the SQL migrations; `supabase/config.toml` is local Supabase config.
 
 ## Coding Conventions
 
@@ -28,7 +30,7 @@ Use the `@/*` alias from @tsconfig.json for `src` imports. Prefer Astro componen
 
 ## Testing and CI
 
-No test runner or test script is configured yet; do not invent one in docs. The current verification gate is `npm run lint` plus `npm run build`. GitHub Actions in @.github/workflows/ci.yml runs on pushes and PRs to `master` and requires `SUPABASE_URL` and `SUPABASE_KEY` repository secrets for build.
+Tests run on vitest via `npm run test`; discovery is `src/**/*.test.ts`. The strategy and the risk register live in @context/foundation/test-plan.md — reference an existing `R-NN` risk from a change's Testing Strategy rather than restating it, and add a new row there when you cover a new failure mode. The full verification gate is `npx astro sync`, `npm run lint`, `npm run test`, `npm run build`. GitHub Actions in @.github/workflows/ci.yml runs those gates on pull requests to `master`; @.github/workflows/deploy.yml repeats them on push to `master` and then deploys to Cloudflare Workers. Both need `SUPABASE_URL` and `SUPABASE_KEY` repository secrets for the build step.
 
 ## Git and PRs
 
