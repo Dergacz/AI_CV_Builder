@@ -614,17 +614,17 @@ release blocker, not an optional extra.
 
 #### Automated
 
-- [x] 1.1 Type checking passes: `npm run typecheck` — c4b867e
-- [x] 1.2 Linting passes: `npm run lint` — c4b867e
-- [x] 1.3 Lint fence rejects an out-of-zone import of `@/lib/supabase-admin` — c4b867e
-- [x] 1.4 Unit tests pass: `npm test` — c4b867e
-- [x] 1.5 Contract tests cover 401 / 400 mismatch / 503 unconfigured / 500 delete failure / 200 success with teardown — c4b867e
-- [x] 1.6 Request schema rejects any client-supplied user identity — c4b867e
+- [x] 1.1 Type checking passes: `npm run typecheck` — 8d1294d
+- [x] 1.2 Linting passes: `npm run lint` — 8d1294d
+- [x] 1.3 Lint fence rejects an out-of-zone import of `@/lib/supabase-admin` — 8d1294d
+- [x] 1.4 Unit tests pass: `npm test` — 8d1294d
+- [x] 1.5 Contract tests cover 401 / 400 mismatch / 503 unconfigured / 500 delete failure / 200 success with teardown — 8d1294d
+- [x] 1.6 Request schema rejects any client-supplied user identity — 8d1294d
 
 #### Manual
 
-- [x] 1.7 With the key unset, the route returns 503 and deletes nothing — c4b867e
-- [x] 1.8 With the key set, a curl deletion of a throwaway local account returns 200 and the user is gone from Studio — c4b867e
+- [x] 1.7 With the key unset, the route returns 503 and deletes nothing — 8d1294d
+- [x] 1.8 With the key set, a curl deletion of a throwaway local account returns 200 and the user is gone from Studio — 8d1294d
 
 ### Phase 2: `/account` page and confirmation UI
 
