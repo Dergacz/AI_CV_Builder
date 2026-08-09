@@ -22,6 +22,7 @@ export type {
 import type { GeneratedCvDraft } from "@/lib/cv-draft";
 import type { CvOutputLanguage, CvQuestionnaireAnswers } from "@/lib/cv-questionnaire";
 import type { CvSaveErrorBucket } from "@/lib/cv-save-messages";
+import type { AccountDeleteErrorBucket } from "@/lib/account-delete-messages";
 
 /**
  * Saved-CV entity and DTO types (F-02 persistence contract / S-06).
@@ -77,6 +78,16 @@ export type DeleteCvResponse = { ok: true } | CvErrorResponse;
 export type SubmitFeedbackResponse =
   | { ok: true }
   | { ok: false; error: "feedback_failed" | "service_unavailable"; message: string };
+
+/**
+ * Account-deletion API response envelope (S-08 / FR-011).
+ *
+ * Success carries `redirectTo` rather than issuing a 3xx: the confirmation island submits via
+ * `fetch`, which does not navigate on a redirect, so the island performs the navigation itself.
+ */
+export type DeleteAccountResponse =
+  | { ok: true; redirectTo: string }
+  | { ok: false; error: AccountDeleteErrorBucket; message: string };
 
 /**
  * Entitlement contract (F-01). The single shape every gated path reads to decide

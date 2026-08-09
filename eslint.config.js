@@ -37,6 +37,39 @@ const baseConfig = tseslint.config({
   },
 });
 
+/**
+ * S-08: fence around the Supabase secret (service-role) key.
+ *
+ * `src/lib/supabase-admin.ts` is the only module that reads `SUPABASE_SECRET_KEY`, which bypasses
+ * every RLS policy in the project. Keeping that true is a structural guarantee, not a convention
+ * someone remembers — importing it from anywhere but the account-deletion service (which
+ * re-exports what routes and pages need) is a lint error. Widening this list is a deliberate act
+ * that shows up in review.
+ */
+const secretKeyFenceConfig = tseslint.config({
+  files: ["**/*.{js,jsx,ts,tsx,astro}"],
+  ignores: [
+    "src/lib/services/account-deletion.ts",
+    "src/lib/services/account-deletion.test.ts",
+    "src/lib/supabase-admin.ts",
+    "src/lib/supabase-admin.test.ts",
+  ],
+  rules: {
+    "no-restricted-imports": [
+      "error",
+      {
+        patterns: [
+          {
+            group: ["**/supabase-admin", "@/lib/supabase-admin"],
+            message:
+              "The Supabase secret key must stay isolated to the account-deletion path. Import what you need from @/lib/services/account-deletion instead.",
+          },
+        ],
+      },
+    ],
+  },
+});
+
 const reactConfig = tseslint.config({
   files: ["**/*.{js,jsx,ts,tsx}"],
   extends: [pluginReact.configs.flat.recommended],
@@ -77,6 +110,7 @@ export default tseslint.config(
   // Supabase-generated DB types use their own formatting; exclude from lint/format.
   { ignores: ["src/db/database.types.ts"] },
   baseConfig,
+  secretKeyFenceConfig,
   reactConfig,
   eslintPluginAstro.configs["flat/recommended"],
   ...eslintPluginAstro.configs["flat/jsx-a11y-recommended"],
