@@ -1,0 +1,73 @@
+---
+import DeleteAccountPanel from "@/components/account/DeleteAccountPanel";
+import LanguageSwitcher from "@/components/LanguageSwitcher.astro";
+import Layout from "@/layouts/Layout.astro";
+import { getMessages } from "@/lib/i18n/messages";
+import { isAdminConfigured } from "@/lib/services/account-deletion";
+
+/**
+ * S-08: the account-settings surface (FR-011 / US-03).
+ *
+ * Route-protected by middleware (`PROTECTED_ROUTES`), so `user` is present and email-confirmed.
+ * The page carries only the danger zone for now — everything account-related that arrives later
+ * belongs above it, not inside it.
+ *
+ * `isAdminConfigured()` is consulted here, server-side: without the secret key the delete route
+ * can only ever answer 503, and a button that is guaranteed to fail is worse than an honest
+ * "temporarily unavailable". This import comes from the deletion service, not `supabase-admin`
+ * directly — the ESLint fence keeps the key's reach to that one module.
+ */
+
+const { user } = Astro.locals;
+const locale = Astro.locals.locale;
+const copy = getMessages(locale).account;
+const dashboardCopy = getMessages(locale).dashboard;
+const accountEmail = user?.email ?? "";
+// An account with no email could never satisfy the type-your-email gate, so the surface would be a
+// dead end. Treat it as unavailable rather than rendering a button that cannot succeed.
+const configured = isAdminConfigured() && accountEmail.length > 0;
+---
+
+<Layout locale={locale} title={copy.title}>
+  <main class="min-h-screen bg-slate-50 px-5 py-6 text-slate-950 sm:px-8">
+    <div class="mx-auto flex max-w-3xl flex-col">
+      <header class="flex flex-col gap-4 border-b border-slate-200 pb-5 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <a href="/" class="text-base font-semibold text-slate-950">{dashboardCopy.brand}</a>
+          <p class="mt-2 text-sm text-slate-600">
+            {copy.signedInAs}
+            <span class="font-medium text-slate-950">{accountEmail}</span>
+          </p>
+        </div>
+        <div class="flex flex-wrap items-center gap-3">
+          <LanguageSwitcher locale={locale} />
+          <a
+            href="/dashboard"
+            class="inline-flex min-h-10 items-center justify-center rounded-md border border-slate-300 bg-white px-4 text-sm font-semibold text-slate-900 transition-colors hover:border-slate-400 hover:bg-slate-100 focus-visible:ring-3 focus-visible:ring-slate-500/20 focus-visible:outline-none"
+          >
+            {copy.backToDashboard}
+          </a>
+        </div>
+      </header>
+
+      <section class="py-10">
+        <p class="text-sm font-semibold text-teal-700">{copy.eyebrow}</p>
+        <h1 class="mt-4 text-3xl leading-tight font-semibold text-slate-950 sm:text-4xl">{copy.heading}</h1>
+        <p class="mt-4 max-w-2xl text-base leading-7 text-slate-700">{copy.description}</p>
+      </section>
+
+      <section class="rounded-lg border border-red-200 bg-red-50/60 p-6" aria-label={copy.danger.ariaLabel}>
+        <h2 class="text-xl font-semibold text-red-950">{copy.danger.heading}</h2>
+        <p class="mt-3 max-w-2xl text-sm leading-6 text-red-900">{copy.danger.description}</p>
+        <p class="mt-4 text-sm font-medium text-red-950">{copy.danger.removesIntro}</p>
+        <ul class="mt-2 list-disc space-y-1 pl-5 text-sm leading-6 text-red-900">
+          {copy.danger.removes.map((item) => <li>{item}</li>)}
+        </ul>
+        <p class="mt-4 max-w-2xl text-sm leading-6 font-medium text-red-950">{copy.danger.irreversible}</p>
+        <div class="mt-6">
+          <DeleteAccountPanel client:load accountEmail={accountEmail} configured={configured} locale={locale} />
+        </div>
+      </section>
+    </div>
+  </main>
+</Layout>

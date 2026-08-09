@@ -56,6 +56,13 @@ export type ServerErrorLocation =
   // Pre-F-01 console.warn breadcrumbs, promoted to real reports (S-07 p2).
   | "api/auth/signout:signout"
   | "lib/supabase:safeGetUser"
+  // Account deletion (S-08). Failures ONLY — no success event: writing a fresh event under the
+  // user's pseudonym at the moment we claim to erase their identity would contradict the erasure.
+  // The two stages sit either side of the commit point and mean very different things: `delete`
+  // is a broken erasure path (nothing was removed), `teardown` is stale client state after a
+  // successful erasure (the account IS gone). Collapsing them would hide which one happened.
+  | "api/account/delete:delete"
+  | "api/account/delete:teardown"
   // AI generation service — see GenerationErrorLocation above (S-07 p3).
   | GenerationErrorLocation
   // F-01 proof-of-life route (debug-guarded).
@@ -75,6 +82,9 @@ export type ClientErrorLocation =
   // Last-resort guard so an unexpected throw while applying a response cannot strand the
   // questionnaire in "loading" with no error and no retry (added in review).
   | "components/QuestionnaireFlow:postResponse"
+  // Account-deletion island (S-08). Transport failures only, per the rule above — every non-ok
+  // response from the delete route is already reported server-side with a precise location.
+  | "client:account-delete"
   // Global browser hooks. `unhandledrejection` has no filename/lineno to synthesize from.
   | "client:unhandledrejection"
   | BrowserRuntimeErrorLocation;

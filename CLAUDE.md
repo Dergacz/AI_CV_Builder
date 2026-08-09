@@ -10,6 +10,7 @@ This file provides guidance to AI Agent when working with code in this repositor
 - `npm run lint` — ESLint with type-checked rules
 - `npm run lint:fix` — auto-fix lint issues
 - `npm run test` — vitest suite (`src/**/*.test.ts`)
+- `npm run test:db` — pgTAP database tests (`supabase/tests/database/*.test.sql`); needs `npm run db:start` first
 - `npm run format` — Prettier (includes prettier-plugin-astro + prettier-plugin-tailwindcss)
 - `npm run db:start` / `db:reset` / `db:types` — local Supabase: start the stack, apply `supabase/migrations/`, regenerate `src/db/database.types.ts` (needs Docker)
 
@@ -49,6 +50,7 @@ Full server-side rendering (`output: "server"` in astro.config.mjs). All pages a
 
 - Node.js v22.14.0 (see `.nvmrc`)
 - Env vars: `SUPABASE_URL`, `SUPABASE_KEY` (copy `.env.example` to `.env` for Node, or `.dev.vars` for Cloudflare local dev)
+- `SUPABASE_SECRET_KEY` is the service-role key and **bypasses RLS**. It is read by exactly one module, `src/lib/supabase-admin.ts`, which exports no raw admin client — an ESLint `no-restricted-imports` fence limits importing it to `src/lib/services/account-deletion.ts`. Do not widen that fence or read the key elsewhere. Unset ⇒ account deletion degrades to 503 + an "unavailable" state; nothing else is affected. See "Account deletion and the Supabase secret key" in `README.md`.
 - Local Supabase: `npx supabase start` (requires Docker)
 - Cloudflare local dev: secrets go in `.dev.vars` (gitignored)
 - Deploy: `npx wrangler deploy` (requires Cloudflare account + `wrangler` auth)
@@ -69,6 +71,7 @@ These majors postdate much training data; do not fall back to previous-major idi
 - Strategy and risk register: `context/foundation/test-plan.md`. A change's Testing Strategy should cite an existing `R-NN` risk; add a row there when covering a new failure mode.
 - `vitest.config.ts` aliases `astro:env/server` to a stub so route modules can be imported directly in tests.
 - **Test placement**: never put `*.test.*` under `src/pages/` — Astro turns those files into routes and bundles `vitest` into the Cloudflare Worker. Route/API tests go in `src/tests/`, helper tests next to their module in `src/lib/`. A guard test (`src/tests/no-tests-under-pages.test.ts`) enforces this.
+- DB contracts: pgTAP, `npm run test:db` (needs `npm run db:start`; not gated by CI — `ci.yml` has no Postgres). Tests live in `supabase/tests/database/*.test.sql` and run inside a rolled-back transaction. Use this layer for guarantees that live in the schema rather than the app — e.g. the account-deletion cascade from `auth.users`.
 - E2E: Playwright, `npm run test:e2e` (needs local Supabase up). Specs in `e2e/`; read `e2e/README.md` before adding one.
 - Mutation testing: `stryker.config.json` (Vitest runner). Run **narrowed** to the module under change — `npx stryker run --mutate "src/lib/file.ts"`, or by line range `--mutate "src/lib/file.ts:12-40"`. Only run it for code touched by the current change or a risk in `test-plan.md`. Artifacts land in `reports/` (gitignored). For the full selective-gate workflow and how to triage survived mutants, see "Mutation testing (Stryker)" in the 10xDevs section below.
 

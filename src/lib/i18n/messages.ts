@@ -1,5 +1,6 @@
 import type { UiLocale } from "@/lib/i18n/locales";
 import type { AuthErrorCode } from "@/lib/i18n/auth-errors";
+import type { AccountDeleteErrorBucket } from "@/lib/account-delete-messages";
 
 export interface SignInFormCopy {
   emailLabel: string;
@@ -166,6 +167,49 @@ export interface QuestionnaireCopy {
   };
 }
 
+/**
+ * S-08 account-settings surface: the `/account` page, its danger zone, the type-your-email
+ * confirmation dialog, and the post-deletion notice rendered on the landing page.
+ *
+ * `errors` is keyed by the API's stable failure buckets, so the island localizes a response by
+ * mapping its `error` field — the server keeps returning English in `message` for compatibility,
+ * exactly as the S-09 save/generation errors do.
+ */
+interface AccountCopy {
+  title: string;
+  eyebrow: string;
+  heading: string;
+  description: string;
+  signedInAs: string;
+  backToDashboard: string;
+  danger: {
+    ariaLabel: string;
+    heading: string;
+    description: string;
+    removesIntro: string;
+    /** What deletion removes, listed so the confirmation is informed rather than blind. */
+    removes: string[];
+    irreversible: string;
+    deleteCta: string;
+    unavailable: string;
+  };
+  dialog: {
+    title: string;
+    body: string;
+    emailLabel: string;
+    emailHint: (email: string) => string;
+    confirm: string;
+    deleting: string;
+    cancel: string;
+  };
+  errors: Record<AccountDeleteErrorBucket, string>;
+  /** Rendered at `/?deleted=1` — the only place the user is told the deletion succeeded. */
+  deletedNotice: {
+    title: string;
+    body: string;
+  };
+}
+
 export interface UiMessages {
   shell: {
     primaryNavLabel: string;
@@ -203,6 +247,8 @@ export interface UiMessages {
     title: string;
     brand: string;
     signedInAs: string;
+    /** Header link to `/account` — the danger zone stays off the workspace itself. */
+    accountLink: string;
     signOut: string;
     signOutError: string;
     hero: {
@@ -232,6 +278,7 @@ export interface UiMessages {
       startCta: string;
     };
   };
+  account: AccountCopy;
   cvPages: {
     new: {
       title: string;
@@ -379,6 +426,7 @@ export const messagesByLocale = {
       title: "CV Workspace",
       brand: "AI CV Builder",
       signedInAs: "Signed in as",
+      accountLink: "Account",
       signOut: "Sign out",
       signOutError: "Sign-out failed. Please try again.",
       hero: {
@@ -407,6 +455,48 @@ export const messagesByLocale = {
         loadErrorTitle: "Saved CVs could not be loaded",
         loadErrorBody: "Your CVs are still safe. Refresh the page or try again in a little while.",
         startCta: "Start a new CV",
+      },
+    },
+    account: {
+      title: "Account",
+      eyebrow: "Account settings",
+      heading: "Your account",
+      description: "Manage the account behind your CV workspace.",
+      signedInAs: "Signed in as",
+      backToDashboard: "Back to workspace",
+      danger: {
+        ariaLabel: "Danger zone",
+        heading: "Delete account",
+        description: "Deleting your account removes everything below immediately and permanently.",
+        removesIntro: "This removes:",
+        removes: [
+          "your account and sign-in identity, including Google sign-in",
+          "every saved CV and its questionnaire answers",
+          "the feedback you submitted on generated CVs",
+          "your recorded acceptance of the Privacy Policy and Terms",
+        ],
+        irreversible: "There is no grace period and no way to restore any of it afterwards.",
+        deleteCta: "Delete account",
+        unavailable: "Account deletion is temporarily unavailable. Please try again later.",
+      },
+      dialog: {
+        title: "Permanently delete your account?",
+        body: "This cannot be undone. Type your email address to confirm.",
+        emailLabel: "Your email address",
+        emailHint: (email) => `Type ${email} to enable the button.`,
+        confirm: "Delete everything",
+        deleting: "Deleting…",
+        cancel: "Cancel",
+      },
+      errors: {
+        confirmation_mismatch: "That doesn't match your account email. Nothing has been deleted.",
+        session_expired: "Your session has expired. Please sign in again.",
+        service_unavailable: "Account deletion is temporarily unavailable. Please try again later.",
+        delete_failed: "We couldn't delete your account. Nothing has been deleted — please try again.",
+      },
+      deletedNotice: {
+        title: "Your account has been deleted",
+        body: "Your account and all associated data have been permanently removed. You can create a new account at any time.",
       },
     },
     cvPages: {
@@ -670,6 +760,7 @@ export const messagesByLocale = {
       title: "Przestrzeń CV",
       brand: "AI CV Builder",
       signedInAs: "Zalogowano jako",
+      accountLink: "Konto",
       signOut: "Wyloguj się",
       signOutError: "Wylogowanie nie powiodło się. Spróbuj ponownie.",
       hero: {
@@ -698,6 +789,48 @@ export const messagesByLocale = {
         loadErrorTitle: "Nie udało się wczytać zapisanych CV",
         loadErrorBody: "Twoje CV nadal są bezpieczne. Odśwież stronę albo spróbuj ponownie za chwilę.",
         startCta: "Rozpocznij nowe CV",
+      },
+    },
+    account: {
+      title: "Konto",
+      eyebrow: "Ustawienia konta",
+      heading: "Twoje konto",
+      description: "Zarządzaj kontem powiązanym z Twoją przestrzenią CV.",
+      signedInAs: "Zalogowano jako",
+      backToDashboard: "Wróć do przestrzeni",
+      danger: {
+        ariaLabel: "Strefa nieodwracalnych działań",
+        heading: "Usuń konto",
+        description: "Usunięcie konta natychmiast i trwale kasuje wszystko, co wymieniono poniżej.",
+        removesIntro: "Zostaną usunięte:",
+        removes: [
+          "Twoje konto i tożsamość logowania, w tym logowanie przez Google",
+          "wszystkie zapisane CV wraz z odpowiedziami z ankiety",
+          "opinie przesłane na temat wygenerowanych CV",
+          "zapis akceptacji Polityki prywatności i Regulaminu",
+        ],
+        irreversible: "Nie ma okresu karencji ani możliwości późniejszego przywrócenia tych danych.",
+        deleteCta: "Usuń konto",
+        unavailable: "Usuwanie konta jest chwilowo niedostępne. Spróbuj ponownie później.",
+      },
+      dialog: {
+        title: "Trwale usunąć Twoje konto?",
+        body: "Tej operacji nie można cofnąć. Wpisz swój adres e-mail, aby potwierdzić.",
+        emailLabel: "Twój adres e-mail",
+        emailHint: (email) => `Wpisz ${email}, aby odblokować przycisk.`,
+        confirm: "Usuń wszystko",
+        deleting: "Usuwanie…",
+        cancel: "Anuluj",
+      },
+      errors: {
+        confirmation_mismatch: "To nie jest adres e-mail Twojego konta. Nic nie zostało usunięte.",
+        session_expired: "Twoja sesja wygasła. Zaloguj się ponownie.",
+        service_unavailable: "Usuwanie konta jest chwilowo niedostępne. Spróbuj ponownie później.",
+        delete_failed: "Nie udało się usunąć konta. Nic nie zostało usunięte — spróbuj ponownie.",
+      },
+      deletedNotice: {
+        title: "Twoje konto zostało usunięte",
+        body: "Twoje konto i wszystkie powiązane dane zostały trwale usunięte. W każdej chwili możesz założyć nowe konto.",
       },
     },
     cvPages: {
@@ -961,6 +1094,7 @@ export const messagesByLocale = {
       title: "Рабочее пространство CV",
       brand: "AI CV Builder",
       signedInAs: "Вы вошли как",
+      accountLink: "Аккаунт",
       signOut: "Выйти",
       signOutError: "Не удалось выйти. Попробуйте ещё раз.",
       hero: {
@@ -989,6 +1123,48 @@ export const messagesByLocale = {
         loadErrorTitle: "Не удалось загрузить сохранённые CV",
         loadErrorBody: "Ваши CV всё ещё в безопасности. Обновите страницу или попробуйте чуть позже.",
         startCta: "Начать новое CV",
+      },
+    },
+    account: {
+      title: "Аккаунт",
+      eyebrow: "Настройки аккаунта",
+      heading: "Ваш аккаунт",
+      description: "Управляйте аккаунтом, к которому привязано ваше рабочее пространство CV.",
+      signedInAs: "Вы вошли как",
+      backToDashboard: "Вернуться в пространство",
+      danger: {
+        ariaLabel: "Необратимые действия",
+        heading: "Удаление аккаунта",
+        description: "Удаление аккаунта немедленно и безвозвратно стирает всё перечисленное ниже.",
+        removesIntro: "Будет удалено:",
+        removes: [
+          "ваш аккаунт и способ входа, включая вход через Google",
+          "все сохранённые CV вместе с ответами анкеты",
+          "отзывы, отправленные о сгенерированных CV",
+          "запись о принятии Политики конфиденциальности и Условий использования",
+        ],
+        irreversible: "Периода отмены нет, восстановить эти данные впоследствии невозможно.",
+        deleteCta: "Удалить аккаунт",
+        unavailable: "Удаление аккаунта временно недоступно. Попробуйте позже.",
+      },
+      dialog: {
+        title: "Безвозвратно удалить аккаунт?",
+        body: "Это действие нельзя отменить. Введите свой адрес e-mail для подтверждения.",
+        emailLabel: "Ваш адрес e-mail",
+        emailHint: (email) => `Введите ${email}, чтобы кнопка стала активной.`,
+        confirm: "Удалить всё",
+        deleting: "Удаляем…",
+        cancel: "Отмена",
+      },
+      errors: {
+        confirmation_mismatch: "Это не e-mail вашего аккаунта. Ничего не удалено.",
+        session_expired: "Сессия истекла. Войдите снова.",
+        service_unavailable: "Удаление аккаунта временно недоступно. Попробуйте позже.",
+        delete_failed: "Не удалось удалить аккаунт. Ничего не удалено — попробуйте ещё раз.",
+      },
+      deletedNotice: {
+        title: "Ваш аккаунт удалён",
+        body: "Аккаунт и все связанные данные удалены безвозвратно. Вы можете создать новый аккаунт в любой момент.",
       },
     },
     cvPages: {
