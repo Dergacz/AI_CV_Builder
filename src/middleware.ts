@@ -5,7 +5,12 @@ import { resolveRequestIdentity } from "@/lib/observability/identity";
 import { scheduleEmit, scheduleErrorReport } from "@/lib/observability/schedule";
 import { createClient, safeGetUser } from "@/lib/supabase";
 
-const PROTECTED_ROUTES = ["/dashboard", "/cv"];
+// S-08: `/account` holds an irreversible control, so it needs the same confirmed-session guard as
+// the workspace. Prefix matching makes every `/account/*` path protected — which is why the
+// post-deletion confirmation lives at `/?deleted=1`: after the delete there is no session left to
+// satisfy this guard. (`/api/account/delete` is under `/api`, so it is unaffected and keeps
+// answering with its own 401.)
+const PROTECTED_ROUTES = ["/dashboard", "/cv", "/account"];
 
 export const onRequest = defineMiddleware(async (context, next) => {
   context.locals.locale = resolveUiLocale(context.cookies.get(UI_LOCALE_COOKIE)?.value);

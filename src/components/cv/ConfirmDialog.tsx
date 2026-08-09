@@ -1,11 +1,17 @@
-import { useEffect, useId, useRef } from "react";
+import { useEffect, useId, useRef, type ReactNode } from "react";
 
 /**
  * Reusable confirm dialog with a focus trap (extracted from CvEditor's regenerate guard).
  *
  * Modal, destructive-action styling on the confirm button. Restores focus to the
  * previously-focused element on close, traps Tab within the dialog, and cancels on
- * Escape or backdrop click. Both the regenerate guard and the saved-CV delete use it.
+ * Escape or backdrop click. The regenerate guard, the saved-CV delete, and the
+ * account-deletion gate all use it.
+ *
+ * S-08 widened `body` from `string` to `ReactNode` so a dialog can carry interactive content —
+ * the account-deletion gate renders its type-your-email field there. The wrapper is a `<div>`
+ * rather than a `<p>` for the same reason: a paragraph may not contain flow content, and a
+ * string body renders identically either way.
  */
 
 const focusableSelector =
@@ -25,7 +31,7 @@ export default function ConfirmDialog({
   onCancel,
 }: {
   title: string;
-  body: string;
+  body: ReactNode;
   confirmLabel: string;
   cancelLabel: string;
   confirmDisabled?: boolean;
@@ -92,9 +98,9 @@ export default function ConfirmDialog({
         <h2 id={titleId} className="text-lg font-semibold text-slate-950">
           {title}
         </h2>
-        <p id={bodyId} className="mt-2 text-sm leading-6 text-slate-600">
+        <div id={bodyId} className="mt-2 text-sm leading-6 text-slate-600">
           {body}
-        </p>
+        </div>
         <div className="mt-5 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
           <button
             type="button"

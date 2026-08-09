@@ -2,12 +2,31 @@
 import ProductLanding from "@/components/ProductLanding.astro";
 import Layout from "@/layouts/Layout.astro";
 import { getLandingContent } from "@/lib/landing-content";
+import { getMessages } from "@/lib/i18n/messages";
 
 const locale = Astro.locals.locale;
 const content = getLandingContent(locale);
+
+// S-08: the account-deletion route sends the (now sessionless) browser to `/?deleted=1`. This is
+// the only place the user is told the erasure succeeded, so it must live on a page reachable with
+// no session. Purely presentational: it emits no event and reads nothing about the deleted user —
+// writing an identified analytics event at the moment we claim to erase the identity would
+// contradict the erasure.
+const deleted = Astro.url.searchParams.get("deleted") === "1";
+const deletedNotice = getMessages(locale).account.deletedNotice;
 ---
 
 <Layout locale={locale} title={content.nav.productName}>
+  {
+    deleted && (
+      <div class="border-b border-emerald-200 bg-emerald-50 px-5 py-4 sm:px-8" role="status">
+        <div class="mx-auto max-w-6xl">
+          <p class="text-sm font-semibold text-emerald-950">{deletedNotice.title}</p>
+          <p class="mt-1 max-w-2xl text-sm leading-6 text-emerald-900">{deletedNotice.body}</p>
+        </div>
+      </div>
+    )
+  }
   <ProductLanding locale={locale} content={content} />
   <script>
     // Funnel step 1: landing viewed (anonymous segment). Init is idempotent and shares the
