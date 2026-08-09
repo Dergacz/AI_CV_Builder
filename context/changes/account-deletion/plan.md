@@ -630,11 +630,11 @@ release blocker, not an optional extra.
 
 #### Automated
 
-- [x] 2.1 Type checking passes: `npm run typecheck` (missing locale strings fail here)
-- [x] 2.2 Linting passes: `npm run lint`
-- [x] 2.3 Unit tests pass: `npm test`
-- [x] 2.4 Client and server confirmation gates share a single `confirmationMatches` source
-- [x] 2.5 Panel renders the unavailable state when `configured` is false
+- [x] 2.1 Type checking passes: `npm run typecheck` (missing locale strings fail here) — 998ae47
+- [x] 2.2 Linting passes: `npm run lint` — 998ae47
+- [x] 2.3 Unit tests pass: `npm test` — 998ae47
+- [x] 2.4 Client and server confirmation gates share a single `confirmationMatches` source — 998ae47
+- [x] 2.5 Panel renders the unavailable state when `configured` is false — 998ae47
 
 #### Manual
 
