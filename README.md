@@ -11,7 +11,7 @@ it section by section, saves it to your account, and exports it as a PDF.
 It never invents career facts. If an answer does not support a section, the draft leaves it empty and
 says so — a CV you cannot defend in an interview is worse than a short one.
 
-<!-- TODO: replace with a product screenshot -->
+![AI CV Builder landing page: "Turn simple answers into a professional CV draft", with a CV draft preview and the EN/PL/RU language switcher](docs/landing.png)
 
 ## What it does
 
