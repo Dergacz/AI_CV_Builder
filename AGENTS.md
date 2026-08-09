@@ -24,7 +24,7 @@ AI CV Builder is an Astro 6 SSR app that turns user answers into a professional 
 
 ## Coding Conventions
 
-Use the `@/*` alias from @tsconfig.json for `src` imports. Prefer Astro components for static page/layout work and React components only for interactive islands. Use `cn()` from @src/lib/utils.ts for conditional Tailwind classes. API routes export uppercase `APIRoute` handlers such as `POST`. Treat @.prettierrc.json as the formatting source of truth.
+Use the `@/*` alias from @tsconfig.json for `src` imports. Prefer Astro components for static page/layout work and React components only for interactive islands. Use `cn()` from @src/lib/utils.ts for conditional Tailwind classes. API routes export uppercase `APIRoute` handlers such as `POST`. Treat @.prettierrc.json as the formatting source of truth. Never place `*.test.*` files under `src/pages/` — Astro turns them into routes and pulls `vitest` into the Worker bundle; route and API tests live in `src/tests/`, helper tests next to their module in `src/lib/`.
 
 ## Testing and CI
 

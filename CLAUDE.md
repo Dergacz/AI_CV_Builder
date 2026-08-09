@@ -40,6 +40,7 @@ Full server-side rendering (`output: "server"` in astro.config.mjs). All pages a
 - **React**: no Next.js directives ("use client" etc.). Extract hooks to `src/components/hooks/`.
 - **Services/helpers** go in `src/lib/` (or `src/lib/services/` for extracted business logic).
 - **Shared types** (entities, DTOs) go in `src/types.ts`.
+- **Test placement**: never put `*.test.*` under `src/pages/` — Astro turns those files into routes and bundles `vitest` into the Cloudflare Worker. Route/API tests go in `src/tests/`, helper tests next to their module in `src/lib/`. A guard test (`src/tests/no-tests-under-pages.test.ts`) enforces this.
 
 ### Environment
 
