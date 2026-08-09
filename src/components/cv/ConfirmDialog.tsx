@@ -44,6 +44,12 @@ export default function ConfirmDialog({
   const bodyId = useId();
 
   useEffect(() => {
+    // Capture the trigger BEFORE moving focus into the dialog. This effect is the only thing
+    // that focuses anything here: an `autoFocus` on a button below would be applied by React
+    // during commit — i.e. before this effect runs — so the "previously focused element" read
+    // here would be that button, and closing the dialog would restore focus to a node that is
+    // about to be detached. Focus would land on <body> and keyboard users would lose their
+    // place. Covered by e2e/account-deletion.spec.ts.
     restoreFocusRef.current = document.activeElement instanceof HTMLElement ? document.activeElement : null;
     const firstFocusable = dialogRef.current ? getFocusableElements(dialogRef.current)[0] : null;
     firstFocusable?.focus();
@@ -104,7 +110,6 @@ export default function ConfirmDialog({
         <div className="mt-5 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
           <button
             type="button"
-            autoFocus
             onClick={onCancel}
             className="inline-flex min-h-11 items-center justify-center rounded-md border border-slate-300 bg-white px-5 py-3 text-sm font-semibold text-slate-900 transition-colors hover:border-slate-400 hover:bg-slate-100 focus-visible:ring-3 focus-visible:ring-slate-500/20 focus-visible:outline-none"
           >

@@ -34,7 +34,8 @@ generating a new E2E test here.
 ## Routes & locators
 
 - Public: `/`, `/auth/signin`, `/auth/signup`. Protected (middleware
-  `PROTECTED_ROUTES = ["/dashboard", "/cv"]`): `/dashboard`, `/cv/new`, `/cv/[id]`.
+  `PROTECTED_ROUTES = ["/dashboard", "/cv", "/account"]`): `/dashboard`, `/cv/new`,
+  `/cv/[id]`, `/account`.
 - UI is i18n; **default locale is `en`** — use the English accessible names.
   Forms use real `<label htmlFor>`, so prefer `getByLabel(...)` /
   `getByRole('button', { name: ... })`. Anchors:
@@ -79,6 +80,22 @@ generating a new E2E test here.
   Google credentials and a human at the consent screen — it is **not** automated
   here. See the Manual Testing Steps in
   `context/changes/google-signin-linking/plan.md`.
+
+## Account deletion (`/account`) — `e2e/account-deletion.spec.ts`
+
+- **Never confirm.** The suite shares one `storageState` account; confirming would delete it
+  and poison every other spec, and nothing can recreate it the way `page.request.delete`
+  recreates a CV. Every test ends on Cancel or Escape, and a `beforeEach` aborts
+  `**/api/account/delete` so even an accidental future click cannot reach the server. Real
+  deletion is proven by pgTAP (`npm run test:db`) and the manual walkthrough instead.
+- **Prerequisite:** `SUPABASE_SECRET_KEY` must be present in `.dev.vars` (local value from
+  `npx supabase status`). Without it `/account` renders the "temporarily unavailable" state
+  and there is no delete button — the spec asserts with a message that says so.
+- **Locators.** `getByRole('region', { name: 'Danger zone' })` for the zone;
+  `getByRole('button', { name: 'Delete account' })` for the trigger (the section heading has
+  the same name, so keep the role); inside `getByRole('dialog')`:
+  `getByLabel('Your email address')`, `getByRole('button', { name: 'Delete everything' })`,
+  and `Cancel`.
 
 ## Data isolation & cleanup
 

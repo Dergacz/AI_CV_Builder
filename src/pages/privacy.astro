@@ -54,6 +54,12 @@ const legal = messages.legal;
           We use pseudonymous product analytics, currently through PostHog, to understand the funnel and improve the
           product. Analytics events are intended to avoid raw questionnaire answers and raw CV content.
         </p>
+        <p>
+          Analytics events never carry your email address, your name, or CV content. A signed-in event is attributed to
+          a one-way salted pseudonym derived from your account identifier, and no personal profile is created or stored
+          for that pseudonym. The analytics store therefore holds usage records that cannot be resolved back to you from
+          within it.
+        </p>
       </section>
 
       <section class="space-y-3">
@@ -68,9 +74,26 @@ const legal = messages.legal;
       <section class="space-y-3">
         <h2 class="text-2xl font-semibold text-slate-950">6. Retention and deletion</h2>
         <p>
-          We keep account and saved CV data while your account remains active or as needed to operate the service.
-          Account deletion is part of the launch-readiness scope, and this draft will be updated when that user-facing
-          deletion flow is available.
+          We keep account and saved CV data while your account remains active or as needed to operate the service. You
+          can delete your account yourself at any time from the account page, without contacting us.
+        </p>
+        <p>
+          Deleting your account removes your account and sign-in identity, including any linked Google sign-in; every
+          saved CV and the questionnaire answers stored with it; the feedback you submitted on generated CVs; your
+          subscription record; the record of your CV generations; and the record of your acceptance of this Privacy
+          Policy and the Terms of Service.
+        </p>
+        <p>
+          Deletion is immediate and permanent. There is no grace period, no recovery window, and no backup copy we can
+          restore from — once the deletion completes, we cannot bring your data back, and neither can you.
+        </p>
+        <p>
+          Residual product-analytics records are addressed by how they were collected rather than by a separate erasure
+          request. As described in section 4, those records contain no identifying data: a signed-in event carries only
+          a one-way salted pseudonym computed from your account identifier, and no personal profile exists alongside it.
+          Deleting your account destroys that account identifier, which is the only input from which the pseudonym could
+          be reproduced, so the remaining usage records can no longer be linked to you. The browser cookies used to
+          connect your analytics session are cleared as part of the deletion.
         </p>
       </section>
 

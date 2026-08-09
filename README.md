@@ -102,6 +102,7 @@ value degrades a feature rather than crashing the app.
 | --------------------------- | ----------------- | ----------------------------------------------------------- |
 | `SUPABASE_URL`              | auth, saved CVs   | Config banner on every page; auth and persistence disabled  |
 | `SUPABASE_KEY`              | auth, saved CVs   | Same as above (publishable/anon key — never a secret key)   |
+| `SUPABASE_SECRET_KEY`       | account deletion  | `/account` shows "unavailable"; the delete route 503s       |
 | `OPENAI_API_KEY`            | CV generation     | `POST /api/cv/generate` answers 503 `service_unavailable`   |
 | `OPENAI_MODEL`              | —                 | Falls back to `gpt-4o-mini`                                 |
 | `POSTHOG_API_KEY`           | analytics, errors | Server-side observability emission disabled; config banner  |
@@ -121,6 +122,7 @@ value degrades a feature rather than crashing the app.
 | `npm run build`             | Production build (SSR via `@astrojs/cloudflare`)            |
 | `npm run preview`           | Preview the production build                                |
 | `npm run test`              | Unit tests (vitest)                                         |
+| `npm run test:db`           | pgTAP database tests (needs `npm run db:start`)             |
 | `npm run lint` / `lint:fix` | ESLint with type-checked rules                              |
 | `npm run format`            | Prettier, including Astro and Tailwind class ordering       |
 | `npm run db:start`          | Start the local Supabase stack                              |
@@ -129,6 +131,47 @@ value degrades a feature rather than crashing the app.
 
 A husky pre-commit hook runs `eslint --fix` on staged `*.{ts,tsx,astro}` and `prettier --write` on
 staged `*.{json,css,md}`.
+
+## Account deletion and the Supabase secret key
+
+Deleting an account means deleting one row — `auth.users` — and letting the `on delete cascade`
+foreign keys on `cvs`, `subscriptions`, `feedback`, and `generation_usage` take the rest with it.
+Removing that row requires the Supabase **secret** (service-role) key, which is the
+highest-privilege value in the project: it **bypasses row-level security entirely**.
+
+Where it comes from:
+
+- **Local:** `npx supabase status` prints it as `Secret` (`sb_secret_…`; the legacy `service_role`
+  JWT works too). Put it in `.env` and `.dev.vars` as `SUPABASE_SECRET_KEY` — both are gitignored.
+- **Production:** the Supabase dashboard (**Project Settings → API keys**). Set it as a Cloudflare
+  Worker secret, never as a default in `astro.config.mjs` and never in a committed file:
+
+  ```bash
+  npx wrangler secret put SUPABASE_SECRET_KEY
+  ```
+
+How its blast radius is kept small:
+
+- Exactly one module reads it — `src/lib/supabase-admin.ts` — and it exports no raw admin client,
+  only `deleteUserAccount(userId)` and `isAdminConfigured()`. An ESLint `no-restricted-imports`
+  fence in `eslint.config.js` makes importing that module from anywhere but
+  `src/lib/services/account-deletion.ts` a lint error, so a future route cannot quietly widen the
+  key's reach.
+- The admin client is built per request inside the deletion path, with `persistSession: false` and
+  `autoRefreshToken: false` — no session storage in a Worker that has none.
+- **Rotation is safe and cheap.** Nothing else reads the key, so rotating it in Supabase and
+  re-running `wrangler secret put` affects only account deletion, with no migration or redeploy
+  coupling.
+
+**Omitting it degrades, it does not break.** `isAdminConfigured()` is false, `/account` renders the
+"account deletion is temporarily unavailable" state with no clickable delete button, and
+`POST /api/account/delete` answers `503 service_unavailable` without touching any data. That is
+also the kill switch: unset the secret to disable the surface immediately. Note the flip side —
+erasure is a legal obligation, so an unset secret in production is a compliance problem, not a
+tolerable default. Treat it as a release blocker.
+
+The cascade itself is pinned by a pgTAP test (`npm run test:db`, see [Testing](#testing)), which
+also fails if a _new_ table starts referencing `auth.users` without `on delete cascade`.
 
 ## Google sign-in (OAuth)
 
@@ -206,14 +249,15 @@ context/                      # product foundation and per-change plans (see bel
 
 ## Routes
 
-| Route                          | Description                                    |
-| ------------------------------ | ---------------------------------------------- |
-| `/`                            | Landing page and entry point into CV creation  |
-| `/auth/signin`, `/auth/signup` | Email/password auth                            |
-| `/auth/confirm-email`          | Post-signup "check your inbox" page            |
-| `/dashboard`                   | Saved CV library — open or delete previous CVs |
-| `/cv/new`                      | Guided questionnaire and draft review          |
-| `/cv/[id]`                     | Reopen a saved CV for editing and export       |
+| Route                          | Description                                     |
+| ------------------------------ | ----------------------------------------------- |
+| `/`                            | Landing page and entry point into CV creation   |
+| `/auth/signin`, `/auth/signup` | Email/password auth                             |
+| `/auth/confirm-email`          | Post-signup "check your inbox" page             |
+| `/dashboard`                   | Saved CV library — open or delete previous CVs  |
+| `/account`                     | Account settings and permanent account deletion |
+| `/cv/new`                      | Guided questionnaire and draft review           |
+| `/cv/[id]`                     | Reopen a saved CV for editing and export        |
 
 | API                                       | Methods                                         |
 | ----------------------------------------- | ----------------------------------------------- |
@@ -221,6 +265,7 @@ context/                      # product foundation and per-change plans (see bel
 | `/api/cv/[id]`                            | `GET` read, `PUT` overwrite, `DELETE` remove    |
 | `/api/cv/generate`                        | `POST` questionnaire answers → structured draft |
 | `/api/auth/signin`, `/signup`, `/signout` | `POST`                                          |
+| `/api/account/delete`                     | `POST` permanently delete the caller's account  |
 | `/api/locale`                             | `POST` set the interface locale cookie          |
 
 Authentication is cookie-based (`@supabase/ssr`). `src/middleware.ts` resolves the user on every
@@ -244,8 +289,15 @@ a second, independent line of defense. A request for another account's CV answer
 ## Testing
 
 ```bash
-npm run test
+npm run test      # unit tests (vitest)
+npm run test:db   # pgTAP database tests — needs the local stack up (npm run db:start)
 ```
+
+`npm run test:db` runs `supabase/tests/database/*.test.sql` through the Supabase CLI. It pins the
+account-deletion cascade: the erasure claim rests entirely on `on delete cascade`, so the test seeds
+one row per user-scoped table, deletes the `auth.users` row, asserts nothing survives, and inventories
+every `public` foreign key into `auth.users` so a new table without a cascade fails loudly. Like the
+E2E suite, it is **not** in CI — `ci.yml` has no Postgres.
 
 Strategy, the risk register, and the manual checks that cannot be automated live in
 [`context/foundation/test-plan.md`](context/foundation/test-plan.md). Two conventions matter:
