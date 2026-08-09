@@ -59,8 +59,10 @@ Start the local Supabase stack (downloads Docker images on the first run):
 npx supabase start
 ```
 
-Copy the printed `API URL` and `anon key` into two files — `.env` for the Astro/Node toolchain and
-`.dev.vars` for the Cloudflare dev runtime. Both are gitignored; `.env.example` lists the keys:
+`npx supabase status` prints the credentials. Put the `Project URL` in `SUPABASE_URL` and the
+**Publishable** key (`sb_publishable_…`) in `SUPABASE_KEY` — never the `Secret` one, which bypasses
+row-level security. They go in two files: `.env` for the Astro/Node toolchain and `.dev.vars` for the
+Cloudflare dev runtime. Both are gitignored; `.env.example` lists the keys:
 
 ```bash
 cp .env.example .env
@@ -84,9 +86,11 @@ The local Supabase Studio is at `http://localhost:54323`.
 
 ### Email confirmation in local development
 
-Supabase requires email confirmation before a new user can sign in. Either pick the confirmation link
-out of the local Inbucket mailbox (`http://localhost:54324`), or turn the requirement off under
-**Authentication → Email → Confirm email** in Studio.
+Confirmation is off by default locally (`enable_confirmations = false` under `[auth.email]` in
+`supabase/config.toml`), so a new account can sign in immediately. Signup mail still goes to the local
+mailbox UI at `http://localhost:54324` — its links are built from `site_url`, which the same file pins
+to `http://localhost:4321`. Changing anything under `[auth.*]` requires
+`npx supabase stop && npx supabase start`; the running container will not pick it up otherwise.
 
 ## Environment variables
 
@@ -97,7 +101,7 @@ crashing the app.
 | Variable         | Required for    | Missing-value behavior                                     |
 | ---------------- | --------------- | ---------------------------------------------------------- |
 | `SUPABASE_URL`   | auth, saved CVs | Config banner on every page; auth and persistence disabled |
-| `SUPABASE_KEY`   | auth, saved CVs | Same as above (`anon` public key, not the service key)     |
+| `SUPABASE_KEY`   | auth, saved CVs | Same as above (publishable/anon key — never a secret key)  |
 | `OPENAI_API_KEY` | CV generation   | `POST /api/cv/generate` answers 503 `service_unavailable`  |
 | `OPENAI_MODEL`   | —               | Falls back to `gpt-4o-mini`                                |
 
