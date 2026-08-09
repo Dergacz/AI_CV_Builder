@@ -638,26 +638,26 @@ release blocker, not an optional extra.
 
 #### Manual
 
-- [x] 2.6 `/account` redirects to `/auth/signin` when signed out
-- [x] 2.7 Confirm stays disabled for wrong, empty, and near-miss emails; case/whitespace variants accepted
-- [x] 2.8 Escape, backdrop click, and Cancel close the dialog without deleting
-- [x] 2.9 Full flow is keyboard-navigable and focus returns to the trigger on cancel
-- [x] 2.10 Deleting a throwaway account lands on `/?deleted=1`; subsequent sign-in fails
-- [x] 2.11 Page and dialog render correctly in en / pl / ru
-- [x] 2.12 With the key unset, the page shows the unavailable state and no clickable delete
+- [x] 2.6 `/account` redirects to `/auth/signin` when signed out — a9ba8f5
+- [x] 2.7 Confirm stays disabled for wrong, empty, and near-miss emails; case/whitespace variants accepted — a9ba8f5
+- [x] 2.8 Escape, backdrop click, and Cancel close the dialog without deleting — a9ba8f5
+- [x] 2.9 Full flow is keyboard-navigable and focus returns to the trigger on cancel — a9ba8f5
+- [x] 2.10 Deleting a throwaway account lands on `/?deleted=1`; subsequent sign-in fails — a9ba8f5
+- [x] 2.11 Page and dialog render correctly in en / pl / ru — a9ba8f5
+- [x] 2.12 With the key unset, the page shows the unavailable state and no clickable delete — a9ba8f5
 
 ### Phase 3: Erasure proof and documentation
 
 #### Automated
 
-- [x] 3.1 `npm run test:db` passes against a running local stack
-- [x] 3.2 Cascade test fails when `on delete cascade` is removed from any of the four tables
-- [x] 3.3 `npm run test:e2e` passes, including the new confirmation-gate spec
-- [x] 3.4 `npm test`, `npm run lint`, `npm run typecheck` still pass
-- [x] 3.5 `npm run build` succeeds
+- [x] 3.1 `npm run test:db` passes against a running local stack — a9ba8f5
+- [x] 3.2 Cascade test fails when `on delete cascade` is removed from any of the four tables — a9ba8f5
+- [x] 3.3 `npm run test:e2e` passes, including the new confirmation-gate spec — a9ba8f5
+- [x] 3.4 `npm test`, `npm run lint`, `npm run typecheck` still pass — a9ba8f5
+- [x] 3.5 `npm run build` succeeds — a9ba8f5
 
 #### Manual
 
-- [x] 3.6 README section suffices to configure the secret in a fresh Cloudflare deployment
-- [x] 3.7 Privacy policy deletion paragraph reads correctly in every supported locale
-- [x] 3.8 Full walkthrough on a fresh account leaves zero rows across all four tables
+- [x] 3.6 README section suffices to configure the secret in a fresh Cloudflare deployment — a9ba8f5
+- [x] 3.7 Privacy policy deletion paragraph reads correctly in every supported locale — a9ba8f5
+- [x] 3.8 Full walkthrough on a fresh account leaves zero rows across all four tables — a9ba8f5
