@@ -12,6 +12,7 @@ import {
 import { createClient } from "@/lib/supabase";
 import { generationErrorMessages, type GenerateDraftResponse } from "@/lib/cv-draft";
 import { cvAnswersSchema } from "@/lib/cv-answers.schema";
+import { readBoundedJson } from "@/lib/request-body";
 
 const MODEL_PROVIDER = "openai";
 
@@ -35,19 +36,18 @@ export const POST: APIRoute = async (context) => {
     });
   }
 
-  const contentLength = Number(context.request.headers.get("content-length"));
-  if (Number.isFinite(contentLength) && contentLength > MAX_REQUEST_BODY_BYTES) {
-    return json(413, { ok: false, error: "generation_failed", message: generationErrorMessages.generation_failed });
+  // Measure the decoded body rather than trusting Content-Length: a chunked request can
+  // omit the header entirely and slip past a header-only check.
+  const body = await readBoundedJson(context.request, MAX_REQUEST_BODY_BYTES);
+  if (!body.ok) {
+    return json(body.status, {
+      ok: false,
+      error: "generation_failed",
+      message: generationErrorMessages.generation_failed,
+    });
   }
 
-  let body: unknown;
-  try {
-    body = await context.request.json();
-  } catch {
-    return json(400, { ok: false, error: "generation_failed", message: generationErrorMessages.generation_failed });
-  }
-
-  const parsed = cvAnswersSchema.safeParse(body);
+  const parsed = cvAnswersSchema.safeParse(body.body);
   if (!parsed.success) {
     return json(400, { ok: false, error: "generation_failed", message: generationErrorMessages.generation_failed });
   }

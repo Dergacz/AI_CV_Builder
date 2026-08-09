@@ -1,37 +1,135 @@
-# Test Plan — E2E risk slice (10xDevs M3L4)
+---
+project: AI CV Builder
+version: 1
+status: active
+created: 2026-08-09
+updated: 2026-08-09
+prd_version: 1
+---
 
-Lightweight risk source for the `/10x-e2e` workflow. Lists only the browser-level
-risks that justify an E2E test — those crossing multiple system boundaries (auth,
-routing, API, database, SSR) where a unit test cannot prove the path. E2E is the
-slowest, most fragile layer, so this stays deliberately short.
+# Test Plan: AI CV Builder
 
-## R1 — Generated CV is lost after a page reload
+> Cross-change testing strategy and risk register. Edit-in-place; archive when superseded.
+> Per-change `plan.md` files reference risk IDs from this document instead of keeping their own lists.
 
-- **Statement:** A user generates a CV, saves it, refreshes the page (or returns
-  later) and the CV is gone — the data never survived the full path.
-- **Boundaries crossed:** authenticated session → `POST /api/cv` → Supabase `cvs`
-  (RLS) → dashboard server render (`dashboard.astro` → `SavedCvList`).
-- **Impact:** High (loss of the product's core artifact). **Likelihood:** Medium.
-- **Why E2E:** persistence only exists across auth + API + DB + SSR; no isolated
-  function reproduces it.
-- **Real vs mocked:** auth, save API, database, SSR are REAL. The external LLM is
-  mocked at the app's own `/api/cv/generate` seam (generation runs server-side, so
-  the OpenAI URL is not browser-interceptable).
-- **Test:** `e2e/cv-persistence.spec.ts`.
+## Strategy
 
-## R2 — Unauthenticated user reaches protected resources
+Confidence is bought in three layers, cheapest first:
 
-- **Statement:** A visitor with no session opens `/dashboard` or `/cv/*` and sees
-  protected content instead of being redirected to sign in.
-- **Boundaries crossed:** request → `src/middleware.ts` (cookie resolution +
-  `PROTECTED_ROUTES`) → redirect.
-- **Impact:** High (access-control failure). **Likelihood:** Low–Medium.
-- **Why E2E:** the guard lives in middleware + cookie handling, only observable on
-  a real request through the routing layer.
-- **Real vs mocked:** fully real; nothing mocked.
-- **Test:** `e2e/auth-redirect.spec.ts`.
+1. **Deterministic unit tests around contracts and drift** (vitest) carry most of the register —
+   schemas, language boundaries, owner scoping, and error mapping are fully reachable there.
+2. **A deliberately short E2E slice** (Playwright) covers only paths that cross several system
+   boundaries at once — auth, routing, API, database, SSR — where no isolated function reproduces the
+   failure. E2E is the slowest and most fragile layer, so a risk earns a browser test only when it
+   cannot be proven below.
+3. **Manual browser evidence** where real rendering is the only proof. PDF glyph rendering and
+   cross-browser export stay here on purpose: they are exactly what a headless runner proves least
+   about.
 
-## Seed
+What that means in practice:
 
-`e2e/seed.spec.ts` is the pattern exemplar (not a risk): it shows the four E2E
-quality patterns on the real save→reopen flow so generated tests inherit them.
+- A test exists to catch a **named risk**, not to raise a coverage number. Every entry in the register
+  below states the failure it prevents.
+- Contract seams get **agreement tests** — where two implementations must stay in step (client guard
+  vs. zod schema, three locale catalogs), a test asserts they cannot drift apart silently.
+- Anything requiring a real browser or a real model call that E2E does not cover is listed under
+  [Manual verification](#manual-verification) and is explicitly _not_ faked into a green test.
+- The external LLM is mocked at the app's own `/api/cv/generate` seam, never at the OpenAI URL —
+  generation runs server-side and is not browser-interceptable.
+
+## Stack and layout
+
+|                                    |                                                                         |
+| ---------------------------------- | ----------------------------------------------------------------------- |
+| Unit runner                        | vitest 4 — `npm run test`                                               |
+| Discovery                          | `src/**/*.test.ts` (`vitest.config.ts`)                                 |
+| Aliases                            | `@` → `src`; `astro:env/server` → `src/tests/support/astro-env.stub.ts` |
+| Helper-level tests                 | next to their module in `src/lib/`                                      |
+| Route, API, and cross-module tests | `src/tests/`                                                            |
+| Shared fakes                       | `src/tests/support/`                                                    |
+| E2E runner                         | Playwright — `npm run test:e2e` (needs local Supabase up)               |
+| E2E specs                          | `e2e/*.spec.ts`; conventions and locators in `e2e/README.md`            |
+| E2E auth                           | `storageState` from `e2e/auth.setup.ts` + `e2e/fixtures/test-user.ts`   |
+| Mutation testing                   | Stryker — `npx stryker run --mutate "src/lib/file.ts"` (narrowed only)  |
+
+**Test files must never live under `src/pages/`.** Astro routes every module in that tree, so a
+colocated test becomes a public endpoint and drags `vitest` into the Cloudflare Worker bundle. This
+already happened once; `src/tests/no-tests-under-pages.test.ts` now fails if it recurs (R-09).
+
+## Risk register
+
+| ID   | Risk                                                                           | Why it matters                                                                                 | Coverage                                                                                                                                                                                                                                                                                   |
+| ---- | ------------------------------------------------------------------------------ | ---------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| R-01 | Interface locale leaks into CV output, saved rows, or exported PDFs            | A user reading the UI in Polish would silently get a Polish CV they did not ask for            | `src/lib/i18n/cv-language-boundary.test.ts`                                                                                                                                                                                                                                                |
+| R-02 | The zod-free client guard and the zod schema drift apart                       | The editor accepts a Save the server then rejects, or a draft breaks downstream in save/export | `src/lib/cv-draft-agreement.test.ts` (client guards ⊆ schema), `src/lib/cv-draft-validation.test.ts`                                                                                                                                                                                       |
+| R-03 | The model returns a non-conforming or fabricated draft                         | Malformed content reaches persistence, or the CV states things the user never said             | `generatedCvDraftSchema.safeParse` in `src/lib/services/cv-generation.ts` (re-validation after strict structured output) + anti-fabrication rules in the system prompt; content quality is manual                                                                                          |
+| R-04 | Oversized or malformed request bodies reach parsing and the model              | Unbounded work on a Worker: latency, cost, and a trivially cheap abuse vector                  | `src/tests/api/cv-index.test.ts`, `src/tests/api/cv-generate-route.test.ts` — both assert the guard holds when `Content-Length` is absent                                                                                                                                                  |
+| R-05 | One account reads, overwrites, or deletes another account's CV                 | The single highest-consequence failure in the product: private career data crossing accounts   | DB: owner-only RLS on all four operations (`supabase/migrations/20260606103740_create_cvs.sql`). App: `src/tests/services/cv-repository.owner-scope.test.ts`. Routes: `src/tests/api/cv-item-routes.test.ts` (bare 404, never 403/500). Live RLS: [manual check M-1](#manual-verification) |
+| R-06 | Export filename mangles Unicode, or failures are misclassified                 | A Cyrillic/Polish title yields an unusable file; a network blip reads as "your CV is broken"   | `src/lib/cv-export-filename.test.ts`, `src/lib/cv-export-error.test.ts`                                                                                                                                                                                                                    |
+| R-07 | Output language does not survive generate → save → reopen → export             | The north-star flow (S-08) silently degrades at one of four handoffs                           | `src/lib/cv-full-flow-contract.test.ts`                                                                                                                                                                                                                                                    |
+| R-08 | Locale catalogs diverge — a key exists in one language, not another            | Untranslated English strings surface mid-flow to a Polish or Russian user                      | `src/lib/i18n/messages.test.ts` (key-path set parity), `src/lib/i18n/locales.test.ts`, `src/lib/i18n/auth-errors.test.ts`                                                                                                                                                                  |
+| R-09 | Test or dev-only code ships in the production Worker bundle                    | Dead public endpoints and dev dependencies inside the deployed Worker                          | `src/tests/no-tests-under-pages.test.ts`                                                                                                                                                                                                                                                   |
+| R-10 | PDF renders with missing glyphs (Polish diacritics, Cyrillic) or broken layout | The one artifact the user actually walks away with is unusable                                 | **Manual only** — [M-2](#manual-verification). vitest does not render PDFs                                                                                                                                                                                                                 |
+| R-11 | Raw questionnaire answers or draft content end up in logs                      | Private career data in observability output; violates the F-02 privacy contract                | **Manual review** — enforced by the module contracts documented in `src/lib/services/cv-generation.ts` and `cv-repository.ts`                                                                                                                                                              |
+| R-12 | A generated CV is lost after a reload — persistence never survived the path    | Loss of the product's core artifact, invisible to any single-layer test                        | **E2E** — `e2e/cv-persistence.spec.ts`. Real auth, save API, database, and SSR; only the LLM is mocked at `/api/cv/generate`                                                                                                                                                               |
+| R-13 | An unauthenticated visitor reaches `/dashboard` or `/cv/*`                     | Access-control failure — protected content served without a session                            | **E2E** — `e2e/auth-redirect.spec.ts`. Fully real; the guard lives in `src/middleware.ts` + cookie handling and is only observable through the routing layer                                                                                                                               |
+
+### Browser-level (E2E) risks
+
+R-12 and R-13 are the only two risks that earn a browser test: each crosses authenticated session →
+route → API → database → SSR, and no isolated function reproduces the failure. `e2e/seed.spec.ts` is
+not a risk — it is the pattern exemplar, demonstrating the four E2E quality patterns on the real
+save→reopen flow so generated tests inherit them. Before adding a spec, read `e2e/README.md`.
+
+### Coverage the register deliberately does not claim
+
+- The RLS policies themselves are **not** proven by unit tests. `cv-repository.owner-scope.test.ts`
+  drives the real repository functions through an in-memory client (`src/tests/support/fake-supabase.ts`),
+  which proves the application-layer `.eq("user_id", …)` filters — the second line of defense — and
+  nothing about Postgres. The first line needs a live database (M-1).
+- Generated CV _quality_ is unverifiable automatically. The tests prove the draft's shape, language,
+  and provenance; whether the prose is good is a human judgment.
+
+## Manual verification
+
+Run before closing any change that touches the flow in question.
+
+**M-1 — Cross-account isolation (R-05).** With local Supabase running: account A saves a CV and notes
+its id. Account B then confirms `GET /api/cv` omits it, `/cv/<idA>` renders a 404, `PUT` and
+`DELETE /api/cv/<idA>` both answer 404, and the row is still intact for account A afterwards.
+
+**M-2 — PDF export matrix (R-10, R-06).** Generate and export a CV in English, Polish, and Russian;
+check diacritics and Cyrillic glyphs render, sparse drafts do not break layout, and the filename is
+usable. Repeat in Chrome, Safari, Firefox, Edge, and one mobile viewport.
+
+**M-3 — Failure states.** Generation unavailable (no API key), save failure, export failure with the
+font request blocked, and reopening a missing or non-owned CV. Each must surface its own message with
+the CV still on screen and no raw error text leaked.
+
+**M-4 — Interface localization (R-01, R-08).** Switch UI locale on landing, auth, dashboard,
+questionnaire, and review screens; confirm `<html lang>` follows, the choice survives a refresh, and
+the CV output language is unaffected.
+
+## Gates
+
+| Gate                | Command             | Enforced by                                             |
+| ------------------- | ------------------- | ------------------------------------------------------- |
+| Astro types         | `npx astro sync`    | `ci.yml`, `deploy.yml`                                  |
+| Type check          | `npm run typecheck` | `ci.yml`, `deploy.yml`                                  |
+| Lint (type-checked) | `npm run lint`      | `ci.yml`, `deploy.yml`, pre-commit hook on staged files |
+| Unit tests          | `npm run test`      | `ci.yml`, `deploy.yml`                                  |
+| Production build    | `npm run build`     | `ci.yml`, `deploy.yml`                                  |
+| E2E suite           | `npm run test:e2e`  | Local, with Supabase up — not gated by CI               |
+
+`ci.yml` runs on pull requests to `master`; `deploy.yml` runs the same gates on push to `master` and
+then deploys to Cloudflare Workers. E2E and manual checks are not gated by CI — they belong to the
+change's own closure checklist.
+
+## Adding a risk
+
+1. Append a row here with the next `R-NN`, stating the **failure it prevents**, not the feature it covers.
+2. Decide the coverage type honestly: automated, manual, or "accepted, untested" — the third is a valid
+   answer for an MVP, but it must be written down rather than implied.
+3. Reference the ID from the change's `plan.md` Testing Strategy section instead of restating the risk.
+4. When a manual check becomes automatable, move it into the register and delete it from
+   [Manual verification](#manual-verification) — the two lists must not describe the same work twice.

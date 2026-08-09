@@ -14,21 +14,23 @@ AI CV Builder is an Astro 6 SSR app that turns user answers into a professional 
 
 - `npm run dev` starts the Astro dev server.
 - `npm run lint` runs ESLint with type-checked TypeScript, Astro, React, accessibility, React Compiler, and Prettier rules.
+- `npm run test` runs the vitest suite.
 - `npm run build` runs the production build for the Cloudflare adapter.
 - `npm run format` formats the repo with Prettier, including Astro and Tailwind class ordering.
-- `npx astro sync` regenerates Astro types; CI runs it before lint/build.
+- `npx astro sync` regenerates Astro types; CI runs it before lint/test/build.
+- `npm run db:reset` applies @supabase/migrations/ to the local database; `npm run db:types` regenerates @src/db/database.types.ts from it. Both need `npx supabase start` and Docker.
 
 ## Project Structure
 
-`src/pages/` contains Astro routes, with auth POST endpoints in `src/pages/api/auth/`. `src/components/auth/` holds interactive React auth form pieces; shared shadcn/ui components live in `src/components/ui/`. `src/lib/` holds Supabase, config-status, and utility helpers. `supabase/config.toml` is local Supabase config; migrations live in `supabase/migrations/` (naming: `YYYYMMDDHHmmss_description.sql`). Always enable RLS on new tables with granular per-operation, per-role policies.
+`src/pages/` contains Astro routes: auth endpoints in `src/pages/api/auth/`, saved-CV endpoints in `src/pages/api/cv/` (`index.ts` list/create, `[id].ts` read/update/delete, `generate.ts` draft generation), and the CV screens in `src/pages/cv/`. `src/components/auth/` and `src/components/cv/` hold the React islands; shared shadcn/ui components live in `src/components/ui/`. `src/lib/` holds schemas, copy, and helpers, with extracted business logic in `src/lib/services/` (`cv-generation.ts`, `cv-repository.ts`) and interface localization in `src/lib/i18n/`. `src/tests/` holds route/API tests and shared fakes; `e2e/` holds the Playwright specs. `supabase/migrations/` holds the SQL migrations (naming: `YYYYMMDDHHmmss_description.sql`); `supabase/config.toml` is local Supabase config. Always enable RLS on new tables with granular per-operation, per-role policies.
 
 ## Coding Conventions
 
-Use the `@/*` alias from @tsconfig.json for `src` imports. Prefer Astro components for static page/layout work and React components only for interactive islands. Use `cn()` from @src/lib/utils.ts for conditional Tailwind classes. API routes export uppercase `APIRoute` handlers such as `POST`. Treat @.prettierrc.json as the formatting source of truth.
+Use the `@/*` alias from @tsconfig.json for `src` imports. Prefer Astro components for static page/layout work and React components only for interactive islands. Use `cn()` from @src/lib/utils.ts for conditional Tailwind classes. API routes export uppercase `APIRoute` handlers such as `POST`. Treat @.prettierrc.json as the formatting source of truth. Never place `*.test.*` files under `src/pages/` — Astro turns them into routes and pulls `vitest` into the Worker bundle; route and API tests live in `src/tests/`, helper tests next to their module in `src/lib/`.
 
 ## Testing and CI
 
-Unit/contract tests run with Vitest: `npm test` (`vitest run`); test files live beside sources as `src/**/*.test.ts`, with the `@/*` alias mirrored in @vitest.config.ts. Mutation testing is configured via Stryker (@stryker.config.json, Vitest runner) and run narrowed to the module under change — `npx stryker run --mutate "src/lib/file.ts"`. The verification gate is `npm run lint` + `npm run build` + `npm test`. GitHub Actions in @.github/workflows/ci.yml runs on pushes and PRs to `master` and requires `SUPABASE_URL` and `SUPABASE_KEY` repository secrets for build.
+Tests run on vitest via `npm run test`; discovery is `src/**/*.test.ts`, with the `@/*` alias mirrored in @vitest.config.ts. The strategy and the risk register live in @context/foundation/test-plan.md — reference an existing `R-NN` risk from a change's Testing Strategy rather than restating it, and add a new row there when you cover a new failure mode. Browser-level risks are covered by Playwright (`npm run test:e2e`, specs in `e2e/`, conventions in `e2e/README.md`); mutation testing is configured via Stryker (@stryker.config.json, Vitest runner) and run narrowed to the module under change — `npx stryker run --mutate "src/lib/file.ts"`. The full verification gate is `npx astro sync`, `npm run typecheck`, `npm run lint`, `npm run test`, `npm run build`. GitHub Actions in @.github/workflows/ci.yml runs those gates on pull requests to `master`; @.github/workflows/deploy.yml repeats them on push to `master` and then deploys to Cloudflare Workers. Both need `SUPABASE_URL` and `SUPABASE_KEY` repository secrets for the build step.
 
 ## Git and PRs
 

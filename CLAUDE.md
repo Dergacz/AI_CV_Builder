@@ -9,7 +9,9 @@ This file provides guidance to AI Agent when working with code in this repositor
 - `npm run preview` — preview production build
 - `npm run lint` — ESLint with type-checked rules
 - `npm run lint:fix` — auto-fix lint issues
+- `npm run test` — vitest suite (`src/**/*.test.ts`)
 - `npm run format` — Prettier (includes prettier-plugin-astro + prettier-plugin-tailwindcss)
+- `npm run db:start` / `db:reset` / `db:types` — local Supabase: start the stack, apply `supabase/migrations/`, regenerate `src/db/database.types.ts` (needs Docker)
 
 Pre-commit hooks: husky + lint-staged runs `eslint --fix` on `*.{ts,tsx,astro}` and `prettier --write` on `*.{json,css,md}`.
 
@@ -41,6 +43,7 @@ Full server-side rendering (`output: "server"` in astro.config.mjs). All pages a
 - **React**: no Next.js directives ("use client" etc.). Extract hooks to `src/components/hooks/`.
 - **Services/helpers** go in `src/lib/` (or `src/lib/services/` for extracted business logic).
 - **Shared types** (entities, DTOs) go in `src/types.ts`.
+- **Test placement**: never put `*.test.*` under `src/pages/` — Astro turns those files into routes and bundles `vitest` into the Cloudflare Worker. Route/API tests go in `src/tests/`, helper tests next to their module in `src/lib/`. A guard test (`src/tests/no-tests-under-pages.test.ts`) enforces this.
 
 ### Environment
 
@@ -60,14 +63,20 @@ These majors postdate much training data; do not fall back to previous-major idi
 - **zod 4** — import from `zod`; verify against the installed v4 API (error customization and some method signatures changed from v3). Do not assume v3 idioms.
 - **Astro 6** — API routes export `const prerender = false` and uppercase handlers (`GET`, `POST`). Run `npx astro sync` after changing content/types.
 
-## CI
-
-GitHub Actions runs `astro sync` + `astro check` + lint + test + build on every PR to master (`.github/workflows/ci.yml`); `deploy.yml` runs the same gate then deploys to Cloudflare Workers on push to master. Requires `SUPABASE_URL` and `SUPABASE_KEY` repository secrets for the build step.
-
 ## Testing
 
-- Unit/contract tests: `npm test` (Vitest). Test files live next to sources as `src/**/*.test.ts`; the `@/*` alias is mirrored in `vitest.config.ts`.
+- Runner: vitest, `npm run test`. Discovery glob: `src/**/*.test.ts` (`vitest.config.ts`); the `@/*` alias is mirrored there.
+- Strategy and risk register: `context/foundation/test-plan.md`. A change's Testing Strategy should cite an existing `R-NN` risk; add a row there when covering a new failure mode.
+- `vitest.config.ts` aliases `astro:env/server` to a stub so route modules can be imported directly in tests.
+- **Test placement**: never put `*.test.*` under `src/pages/` — Astro turns those files into routes and bundles `vitest` into the Cloudflare Worker. Route/API tests go in `src/tests/`, helper tests next to their module in `src/lib/`. A guard test (`src/tests/no-tests-under-pages.test.ts`) enforces this.
+- E2E: Playwright, `npm run test:e2e` (needs local Supabase up). Specs in `e2e/`; read `e2e/README.md` before adding one.
 - Mutation testing: `stryker.config.json` (Vitest runner). Run **narrowed** to the module under change — `npx stryker run --mutate "src/lib/file.ts"`, or by line range `--mutate "src/lib/file.ts:12-40"`. Only run it for code touched by the current change or a risk in `test-plan.md`. Artifacts land in `reports/` (gitignored). For the full selective-gate workflow and how to triage survived mutants, see "Mutation testing (Stryker)" in the 10xDevs section below.
+
+## CI
+
+- `.github/workflows/ci.yml` — on pull requests to `master`: `astro sync` → `astro check` → `lint` → `test` → `build`.
+- `.github/workflows/deploy.yml` — on push to `master`: the same gates, then `wrangler deploy`.
+- Repository secrets: `SUPABASE_URL` and `SUPABASE_KEY` for the build; `CLOUDFLARE_API_TOKEN` and `CLOUDFLARE_ACCOUNT_ID` for deployment.
 
 <!-- BEGIN @przeprogramowani/10x-cli -->
 
