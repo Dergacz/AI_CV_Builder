@@ -9,7 +9,9 @@ This file provides guidance to AI Agent when working with code in this repositor
 - `npm run preview` — preview production build
 - `npm run lint` — ESLint with type-checked rules
 - `npm run lint:fix` — auto-fix lint issues
+- `npm run test` — vitest suite (`src/**/*.test.ts`)
 - `npm run format` — Prettier (includes prettier-plugin-astro + prettier-plugin-tailwindcss)
+- `npm run db:start` / `db:reset` / `db:types` — local Supabase: start the stack, apply `supabase/migrations/`, regenerate `src/db/database.types.ts` (needs Docker)
 
 Pre-commit hooks: husky + lint-staged runs `eslint --fix` on `*.{ts,tsx,astro}` and `prettier --write` on `*.{json,css,md}`.
 
@@ -40,6 +42,7 @@ Full server-side rendering (`output: "server"` in astro.config.mjs). All pages a
 - **React**: no Next.js directives ("use client" etc.). Extract hooks to `src/components/hooks/`.
 - **Services/helpers** go in `src/lib/` (or `src/lib/services/` for extracted business logic).
 - **Shared types** (entities, DTOs) go in `src/types.ts`.
+- **Test placement**: never put `*.test.*` under `src/pages/` — Astro turns those files into routes and bundles `vitest` into the Cloudflare Worker. Route/API tests go in `src/tests/`, helper tests next to their module in `src/lib/`. A guard test (`src/tests/no-tests-under-pages.test.ts`) enforces this.
 
 ### Environment
 
@@ -49,9 +52,17 @@ Full server-side rendering (`output: "server"` in astro.config.mjs). All pages a
 - Cloudflare local dev: secrets go in `.dev.vars` (gitignored)
 - Deploy: `npx wrangler deploy` (requires Cloudflare account + `wrangler` auth)
 
+## Testing
+
+- Runner: vitest, `npm run test`. Discovery glob: `src/**/*.test.ts` (`vitest.config.ts`).
+- Strategy and risk register: `context/foundation/test-plan.md`. A change's Testing Strategy should cite an existing `R-NN` risk; add a row there when covering a new failure mode.
+- `vitest.config.ts` aliases `astro:env/server` to a stub so route modules can be imported directly in tests.
+
 ## CI
 
-GitHub Actions workflow (`.github/workflows/ci.yml`) runs lint + build on every push and PR to master. Requires `SUPABASE_URL` and `SUPABASE_KEY` repository secrets for the build step.
+- `.github/workflows/ci.yml` — on pull requests to `master`: `astro sync` → `lint` → `test` → `build`.
+- `.github/workflows/deploy.yml` — on push to `master`: the same gates, then `wrangler deploy`.
+- Repository secrets: `SUPABASE_URL` and `SUPABASE_KEY` for the build; `CLOUDFLARE_API_TOKEN` and `CLOUDFLARE_ACCOUNT_ID` for deployment.
 
 <!-- BEGIN @przeprogramowani/10x-cli -->
 
