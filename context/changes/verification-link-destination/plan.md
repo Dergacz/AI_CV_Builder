@@ -408,30 +408,30 @@ precisely why the resend path is in scope here.
 
 #### Automated
 
-- [x] 1.1 Type checking passes (`npx astro sync && npx astro check`)
-- [x] 1.2 Linting passes (`npm run lint`)
-- [x] 1.3 Unit tests pass (`npm run test`)
-- [x] 1.4 Route tests cover signup/resend `emailRedirectTo` and all four `/auth/confirm` branches
+- [x] 1.1 Type checking passes (`npx astro sync && npx astro check`) — edfb283
+- [x] 1.2 Linting passes (`npm run lint`) — edfb283
+- [x] 1.3 Unit tests pass (`npm run test`) — edfb283
+- [x] 1.4 Route tests cover signup/resend `emailRedirectTo` and all four `/auth/confirm` branches — edfb283
 
 #### Manual
 
-- [ ] 1.5 Local email link points at `http://localhost:4321/auth/confirm`
-- [ ] 1.6 Clicking it in the signup browser lands on `/dashboard`, signed in
-- [ ] 1.7 Local config restored to `enable_confirmations = false`; `npm run test:e2e` passes
+- [x] 1.5 Local email link points at `http://localhost:4321/auth/confirm` — edfb283
+- [x] 1.6 Clicking it in the signup browser lands on `/dashboard`, signed in — edfb283
+- [x] 1.7 Local config restored to `enable_confirmations = false`; `npm run test:e2e` passes — edfb283
 
 ### Phase 2: "Email confirmed — sign in" notice
 
 #### Automated
 
-- [ ] 2.1 Type checking passes (`npx astro sync && npx astro check`)
-- [ ] 2.2 Linting passes (`npm run lint`)
-- [ ] 2.3 Unit tests pass, including locale parity and the notice-resolver test
+- [x] 2.1 Type checking passes (`npx astro sync && npx astro check`)
+- [x] 2.2 Linting passes (`npm run lint`)
+- [x] 2.3 Unit tests pass, including locale parity and the notice-resolver test
 
 #### Manual
 
-- [ ] 2.4 Notice renders in en, pl, and ru
-- [ ] 2.5 Unknown `?notice=` value renders nothing
-- [ ] 2.6 Existing `?error=` banner unchanged
+- [x] 2.4 Notice renders in en, pl, and ru
+- [x] 2.5 Unknown `?notice=` value renders nothing
+- [x] 2.6 Existing `?error=` banner unchanged
 
 ### Phase 3: Hosted configuration, documentation, and production proof
 
