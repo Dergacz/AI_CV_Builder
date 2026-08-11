@@ -22,15 +22,23 @@ const VIEWER = "22222222-2222-4222-8222-222222222222";
 const FOREIGN_CV_ID = "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa";
 
 vi.mock("@/lib/supabase", () => ({
-  createClient: () => ({
-    auth: { getUser: () => Promise.resolve({ data: { user: { id: VIEWER } } }) },
-  }),
+  createClient: () => ({}),
+  safeGetUser: () => Promise.resolve({ id: VIEWER }),
 }));
 
 vi.mock("@/lib/services/cv-repository", () => ({
   getCv: vi.fn(),
   updateCv: vi.fn(),
   deleteCv: vi.fn(),
+}));
+
+vi.mock("@/lib/observability", () => ({
+  track: vi.fn(),
+  reportError: vi.fn(),
+}));
+
+vi.mock("@/lib/observability/schedule", () => ({
+  scheduleErrorReport: vi.fn(),
 }));
 
 const fixtureDraft: unknown = JSON.parse(

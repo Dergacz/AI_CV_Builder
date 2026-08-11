@@ -68,6 +68,18 @@ describe("i18n catalog coverage", () => {
     expect(cvLibraryCopyByLocale.ru.card.open).toBe("Открыть");
   });
 
+  it("provides localized Google sign-in button copy for every locale", () => {
+    // The "Continue with Google" button (plan phase 4) and its divider must be present and
+    // genuinely localized — not silently falling back to English in pl/ru.
+    expect(getMessages("en").auth.google.button).toBe("Continue with Google");
+    expect(getMessages("pl").auth.google.button).toBe("Kontynuuj z Google");
+    expect(getMessages("ru").auth.google.button).toBe("Продолжить с Google");
+
+    expect(getMessages("en").auth.google.divider).toBe("or");
+    expect(getMessages("pl").auth.google.divider).toBe("lub");
+    expect(getMessages("ru").auth.google.divider).toBe("или");
+  });
+
   it("provides output-language display names in each interface locale", () => {
     for (const locale of uiLocales) {
       const names = getMessages(locale).questionnaire.outputLanguageNames;

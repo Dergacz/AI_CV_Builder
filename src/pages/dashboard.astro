@@ -2,7 +2,8 @@
 import Layout from "@/layouts/Layout.astro";
 import LanguageSwitcher from "@/components/LanguageSwitcher.astro";
 import SavedCvList from "@/components/cv/SavedCvList";
-import { createClient } from "@/lib/supabase";
+import { createClient, safeGetUser } from "@/lib/supabase";
+import { scheduleErrorReport } from "@/lib/observability/schedule";
 import { listCvs } from "@/lib/services/cv-repository";
 import type { SavedCvSummary } from "@/types";
 import { getMessages } from "@/lib/i18n/messages";
@@ -11,18 +12,22 @@ const { user } = Astro.locals;
 const locale = Astro.locals.locale;
 const copy = getMessages(locale).dashboard;
 
+// Surfaced when /api/auth/signout fails to clear the session and redirects here.
+const signOutError = Astro.url.searchParams.get("signout_error") === "1";
+
 // Route is auth-protected by middleware; load the owner's saved CVs for the library.
 const supabase = createClient(Astro.request.headers, Astro.cookies);
 let cvs: SavedCvSummary[] = [];
 let loadError = false;
 if (supabase) {
-  const {
-    data: { user: verifiedUser },
-  } = await supabase.auth.getUser();
+  const verifiedUser = await safeGetUser(supabase, Astro.locals);
   if (verifiedUser) {
     try {
       cvs = await listCvs(supabase, verifiedUser.id);
-    } catch {
+    } catch (error) {
+      // S-07 (added in review): this is the path users actually hit for their library — the GET
+      // API route may be cold in production. Same failure class as `api/cv/index:load`.
+      scheduleErrorReport(error, { error_location: "pages/dashboard:listCvs" }, Astro.locals);
       loadError = true;
     }
   } else {
@@ -36,6 +41,13 @@ if (supabase) {
 <Layout locale={locale} title={copy.title}>
   <main class="min-h-screen bg-slate-50 px-5 py-6 text-slate-950 sm:px-8">
     <div class="mx-auto flex min-h-[calc(100vh-3rem)] max-w-6xl flex-col">
+      {
+        signOutError && (
+          <div class="mb-5 rounded-lg border border-red-200 bg-red-50 px-4 py-3" role="alert">
+            <p class="text-sm font-medium text-red-900">{copy.signOutError}</p>
+          </div>
+        )
+      }
       <header class="flex flex-col gap-4 border-b border-slate-200 pb-5 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <a href="/" class="text-base font-semibold text-slate-950">{copy.brand}</a>
@@ -46,6 +58,12 @@ if (supabase) {
         </div>
         <div class="flex flex-wrap items-center gap-3">
           <LanguageSwitcher locale={locale} />
+          <a
+            href="/account"
+            class="inline-flex min-h-10 items-center justify-center rounded-md border border-slate-300 bg-white px-4 text-sm font-semibold text-slate-900 transition-colors hover:border-slate-400 hover:bg-slate-100 focus-visible:ring-3 focus-visible:ring-slate-500/20 focus-visible:outline-none"
+          >
+            {copy.accountLink}
+          </a>
           <form method="POST" action="/api/auth/signout">
             <button
               type="submit"

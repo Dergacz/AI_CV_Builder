@@ -153,9 +153,10 @@ enabled = true
 # in emails.
 site_url = "http://localhost:4321"
 # A list of *exact* URLs that auth providers are permitted to redirect to post authentication.
-# Both hosts are listed because the browser may reach the dev server as either one, and GoTrue
-# matches these exactly. A `redirect_to` that is not on this list is silently discarded in favour
-# of `site_url`, which is how a login ends up back on the landing page with a raw `?code=`.
+# Port 4321 is the actual dev origin (`astro dev`, pinned for E2E in playwright.config.ts). Both
+# hosts are listed because the browser may reach the dev server as either one, and GoTrue matches
+# these exactly. A `redirect_to` that is not on this list is silently discarded in favour of
+# `site_url`, which is how a login ends up back on the landing page with a raw `?code=`.
 additional_redirect_urls = [
   "http://localhost:4321",
   "http://127.0.0.1:4321",
@@ -322,6 +323,20 @@ redirect_uri = ""
 url = ""
 # If enabled, the nonce check will be skipped. Required for local sign in with Google auth.
 skip_nonce_check = false
+# If enabled, it will allow the user to successfully authenticate when the provider does not return an email address.
+email_optional = false
+
+[auth.external.google]
+enabled = true
+client_id = "env(SUPABASE_AUTH_EXTERNAL_GOOGLE_CLIENT_ID)"
+# DO NOT commit your OAuth provider secret to git. Use environment variable substitution instead:
+secret = "env(SUPABASE_AUTH_EXTERNAL_GOOGLE_SECRET)"
+# Overrides the default auth redirectUrl.
+redirect_uri = ""
+# Overrides the default auth provider URL.
+url = ""
+# Required for local sign in with Google auth (Supabase does not receive a nonce from the local flow).
+skip_nonce_check = true
 # If enabled, it will allow the user to successfully authenticate when the provider does not return an email address.
 email_optional = false
 

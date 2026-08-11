@@ -1,5 +1,6 @@
 import type { UiLocale } from "@/lib/i18n/locales";
 import type { AuthErrorCode } from "@/lib/i18n/auth-errors";
+import type { AccountDeleteErrorBucket } from "@/lib/account-delete-messages";
 
 export interface SignInFormCopy {
   emailLabel: string;
@@ -26,8 +27,17 @@ export interface SignUpFormCopy extends SignInFormCopy {
     passwordTooShort: (minimum: number) => string;
     confirmPasswordRequired: string;
     passwordsMismatch: string;
+    consentRequired: string;
   };
   passwordHint: (remaining: number) => string;
+  /** Consent gate copy. The label is assembled as: prefix + Terms link + conjunction + Privacy link + suffix. */
+  consent: {
+    prefix: string;
+    termsLabel: string;
+    conjunction: string;
+    privacyLabel: string;
+    suffix: string;
+  };
 }
 
 interface AuthPanelCopy {
@@ -48,10 +58,36 @@ interface ConfirmEmailStateCopy {
   linkText: string;
 }
 
+interface ConfirmEmailPendingCopy extends ConfirmEmailStateCopy {
+  resendButton: string;
+  resendSent: string;
+  resendError: string;
+}
+
 interface QuestionnaireStepCopy {
   label: string;
   title: string;
   body: string;
+}
+
+interface LegalCopy {
+  terms: {
+    title: string;
+  };
+  privacy: {
+    title: string;
+  };
+  versionLabel: string;
+  lastUpdatedLabel: string;
+  reviewNotice: string;
+  englishNote: string;
+  backLabel: string;
+}
+
+interface FooterCopy {
+  termsLabel: string;
+  privacyLabel: string;
+  rights: (year: number) => string;
 }
 
 export interface QuestionnaireCopy {
@@ -131,6 +167,49 @@ export interface QuestionnaireCopy {
   };
 }
 
+/**
+ * S-08 account-settings surface: the `/account` page, its danger zone, the type-your-email
+ * confirmation dialog, and the post-deletion notice rendered on the landing page.
+ *
+ * `errors` is keyed by the API's stable failure buckets, so the island localizes a response by
+ * mapping its `error` field — the server keeps returning English in `message` for compatibility,
+ * exactly as the S-09 save/generation errors do.
+ */
+interface AccountCopy {
+  title: string;
+  eyebrow: string;
+  heading: string;
+  description: string;
+  signedInAs: string;
+  backToDashboard: string;
+  danger: {
+    ariaLabel: string;
+    heading: string;
+    description: string;
+    removesIntro: string;
+    /** What deletion removes, listed so the confirmation is informed rather than blind. */
+    removes: string[];
+    irreversible: string;
+    deleteCta: string;
+    unavailable: string;
+  };
+  dialog: {
+    title: string;
+    body: string;
+    emailLabel: string;
+    emailHint: (email: string) => string;
+    confirm: string;
+    deleting: string;
+    cancel: string;
+  };
+  errors: Record<AccountDeleteErrorBucket, string>;
+  /** Rendered at `/?deleted=1` — the only place the user is told the deletion succeeded. */
+  deletedNotice: {
+    title: string;
+    body: string;
+  };
+}
+
 export interface UiMessages {
   shell: {
     primaryNavLabel: string;
@@ -151,11 +230,16 @@ export interface UiMessages {
     signup: AuthPanelCopy;
     confirmEmail: {
       autoConfirmed: ConfirmEmailStateCopy;
-      emailConfirmation: ConfirmEmailStateCopy;
+      emailConfirmation: ConfirmEmailPendingCopy;
     };
     form: {
       signin: SignInFormCopy;
       signup: SignUpFormCopy;
+    };
+    /** "Continue with Google" OAuth button copy, shared by both auth pages. */
+    google: {
+      button: string;
+      divider: string;
     };
     errors: Record<AuthErrorCode, string>;
   };
@@ -163,7 +247,10 @@ export interface UiMessages {
     title: string;
     brand: string;
     signedInAs: string;
+    /** Header link to `/account` — the danger zone stays off the workspace itself. */
+    accountLink: string;
     signOut: string;
+    signOutError: string;
     hero: {
       eyebrow: string;
       heading: string;
@@ -191,6 +278,7 @@ export interface UiMessages {
       startCta: string;
     };
   };
+  account: AccountCopy;
   cvPages: {
     new: {
       title: string;
@@ -205,6 +293,8 @@ export interface UiMessages {
       description: string;
     };
   };
+  legal: LegalCopy;
+  footer: FooterCopy;
   questionnaire: QuestionnaireCopy;
 }
 
@@ -263,6 +353,9 @@ export const messagesByLocale = {
           eyebrow: "Confirm your account",
           description: "We've sent a confirmation link to your email address. Open it to activate your CV workspace.",
           linkText: "Back to sign in",
+          resendButton: "Resend confirmation email",
+          resendSent: "We sent a new confirmation email. Check your inbox.",
+          resendError: "We could not resend the confirmation email. Please check the address and try again.",
         },
       },
       form: {
@@ -299,26 +392,43 @@ export const messagesByLocale = {
             passwordTooShort: (minimum) => `Password must be at least ${minimum} characters`,
             confirmPasswordRequired: "Please confirm your password",
             passwordsMismatch: "Passwords do not match",
+            consentRequired: "Please accept the Terms of Service and Privacy Policy to continue",
           },
           passwordToggle: {
             show: "Show password",
             hide: "Hide password",
           },
           passwordHint: (remaining) => `${remaining} more character${remaining === 1 ? "" : "s"} needed`,
+          consent: {
+            prefix: "I agree to the ",
+            termsLabel: "Terms of Service",
+            conjunction: " and ",
+            privacyLabel: "Privacy Policy",
+            suffix: ".",
+          },
         },
+      },
+      google: {
+        button: "Continue with Google",
+        divider: "or",
       },
       errors: {
         auth_unavailable: "Account access is temporarily unavailable. Please try again later.",
         signin_failed: "We couldn't sign you in. Check your email and password, then try again.",
         signup_failed: "We couldn't create your account. Check your details, then try again.",
+        consent_required: "Please accept the Terms of Service and Privacy Policy to create your account.",
         rate_limited: "Too many account attempts right now. Please wait a bit and try again.",
+        email_not_confirmed: "Your email is not verified yet. Check your inbox or resend the confirmation email.",
+        oauth_failed: "We couldn't complete Google sign-in. Please try again or use your email and password.",
       },
     },
     dashboard: {
       title: "CV Workspace",
       brand: "AI CV Builder",
       signedInAs: "Signed in as",
+      accountLink: "Account",
       signOut: "Sign out",
+      signOutError: "Sign-out failed. Please try again.",
       hero: {
         eyebrow: "Your CV workspace",
         heading: "Start from a calm place, then build the CV step by step",
@@ -347,6 +457,48 @@ export const messagesByLocale = {
         startCta: "Start a new CV",
       },
     },
+    account: {
+      title: "Account",
+      eyebrow: "Account settings",
+      heading: "Your account",
+      description: "Manage the account behind your CV workspace.",
+      signedInAs: "Signed in as",
+      backToDashboard: "Back to workspace",
+      danger: {
+        ariaLabel: "Danger zone",
+        heading: "Delete account",
+        description: "Deleting your account removes everything below immediately and permanently.",
+        removesIntro: "This removes:",
+        removes: [
+          "your account and sign-in identity, including Google sign-in",
+          "every saved CV and its questionnaire answers",
+          "the feedback you submitted on generated CVs",
+          "your recorded acceptance of the Privacy Policy and Terms",
+        ],
+        irreversible: "There is no grace period and no way to restore any of it afterwards.",
+        deleteCta: "Delete account",
+        unavailable: "Account deletion is temporarily unavailable. Please try again later.",
+      },
+      dialog: {
+        title: "Permanently delete your account?",
+        body: "This cannot be undone. Type your email address to confirm.",
+        emailLabel: "Your email address",
+        emailHint: (email) => `Type ${email} to enable the button.`,
+        confirm: "Delete everything",
+        deleting: "Deleting…",
+        cancel: "Cancel",
+      },
+      errors: {
+        confirmation_mismatch: "That doesn't match your account email. Nothing has been deleted.",
+        session_expired: "Your session has expired. Please sign in again.",
+        service_unavailable: "Account deletion is temporarily unavailable. Please try again later.",
+        delete_failed: "We couldn't delete your account. Nothing has been deleted — please try again.",
+      },
+      deletedNotice: {
+        title: "Your account has been deleted",
+        body: "Your account and all associated data have been permanently removed. You can create a new account at any time.",
+      },
+    },
     cvPages: {
       new: {
         title: "Start CV",
@@ -361,6 +513,24 @@ export const messagesByLocale = {
         eyebrow: "Saved CV",
         description: "Edit any section and save your changes. Updates overwrite this saved CV.",
       },
+    },
+    legal: {
+      terms: {
+        title: "Terms of Service",
+      },
+      privacy: {
+        title: "Privacy Policy",
+      },
+      versionLabel: "Policy version",
+      lastUpdatedLabel: "Last updated",
+      reviewNotice: "Draft pending legal review. This content is provided for launch-readiness validation.",
+      englishNote: "The binding document body is provided in English while localized legal translations are deferred.",
+      backLabel: "Back",
+    },
+    footer: {
+      termsLabel: "Terms of Service",
+      privacyLabel: "Privacy Policy",
+      rights: (year) => `© ${year} AI CV Builder. All rights reserved.`,
     },
     questionnaire: {
       ariaLabel: "CV questionnaire",
@@ -517,6 +687,9 @@ export const messagesByLocale = {
           eyebrow: "Potwierdź konto",
           description: "Wysłaliśmy link potwierdzający na Twój adres e-mail. Otwórz go, aby aktywować konto.",
           linkText: "Wróć do logowania",
+          resendButton: "Wyślij link potwierdzający ponownie",
+          resendSent: "Wysłaliśmy nowy e-mail potwierdzający. Sprawdź pocztę.",
+          resendError: "Nie udało się ponownie wysłać e-maila potwierdzającego. Sprawdź adres i spróbuj ponownie.",
         },
       },
       form: {
@@ -553,26 +726,43 @@ export const messagesByLocale = {
             passwordTooShort: (minimum) => `Hasło musi mieć co najmniej ${minimum} znaków`,
             confirmPasswordRequired: "Potwierdź hasło",
             passwordsMismatch: "Hasła nie są takie same",
+            consentRequired: "Zaakceptuj Regulamin i Politykę prywatności, aby kontynuować",
           },
           passwordToggle: {
             show: "Pokaż hasło",
             hide: "Ukryj hasło",
           },
           passwordHint: (remaining) => `Brakuje znaków: ${remaining}`,
+          consent: {
+            prefix: "Akceptuję ",
+            termsLabel: "Regulamin",
+            conjunction: " i ",
+            privacyLabel: "Politykę prywatności",
+            suffix: ".",
+          },
         },
+      },
+      google: {
+        button: "Kontynuuj z Google",
+        divider: "lub",
       },
       errors: {
         auth_unavailable: "Dostęp do konta jest chwilowo niedostępny. Spróbuj ponownie później.",
         signin_failed: "Nie udało się zalogować. Sprawdź e-mail i hasło, a potem spróbuj ponownie.",
         signup_failed: "Nie udało się utworzyć konta. Sprawdź dane i spróbuj ponownie.",
+        consent_required: "Zaakceptuj Regulamin i Politykę prywatności, aby utworzyć konto.",
         rate_limited: "Zbyt wiele prób dostępu do konta. Poczekaj chwilę i spróbuj ponownie.",
+        email_not_confirmed: "Twój e-mail nie jest jeszcze potwierdzony. Sprawdź pocztę albo wyślij link ponownie.",
+        oauth_failed: "Nie udało się zalogować przez Google. Spróbuj ponownie lub użyj e-maila i hasła.",
       },
     },
     dashboard: {
       title: "Przestrzeń CV",
       brand: "AI CV Builder",
       signedInAs: "Zalogowano jako",
+      accountLink: "Konto",
       signOut: "Wyloguj się",
+      signOutError: "Wylogowanie nie powiodło się. Spróbuj ponownie.",
       hero: {
         eyebrow: "Twoja przestrzeń CV",
         heading: "Zacznij spokojnie, a potem buduj CV krok po kroku",
@@ -601,6 +791,48 @@ export const messagesByLocale = {
         startCta: "Rozpocznij nowe CV",
       },
     },
+    account: {
+      title: "Konto",
+      eyebrow: "Ustawienia konta",
+      heading: "Twoje konto",
+      description: "Zarządzaj kontem powiązanym z Twoją przestrzenią CV.",
+      signedInAs: "Zalogowano jako",
+      backToDashboard: "Wróć do przestrzeni",
+      danger: {
+        ariaLabel: "Strefa nieodwracalnych działań",
+        heading: "Usuń konto",
+        description: "Usunięcie konta natychmiast i trwale kasuje wszystko, co wymieniono poniżej.",
+        removesIntro: "Zostaną usunięte:",
+        removes: [
+          "Twoje konto i tożsamość logowania, w tym logowanie przez Google",
+          "wszystkie zapisane CV wraz z odpowiedziami z ankiety",
+          "opinie przesłane na temat wygenerowanych CV",
+          "zapis akceptacji Polityki prywatności i Regulaminu",
+        ],
+        irreversible: "Nie ma okresu karencji ani możliwości późniejszego przywrócenia tych danych.",
+        deleteCta: "Usuń konto",
+        unavailable: "Usuwanie konta jest chwilowo niedostępne. Spróbuj ponownie później.",
+      },
+      dialog: {
+        title: "Trwale usunąć Twoje konto?",
+        body: "Tej operacji nie można cofnąć. Wpisz swój adres e-mail, aby potwierdzić.",
+        emailLabel: "Twój adres e-mail",
+        emailHint: (email) => `Wpisz ${email}, aby odblokować przycisk.`,
+        confirm: "Usuń wszystko",
+        deleting: "Usuwanie…",
+        cancel: "Anuluj",
+      },
+      errors: {
+        confirmation_mismatch: "To nie jest adres e-mail Twojego konta. Nic nie zostało usunięte.",
+        session_expired: "Twoja sesja wygasła. Zaloguj się ponownie.",
+        service_unavailable: "Usuwanie konta jest chwilowo niedostępne. Spróbuj ponownie później.",
+        delete_failed: "Nie udało się usunąć konta. Nic nie zostało usunięte — spróbuj ponownie.",
+      },
+      deletedNotice: {
+        title: "Twoje konto zostało usunięte",
+        body: "Twoje konto i wszystkie powiązane dane zostały trwale usunięte. W każdej chwili możesz założyć nowe konto.",
+      },
+    },
     cvPages: {
       new: {
         title: "Rozpocznij CV",
@@ -615,6 +847,24 @@ export const messagesByLocale = {
         eyebrow: "Zapisane CV",
         description: "Edytuj dowolną sekcję i zapisz zmiany. Aktualizacje nadpiszą to zapisane CV.",
       },
+    },
+    legal: {
+      terms: {
+        title: "Regulamin",
+      },
+      privacy: {
+        title: "Polityka prywatności",
+      },
+      versionLabel: "Wersja polityk",
+      lastUpdatedLabel: "Ostatnia aktualizacja",
+      reviewNotice: "Wersja robocza oczekuje na przegląd prawny. Treść służy walidacji gotowości do uruchomienia.",
+      englishNote: "Wiążąca treść dokumentu jest dostępna po angielsku; lokalizacje prawne są odłożone na później.",
+      backLabel: "Wstecz",
+    },
+    footer: {
+      termsLabel: "Regulamin",
+      privacyLabel: "Polityka prywatności",
+      rights: (year) => `© ${year} AI CV Builder. Wszelkie prawa zastrzeżone.`,
     },
     questionnaire: {
       ariaLabel: "Ankieta CV",
@@ -771,6 +1021,9 @@ export const messagesByLocale = {
           eyebrow: "Подтвердите аккаунт",
           description: "Мы отправили ссылку подтверждения на ваш e-mail. Откройте её, чтобы активировать аккаунт.",
           linkText: "Вернуться ко входу",
+          resendButton: "Отправить письмо подтверждения ещё раз",
+          resendSent: "Мы отправили новое письмо подтверждения. Проверьте почту.",
+          resendError: "Не удалось отправить письмо подтверждения повторно. Проверьте адрес и попробуйте снова.",
         },
       },
       form: {
@@ -807,26 +1060,43 @@ export const messagesByLocale = {
             passwordTooShort: (minimum) => `Пароль должен содержать минимум ${minimum} символов`,
             confirmPasswordRequired: "Подтвердите пароль",
             passwordsMismatch: "Пароли не совпадают",
+            consentRequired: "Примите Условия использования и Политику конфиденциальности, чтобы продолжить",
           },
           passwordToggle: {
             show: "Показать пароль",
             hide: "Скрыть пароль",
           },
           passwordHint: (remaining) => `Осталось символов: ${remaining}`,
+          consent: {
+            prefix: "Я принимаю ",
+            termsLabel: "Условия использования",
+            conjunction: " и ",
+            privacyLabel: "Политику конфиденциальности",
+            suffix: ".",
+          },
         },
+      },
+      google: {
+        button: "Продолжить с Google",
+        divider: "или",
       },
       errors: {
         auth_unavailable: "Доступ к аккаунту временно недоступен. Попробуйте позже.",
         signin_failed: "Не удалось войти. Проверьте e-mail и пароль, затем попробуйте снова.",
         signup_failed: "Не удалось создать аккаунт. Проверьте данные и попробуйте снова.",
+        consent_required: "Примите Условия использования и Политику конфиденциальности, чтобы создать аккаунт.",
         rate_limited: "Слишком много попыток доступа к аккаунту. Подождите немного и попробуйте снова.",
+        email_not_confirmed: "Ваш e-mail ещё не подтверждён. Проверьте почту или отправьте письмо повторно.",
+        oauth_failed: "Не удалось завершить вход через Google. Попробуйте снова или используйте e-mail и пароль.",
       },
     },
     dashboard: {
       title: "Рабочее пространство CV",
       brand: "AI CV Builder",
       signedInAs: "Вы вошли как",
+      accountLink: "Аккаунт",
       signOut: "Выйти",
+      signOutError: "Не удалось выйти. Попробуйте ещё раз.",
       hero: {
         eyebrow: "Ваше рабочее пространство CV",
         heading: "Начните спокойно, затем соберите CV шаг за шагом",
@@ -855,6 +1125,48 @@ export const messagesByLocale = {
         startCta: "Начать новое CV",
       },
     },
+    account: {
+      title: "Аккаунт",
+      eyebrow: "Настройки аккаунта",
+      heading: "Ваш аккаунт",
+      description: "Управляйте аккаунтом, к которому привязано ваше рабочее пространство CV.",
+      signedInAs: "Вы вошли как",
+      backToDashboard: "Вернуться в пространство",
+      danger: {
+        ariaLabel: "Необратимые действия",
+        heading: "Удаление аккаунта",
+        description: "Удаление аккаунта немедленно и безвозвратно стирает всё перечисленное ниже.",
+        removesIntro: "Будет удалено:",
+        removes: [
+          "ваш аккаунт и способ входа, включая вход через Google",
+          "все сохранённые CV вместе с ответами анкеты",
+          "отзывы, отправленные о сгенерированных CV",
+          "запись о принятии Политики конфиденциальности и Условий использования",
+        ],
+        irreversible: "Периода отмены нет, восстановить эти данные впоследствии невозможно.",
+        deleteCta: "Удалить аккаунт",
+        unavailable: "Удаление аккаунта временно недоступно. Попробуйте позже.",
+      },
+      dialog: {
+        title: "Безвозвратно удалить аккаунт?",
+        body: "Это действие нельзя отменить. Введите свой адрес e-mail для подтверждения.",
+        emailLabel: "Ваш адрес e-mail",
+        emailHint: (email) => `Введите ${email}, чтобы кнопка стала активной.`,
+        confirm: "Удалить всё",
+        deleting: "Удаляем…",
+        cancel: "Отмена",
+      },
+      errors: {
+        confirmation_mismatch: "Это не e-mail вашего аккаунта. Ничего не удалено.",
+        session_expired: "Сессия истекла. Войдите снова.",
+        service_unavailable: "Удаление аккаунта временно недоступно. Попробуйте позже.",
+        delete_failed: "Не удалось удалить аккаунт. Ничего не удалено — попробуйте ещё раз.",
+      },
+      deletedNotice: {
+        title: "Ваш аккаунт удалён",
+        body: "Аккаунт и все связанные данные удалены безвозвратно. Вы можете создать новый аккаунт в любой момент.",
+      },
+    },
     cvPages: {
       new: {
         title: "Начать CV",
@@ -869,6 +1181,25 @@ export const messagesByLocale = {
         eyebrow: "Сохранённое CV",
         description: "Редактируйте любой раздел и сохраняйте изменения. Обновления перезапишут это CV.",
       },
+    },
+    legal: {
+      terms: {
+        title: "Условия использования",
+      },
+      privacy: {
+        title: "Политика конфиденциальности",
+      },
+      versionLabel: "Версия политик",
+      lastUpdatedLabel: "Последнее обновление",
+      reviewNotice: "Черновик ожидает юридической проверки. Текст опубликован для проверки готовности к запуску.",
+      englishNote:
+        "Юридически значимый текст документа доступен на английском; локализованные юридические версии отложены.",
+      backLabel: "Назад",
+    },
+    footer: {
+      termsLabel: "Условия использования",
+      privacyLabel: "Политика конфиденциальности",
+      rights: (year) => `© ${year} AI CV Builder. Все права защищены.`,
     },
     questionnaire: {
       ariaLabel: "Анкета CV",

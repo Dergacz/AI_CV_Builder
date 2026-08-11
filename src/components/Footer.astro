@@ -1,0 +1,24 @@
+---
+import { getMessages } from "@/lib/i18n/messages";
+import type { UiLocale } from "@/lib/i18n/locales";
+
+interface Props {
+  locale: UiLocale;
+}
+
+const { locale } = Astro.props;
+const footer = getMessages(locale).footer;
+const year = new Date().getFullYear();
+---
+
+<footer class="border-t border-slate-200 bg-white text-slate-600">
+  <div
+    class="mx-auto flex w-full max-w-5xl flex-col items-center gap-3 px-5 py-6 text-sm sm:flex-row sm:justify-between sm:px-8"
+  >
+    <p>{footer.rights(year)}</p>
+    <nav class="flex items-center gap-4" aria-label="Legal">
+      <a href="/terms" class="font-medium text-emerald-700 hover:underline">{footer.termsLabel}</a>
+      <a href="/privacy" class="font-medium text-emerald-700 hover:underline">{footer.privacyLabel}</a>
+    </nav>
+  </div>
+</footer>

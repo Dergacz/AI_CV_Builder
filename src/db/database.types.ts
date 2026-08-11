@@ -67,12 +67,99 @@ export type Database = {
         }
         Relationships: []
       }
+      feedback: {
+        Row: {
+          comment: string | null
+          created_at: string
+          generation_event_id: string
+          helpful: boolean
+          id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          comment?: string | null
+          created_at?: string
+          generation_event_id: string
+          helpful: boolean
+          id?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          comment?: string | null
+          created_at?: string
+          generation_event_id?: string
+          helpful?: boolean
+          id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      generation_usage: {
+        Row: {
+          created_at: string
+          id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      subscriptions: {
+        Row: {
+          created_at: string
+          current_period_end: string
+          id: string
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          current_period_end: string
+          id?: string
+          status: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          current_period_end?: string
+          id?: string
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      check_generation_quota: {
+        Args: { p_daily_limit: number; p_hourly_ceiling: number }
+        Returns: string
+      }
+      generation_usage_day_start: { Args: never; Returns: string }
+      get_entitlement: {
+        Args: never
+        Returns: {
+          current_period_end: string
+          is_advanced: boolean
+        }[]
+      }
+      record_generation: { Args: { p_daily_limit: number }; Returns: boolean }
     }
     Enums: {
       [_ in never]: never

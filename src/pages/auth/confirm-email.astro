@@ -9,6 +9,21 @@ const messages = getMessages(locale);
 const content = isAutoConfirmed
   ? messages.auth.confirmEmail.autoConfirmed
   : messages.auth.confirmEmail.emailConfirmation;
+const email = Astro.url.searchParams.get("email") ?? "";
+const status = Astro.url.searchParams.get("status");
+const error = Astro.url.searchParams.get("error");
+const pendingCopy = messages.auth.confirmEmail.emailConfirmation;
+const resendNotice =
+  !isAutoConfirmed && status === "sent"
+    ? pendingCopy.resendSent
+    : !isAutoConfirmed && status === "error"
+      ? pendingCopy.resendError
+      : !isAutoConfirmed && status === "unavailable"
+        ? messages.auth.errors.auth_unavailable
+        : !isAutoConfirmed && error === "rate_limited"
+          ? messages.auth.errors.rate_limited
+          : null;
+const isSuccessNotice = status === "sent";
 ---
 
 <Layout locale={locale} title={content.title}>
@@ -21,6 +36,34 @@ const content = isAutoConfirmed
       <p class="mt-8 text-sm font-semibold text-teal-700">{content.eyebrow}</p>
       <h1 class="mt-3 text-3xl font-semibold text-slate-950">{content.title}</h1>
       <p class="mt-4 text-sm leading-6 text-slate-600">{content.description}</p>
+      {
+        resendNotice && (
+          <p
+            class:list={[
+              "mt-5 rounded-md border px-4 py-3 text-sm leading-6",
+              isSuccessNotice
+                ? "border-emerald-200 bg-emerald-50 text-emerald-900"
+                : "border-red-200 bg-red-50 text-red-900",
+            ]}
+            role="status"
+          >
+            {resendNotice}
+          </p>
+        )
+      }
+      {
+        !isAutoConfirmed && (
+          <form method="POST" action="/api/auth/resend" class="mt-6">
+            <input type="hidden" name="email" value={email} />
+            <button
+              type="submit"
+              class="inline-flex min-h-11 w-full items-center justify-center rounded-md border border-emerald-700 px-5 py-3 text-sm font-semibold text-emerald-800 transition-colors hover:bg-emerald-50 focus-visible:ring-3 focus-visible:ring-emerald-700/30 focus-visible:outline-none"
+            >
+              {pendingCopy.resendButton}
+            </button>
+          </form>
+        )
+      }
       <a
         href="/auth/signin"
         class="mt-7 inline-flex min-h-11 items-center justify-center rounded-md bg-emerald-700 px-5 py-3 text-sm font-semibold text-white transition-colors hover:bg-emerald-800 focus-visible:ring-3 focus-visible:ring-emerald-700/30 focus-visible:outline-none"

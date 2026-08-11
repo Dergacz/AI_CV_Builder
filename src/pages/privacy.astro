@@ -1,0 +1,109 @@
+---
+import LegalDocument from "@/components/legal/LegalDocument.astro";
+import LegalTopBar from "@/components/legal/LegalTopBar.astro";
+import Layout from "@/layouts/Layout.astro";
+import { getMessages } from "@/lib/i18n/messages";
+import { POLICY_LAST_UPDATED, POLICY_VERSION } from "@/lib/legal/policy";
+
+const locale = Astro.locals.locale;
+const messages = getMessages(locale);
+const legal = messages.legal;
+---
+
+<Layout locale={locale} title={legal.privacy.title}>
+  <main class="min-h-screen bg-slate-50 text-slate-950">
+    <LegalTopBar locale={locale} />
+
+    <LegalDocument
+      title={legal.privacy.title}
+      version={POLICY_VERSION}
+      lastUpdated={POLICY_LAST_UPDATED}
+      versionLabel={legal.versionLabel}
+      lastUpdatedLabel={legal.lastUpdatedLabel}
+      reviewNotice={legal.reviewNotice}
+      englishNote={legal.englishNote}
+    >
+      <section class="space-y-3">
+        <h2 class="text-2xl font-semibold text-slate-950">1. Information you provide</h2>
+        <p>
+          We collect account information through Supabase Auth, including your email address and password credentials.
+          We also store the questionnaire answers and CV drafts you choose to save in the application.
+        </p>
+      </section>
+
+      <section class="space-y-3">
+        <h2 class="text-2xl font-semibold text-slate-950">2. Saved CV data</h2>
+        <p>
+          Saved CV drafts and questionnaire answers are stored in Supabase Postgres in the application database. Access
+          is intended to be owner-only, so signed-in users can access their own saved CV records.
+        </p>
+      </section>
+
+      <section class="space-y-3">
+        <h2 class="text-2xl font-semibold text-slate-950">3. AI-assisted generation</h2>
+        <p>
+          When you generate a CV draft, the answers you submit are sent to an AI provider so the service can produce CV
+          content. Do not include sensitive information that is not needed for your CV. You remain responsible for
+          reviewing the generated result before using it.
+        </p>
+      </section>
+
+      <section class="space-y-3">
+        <h2 class="text-2xl font-semibold text-slate-950">4. Product analytics</h2>
+        <p>
+          We use pseudonymous product analytics, currently through PostHog, to understand the funnel and improve the
+          product. Analytics events are intended to avoid raw questionnaire answers and raw CV content.
+        </p>
+        <p>
+          Analytics events never carry your email address, your name, or CV content. A signed-in event is attributed to
+          a one-way salted pseudonym derived from your account identifier, and no personal profile is created or stored
+          for that pseudonym. The analytics store therefore holds usage records that cannot be resolved back to you from
+          within it.
+        </p>
+      </section>
+
+      <section class="space-y-3">
+        <h2 class="text-2xl font-semibold text-slate-950">5. Cookies and local preferences</h2>
+        <p>
+          The application uses cookies or similar browser storage for account sessions, locale preference, and anonymous
+          observability identity. These are used to keep you signed in, remember your interface language, and connect
+          server and browser events for product diagnostics.
+        </p>
+      </section>
+
+      <section class="space-y-3">
+        <h2 class="text-2xl font-semibold text-slate-950">6. Retention and deletion</h2>
+        <p>
+          We keep account and saved CV data while your account remains active or as needed to operate the service. You
+          can delete your account yourself at any time from the account page, without contacting us.
+        </p>
+        <p>
+          Deleting your account removes your account and sign-in identity, including any linked Google sign-in; every
+          saved CV and the questionnaire answers stored with it; the feedback you submitted on generated CVs; your
+          subscription record; the record of your CV generations; and the record of your acceptance of this Privacy
+          Policy and the Terms of Service.
+        </p>
+        <p>
+          Deletion is immediate and permanent. There is no grace period, no recovery window, and no backup copy we can
+          restore from — once the deletion completes, we cannot bring your data back, and neither can you.
+        </p>
+        <p>
+          Residual product-analytics records are addressed by how they were collected rather than by a separate erasure
+          request. As described in section 4, those records contain no identifying data: a signed-in event carries only
+          a one-way salted pseudonym computed from your account identifier, and no personal profile exists alongside it.
+          Deleting your account destroys that account identifier, which is the only input from which the pseudonym could
+          be reproduced, so the remaining usage records can no longer be linked to you. The browser cookies used to
+          connect your analytics session are cleared as part of the deletion.
+        </p>
+      </section>
+
+      <section class="space-y-3">
+        <h2 class="text-2xl font-semibold text-slate-950">7. Review status</h2>
+        <p>
+          This privacy draft is based on the application's current engineering flows and remains pending a formal
+          data-flow audit and legal review before public launch.
+        </p>
+      </section>
+    </LegalDocument>
+  </main>
+</Layout>

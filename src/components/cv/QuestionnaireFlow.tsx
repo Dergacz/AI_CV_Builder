@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   QUESTIONNAIRE_VERSION,
   cvOutputLanguages,
@@ -16,6 +16,7 @@ import CvEditor from "@/components/cv/CvEditor";
 import { TextAreaField, TextField } from "@/components/cv/CvFormFields";
 import { useCvDraftEditor } from "@/components/hooks/useCvDraftEditor";
 import { useCvSave } from "@/components/hooks/useCvSave";
+import { reportErrorClient, trackClient } from "@/lib/observability/client.browser";
 import { cn } from "@/lib/utils";
 
 type StepKey = "basics" | "experienceEducation" | "skillsLanguages" | "extraContext" | "review";
@@ -23,6 +24,30 @@ type RequiredErrors = Partial<Record<"fullName" | "targetRoleOrGoal", string>>;
 type GenerationStatus = "idle" | "loading" | "success" | "error";
 
 const GENERATE_ENDPOINT = "/api/cv/generate";
+
+/**
+ * Network seam for the generate request, extracted so it is testable without a DOM. Returns the
+ * parsed envelope, or `null` when the request never completed.
+ *
+ * S-07: `null` is the ONLY path that reports, and it is the most valuable client report in the
+ * slice. Every failure the SERVER sees is already reported by p3 with its precise mode — but if
+ * the request never lands, or its answer never arrives, the entire AI surface is dark on both
+ * sides. Non-ok envelopes (including the 429 daily-limit wall, which has its own
+ * `generation_limit_reached` event) are deliberately not reported here.
+ */
+export async function postCvGenerate(answers: CvQuestionnaireAnswers): Promise<GenerateDraftResponse | null> {
+  try {
+    const response = await fetch(GENERATE_ENDPOINT, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(answers),
+    });
+    return (await response.json()) as GenerateDraftResponse;
+  } catch (caught) {
+    reportErrorClient(caught, { error_location: "components/QuestionnaireFlow:transport" });
+    return null;
+  }
+}
 
 const STEP_KEYS: StepKey[] = ["basics", "experienceEducation", "skillsLanguages", "extraContext", "review"];
 
@@ -39,9 +64,16 @@ export default function QuestionnaireFlow({ locale }: { locale: UiLocale }) {
   const [errors, setErrors] = useState<RequiredErrors>({});
   const [status, setStatus] = useState<GenerationStatus>("idle");
   const [draft, setDraft] = useState<GeneratedCvDraft | null>(null);
+  // S-05: content-free id of the generation behind the current draft; keys the feedback widget.
+  const [generationEventId, setGenerationEventId] = useState<string | null>(null);
   const [generationError, setGenerationError] = useState<string | null>(null);
   const editor = useCvDraftEditor(setDraft);
   const save = useCvSave({ locale });
+
+  // Funnel step 4: questionnaire started (the user reached the first step).
+  useEffect(() => {
+    trackClient("funnel_questionnaire_started", { locale });
+  }, [locale]);
 
   const activeStepKey = STEP_KEYS[activeStepIndex];
   const isFirstStep = activeStepIndex === 0;
@@ -50,17 +82,26 @@ export default function QuestionnaireFlow({ locale }: { locale: UiLocale }) {
   const sparseWarnings = useMemo(() => getSparseWarnings(answers, copy.sparseWarnings), [answers, copy.sparseWarnings]);
 
   async function handleGenerate() {
+    // Funnel step 5: questionnaire completed — the user submitted all answers and requested
+    // generation (distinct from the server-side funnel_cv_generated success event).
+    trackClient("funnel_questionnaire_completed", { locale });
     setStatus("loading");
     setGenerationError(null);
+
+    const data = await postCvGenerate(answers);
+
+    // The try is a last-resort guard, not error handling for the request itself (postCvGenerate
+    // owns that). Before S-07 p4 extracted the fetch, this whole body sat inside one try/catch;
+    // without this the flow could be stranded in "loading" — spinner, no error, no retry — if
+    // anything below threw. The user is never left without a way forward.
     try {
-      const response = await fetch(GENERATE_ENDPOINT, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(answers),
-      });
-      const data = (await response.json()) as GenerateDraftResponse;
-      if (data.ok) {
+      if (data === null) {
+        // Network failure or non-JSON response — treat as a temporary service issue.
+        setGenerationError(genErrors.service_unavailable);
+        setStatus("error");
+      } else if (data.ok) {
         setDraft(data.draft);
+        setGenerationEventId(data.generationEventId);
         setStatus("success");
         // Seed an editable default title now that the answers are final.
         if (!save.title.trim()) {
@@ -76,16 +117,18 @@ export default function QuestionnaireFlow({ locale }: { locale: UiLocale }) {
         );
         setStatus("error");
       }
-    } catch {
-      // Network failure or non-JSON response — treat as a temporary service issue.
+    } catch (caught) {
       setGenerationError(genErrors.service_unavailable);
       setStatus("error");
+      reportErrorClient(caught, { error_location: "components/QuestionnaireFlow:postResponse" });
     }
   }
 
   function handleEditAnswers() {
     setStatus("idle");
     setGenerationError(null);
+    // Drop the id with the draft it belonged to: a regeneration mints a fresh one.
+    setGenerationEventId(null);
     setActiveStepIndex(STEP_KEYS.length - 1);
   }
 
@@ -135,6 +178,7 @@ export default function QuestionnaireFlow({ locale }: { locale: UiLocale }) {
         answers={answers}
         locale={locale}
         onEditAnswers={handleEditAnswers}
+        generationEventId={generationEventId ?? undefined}
       />
     );
   }

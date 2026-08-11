@@ -11,7 +11,15 @@ import {
 
 describe("auth error localization contract", () => {
   it("defines stable auth error codes", () => {
-    expect(authErrorCodes).toEqual(["auth_unavailable", "signin_failed", "signup_failed", "rate_limited"]);
+    expect(authErrorCodes).toEqual([
+      "auth_unavailable",
+      "signin_failed",
+      "signup_failed",
+      "consent_required",
+      "rate_limited",
+      "email_not_confirmed",
+      "oauth_failed",
+    ]);
   });
 
   it("recognizes only supported auth error codes", () => {
@@ -30,6 +38,13 @@ describe("auth error localization contract", () => {
   it("maps provider rate-limit errors to the stable rate_limited code", () => {
     expect(classifyAuthError({ status: 429 }, "signin_failed")).toBe("rate_limited");
     expect(classifyAuthError({ code: "over_email_send_rate_limit" }, "signup_failed")).toBe("rate_limited");
+    expect(classifyAuthError({ status: 400, code: "invalid_credentials" }, "signin_failed")).toBe("signin_failed");
+  });
+
+  it("maps unconfirmed email signin errors while preserving fallback behavior", () => {
+    expect(classifyAuthError({ status: 400, code: "email_not_confirmed" }, "signin_failed")).toBe(
+      "email_not_confirmed",
+    );
     expect(classifyAuthError({ status: 400, code: "invalid_credentials" }, "signin_failed")).toBe("signin_failed");
   });
 

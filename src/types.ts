@@ -22,6 +22,7 @@ export type {
 import type { GeneratedCvDraft } from "@/lib/cv-draft";
 import type { CvOutputLanguage, CvQuestionnaireAnswers } from "@/lib/cv-questionnaire";
 import type { CvSaveErrorBucket } from "@/lib/cv-save-messages";
+import type { AccountDeleteErrorBucket } from "@/lib/account-delete-messages";
 
 /**
  * Saved-CV entity and DTO types (F-02 persistence contract / S-06).
@@ -68,3 +69,38 @@ export type GetCvResponse = { ok: true; cv: SavedCv } | CvErrorResponse;
 /** Create (POST) and update (PUT) both return the saved summary. */
 export type SaveCvResponse = { ok: true; cv: SavedCvSummary } | CvErrorResponse;
 export type DeleteCvResponse = { ok: true } | CvErrorResponse;
+
+/**
+ * Feedback API response envelope (S-05 / FR-010).
+ * The submit endpoint is fail-soft: success is `{ ok: true }`, errors carry a
+ * stable bucket so the client can show an inline retry without crashing.
+ */
+export type SubmitFeedbackResponse =
+  | { ok: true }
+  | { ok: false; error: "feedback_failed" | "service_unavailable"; message: string };
+
+/**
+ * Account-deletion API response envelope (S-08 / FR-011).
+ *
+ * Success carries `redirectTo` rather than issuing a 3xx: the confirmation island submits via
+ * `fetch`, which does not navigate on a redirect, so the island performs the navigation itself.
+ */
+export type DeleteAccountResponse =
+  | { ok: true; redirectTo: string }
+  | { ok: false; error: AccountDeleteErrorBucket; message: string };
+
+/**
+ * Entitlement contract (F-01). The single shape every gated path reads to decide
+ * a user's generation quality. Resolved server-side from the `subscriptions` store
+ * against the DB clock; absence of a subscription ⇒ Basic. Presented to users only
+ * as "Basic" vs "Advanced" — never model names (FR-004).
+ */
+export type GenerationTier = "basic" | "advanced";
+
+export interface EntitlementStatus {
+  tier: GenerationTier;
+  /** True iff the user is Advanced right now (paid period not yet elapsed). */
+  isAdvanced: boolean;
+  /** ISO `current_period_end` while Advanced; `null` when Basic. */
+  activeUntil: string | null;
+}

@@ -1,5 +1,6 @@
 import { QUESTIONNAIRE_VERSION, type CvQuestionnaireAnswers } from "@/lib/cv-questionnaire";
-import { generatedCvDraftSchema, generationErrorMessages, type GenerateDraftResponse } from "@/lib/cv-draft";
+import { generatedCvDraftSchema, generationErrorMessages, type GenerateDraftServiceResult } from "@/lib/cv-draft";
+import type { GenerationErrorLocation } from "@/lib/observability/locations";
 
 /**
  * CV generation service.
@@ -9,8 +10,11 @@ import { generatedCvDraftSchema, generationErrorMessages, type GenerateDraftResp
  * (defense-in-depth). The model only produces `sections`/`assumptions`/`warnings`;
  * `schemaVersion`, `language`, and `source` are stamped here so they are always correct.
  *
- * Privacy (F-02): this module must never log raw answers, the prompt, the raw model
- * response, or any draft content. Failures are surfaced via error buckets, not logs.
+ * Privacy (F-02 / S-07): this module must never log raw answers, the prompt, the raw model
+ * response, or any draft content. Failures are surfaced via error buckets — and, since S-07,
+ * also via an OPTIONAL injected reporter that receives a failure *location* and nothing
+ * content-bearing. The reporter is injected rather than imported so this module stays pure:
+ * no observability dependency, no `astro:env/server`, no mock needed in its own tests.
  *
  * Runtime: uses `fetch` so it runs on the Cloudflare Workers runtime; no Node-only SDK.
  */
@@ -200,21 +204,40 @@ function stripNulls(value: unknown): unknown {
   return value;
 }
 
-function genFailed(): GenerateDraftResponse {
+function genFailed(): GenerateDraftServiceResult {
   return { ok: false, error: "generation_failed", message: generationErrorMessages.generation_failed };
 }
 
-function unavailable(): GenerateDraftResponse {
+function unavailable(): GenerateDraftServiceResult {
   return { ok: false, error: "service_unavailable", message: generationErrorMessages.service_unavailable };
 }
 
+/**
+ * Reports one generation failure mode. Receives the caught value where one exists (`undefined`
+ * for the modes that fail without throwing) and the location that identifies the mode.
+ *
+ * `status` is the provider's HTTP status on the non-ok path — an allowlisted, content-free field,
+ * and the one that separates "rate-limited" (429) from "outage" (5xx) from "bad key" (401). That
+ * distinction is the whole reason these modes are reported separately.
+ *
+ * Must never throw: generation is not allowed to fail because reporting did.
+ */
+export type GenerationFailureReporter = (
+  error: unknown,
+  location: GenerationErrorLocation,
+  props?: { status?: number },
+) => void;
+
 export async function generateCvDraft(
   answers: CvQuestionnaireAnswers,
-  config: { apiKey: string; model?: string },
-): Promise<GenerateDraftResponse> {
+  config: { apiKey: string; model?: string; reportFailure?: GenerationFailureReporter },
+): Promise<GenerateDraftServiceResult> {
+  // Deliberately unreported: an absent key is a configuration state, not a runtime failure, and
+  // the route already refuses with `service_unavailable` before ever calling us.
   if (!config.apiKey) {
     return unavailable();
   }
+  const report: GenerationFailureReporter = config.reportFailure ?? (() => undefined);
   const trimmedModel = config.model?.trim();
   const model = trimmedModel && trimmedModel.length > 0 ? trimmedModel : DEFAULT_MODEL;
 
@@ -244,40 +267,56 @@ export async function generateCvDraft(
       }),
       signal: controller.signal,
     });
-  } catch {
+  } catch (error) {
     // Network error or timeout/abort — temporary, not the user's fault.
+    report(error, "services/cv-generation:providerFetch");
     return unavailable();
   } finally {
     clearTimeout(timeout);
   }
 
   if (!response.ok) {
-    // Provider/integration error — temporary from the user's perspective.
+    // Provider/integration error — temporary from the user's perspective. The status is what
+    // makes this actionable: 429 means back off, 401 means the key is wrong, 5xx means wait.
+    report(undefined, "services/cv-generation:providerResponse", { status: response.status });
     return unavailable();
   }
 
   let content: string | undefined;
+  let refused = false;
   try {
     const payload = (await response.json()) as {
       choices?: { message?: { content?: string; refusal?: string | null } }[];
     };
     const message = payload.choices?.[0]?.message;
     if (message?.refusal) {
-      return genFailed();
+      // The refusal TEXT is model output about the user's answers — it never leaves. Only the
+      // fact of a refusal does. Flagged here and reported outside the try so a refusal is never
+      // misattributed to the response-parse catch below.
+      refused = true;
+    } else {
+      content = message?.content ?? undefined;
     }
-    content = message?.content ?? undefined;
-  } catch {
+  } catch (error) {
+    report(error, "services/cv-generation:responseParse");
     return unavailable();
   }
 
+  if (refused) {
+    report(undefined, "services/cv-generation:modelRefusal");
+    return genFailed();
+  }
+
   if (!content) {
+    report(undefined, "services/cv-generation:emptyContent");
     return genFailed();
   }
 
   let rawContent: unknown;
   try {
     rawContent = stripNulls(JSON.parse(content));
-  } catch {
+  } catch (error) {
+    report(error, "services/cv-generation:contentParse");
     return genFailed();
   }
 
@@ -296,6 +335,8 @@ export async function generateCvDraft(
   const parsed = generatedCvDraftSchema.safeParse(draft);
   if (!parsed.success) {
     // Model output did not conform to the contract; surface as a retryable generation failure.
+    // The zod issue list names draft fields and would carry content — it is deliberately not sent.
+    report(undefined, "services/cv-generation:schemaMismatch");
     return genFailed();
   }
 

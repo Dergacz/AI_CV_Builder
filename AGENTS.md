@@ -1,11 +1,11 @@
 # Repository Guidelines
 
-AI CV Builder is an Astro 6 SSR app that turns user answers into a professional CV. Stack: Astro, React 19, TypeScript, Supabase Auth, Tailwind 4, shadcn/ui, Cloudflare Workers; product scope lives in @context/foundation/prd.md.
+AI CV Builder is an Astro 6 SSR app that turns user answers into a professional CV. Stack: Astro, React 19, TypeScript, Supabase Auth, Tailwind 4, shadcn/ui, Cloudflare Workers; product scope lives in @context/foundation/prd-v3.md (Launch-Readiness & Validation Release — a brownfield change set on top of the original MVP).
 
 ## Hard Rules
 
 - Do not write to @context/archive/. Archived changes are immutable; open a new change instead.
-- Keep MVP work inside @context/foundation/prd.md: one clean CV template, start-from-scratch questionnaire, simple section editing, PDF export, saved CVs, and no uploads, template marketplace, full document editor, billing, or cover letters unless the PRD changes.
+- Keep work inside @context/foundation/prd-v3.md (Wave A): the existing MVP flow (one clean CV template, start-from-scratch questionnaire, simple section editing, PDF export, saved CVs) plus the launch-readiness change set — enforced email verification + resend, Google sign-in with verified-email linking, Privacy Policy + Terms of Service + mandatory terms acceptance, product analytics over the funnel, centralized error monitoring, post-generation feedback, account deletion, and a server-side daily generation cap. Do NOT build the deferred items unless the PRD changes: subscriptions/billing, premium AI tiers, ATS features, multiple templates, photos, dark mode, cover letters, or old-CV upload/import. The dormant `public.subscriptions` table and `entitlements.ts` service stay inert.
 - Do not add generic abstractions, app-wide state, queues, workers, or infrastructure unless the PRD requirement being implemented needs them.
 - Treat `SUPABASE_URL` and `SUPABASE_KEY` as server-only secrets declared in @astro.config.mjs. Use `.env` for Node/Astro and `.dev.vars` for Cloudflare local dev; both are gitignored.
 - Protect authenticated routes by updating `PROTECTED_ROUTES` in @src/middleware.ts, not by duplicating guards in individual pages.
@@ -22,7 +22,7 @@ AI CV Builder is an Astro 6 SSR app that turns user answers into a professional 
 
 ## Project Structure
 
-`src/pages/` contains Astro routes: auth endpoints in `src/pages/api/auth/`, saved-CV endpoints in `src/pages/api/cv/` (`index.ts` list/create, `[id].ts` read/update/delete, `generate.ts` draft generation), and the CV screens in `src/pages/cv/`. `src/components/auth/` and `src/components/cv/` hold the React islands; shared shadcn/ui components live in `src/components/ui/`. `src/lib/` holds schemas, copy, and helpers, with extracted business logic in `src/lib/services/` (`cv-generation.ts`, `cv-repository.ts`) and interface localization in `src/lib/i18n/`. `src/tests/` holds route/API tests and shared fakes. `supabase/migrations/` holds the SQL migrations; `supabase/config.toml` is local Supabase config.
+`src/pages/` contains Astro routes: auth endpoints in `src/pages/api/auth/`, saved-CV endpoints in `src/pages/api/cv/` (`index.ts` list/create, `[id].ts` read/update/delete, `generate.ts` draft generation), and the CV screens in `src/pages/cv/`. `src/components/auth/` and `src/components/cv/` hold the React islands; shared shadcn/ui components live in `src/components/ui/`. `src/lib/` holds schemas, copy, and helpers, with extracted business logic in `src/lib/services/` (`cv-generation.ts`, `cv-repository.ts`) and interface localization in `src/lib/i18n/`. `src/tests/` holds route/API tests and shared fakes; `e2e/` holds the Playwright specs. `supabase/migrations/` holds the SQL migrations (naming: `YYYYMMDDHHmmss_description.sql`); `supabase/config.toml` is local Supabase config. Always enable RLS on new tables with granular per-operation, per-role policies.
 
 ## Coding Conventions
 
@@ -30,7 +30,7 @@ Use the `@/*` alias from @tsconfig.json for `src` imports. Prefer Astro componen
 
 ## Testing and CI
 
-Tests run on vitest via `npm run test`; discovery is `src/**/*.test.ts`. The strategy and the risk register live in @context/foundation/test-plan.md — reference an existing `R-NN` risk from a change's Testing Strategy rather than restating it, and add a new row there when you cover a new failure mode. The full verification gate is `npx astro sync`, `npm run lint`, `npm run test`, `npm run build`. GitHub Actions in @.github/workflows/ci.yml runs those gates on pull requests to `master`; @.github/workflows/deploy.yml repeats them on push to `master` and then deploys to Cloudflare Workers. Both need `SUPABASE_URL` and `SUPABASE_KEY` repository secrets for the build step.
+Tests run on vitest via `npm run test`; discovery is `src/**/*.test.ts`, with the `@/*` alias mirrored in @vitest.config.ts. The strategy and the risk register live in @context/foundation/test-plan.md — reference an existing `R-NN` risk from a change's Testing Strategy rather than restating it, and add a new row there when you cover a new failure mode. Browser-level risks are covered by Playwright (`npm run test:e2e`, specs in `e2e/`, conventions in `e2e/README.md`); mutation testing is configured via Stryker (@stryker.config.json, Vitest runner) and run narrowed to the module under change — `npx stryker run --mutate "src/lib/file.ts"`. The full verification gate is `npx astro sync`, `npm run typecheck`, `npm run lint`, `npm run test`, `npm run build`. GitHub Actions in @.github/workflows/ci.yml runs those gates on pull requests to `master`; @.github/workflows/deploy.yml repeats them on push to `master` and then deploys to Cloudflare Workers. Both need `SUPABASE_URL` and `SUPABASE_KEY` repository secrets for the build step.
 
 ## Git and PRs
 

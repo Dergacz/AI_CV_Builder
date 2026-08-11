@@ -4,8 +4,26 @@ import { getCvLibraryCopy } from "@/lib/cv-library-copy";
 import { getCvSaveErrorMessages } from "@/lib/cv-save-messages";
 import { getMessages } from "@/lib/i18n/messages";
 import type { UiLocale } from "@/lib/i18n/locales";
+import { reportErrorClient } from "@/lib/observability/client.browser";
 import type { DeleteCvResponse, SavedCvSummary } from "@/types";
 import ConfirmDialog from "@/components/cv/ConfirmDialog";
+
+/**
+ * Network seam for the delete request, extracted so it is testable without a DOM. Returns the
+ * parsed envelope, or `null` when the request never completed.
+ *
+ * S-07: `null` is the ONLY path that reports — a non-ok response was already reported server-side
+ * with a precise location (p2), and a 404 for a CV that is missing or not owned is not a defect.
+ */
+export async function deleteCvRequest(id: string): Promise<DeleteCvResponse | null> {
+  try {
+    const response = await fetch(`/api/cv/${id}`, { method: "DELETE" });
+    return (await response.json()) as DeleteCvResponse;
+  } catch (caught) {
+    reportErrorClient(caught, { error_location: "components/SavedCvList:delete" });
+    return null;
+  }
+}
 
 /**
  * Dashboard saved-CV library (S-06).
@@ -39,16 +57,15 @@ export default function SavedCvList({ cvs: initialCvs, locale }: { cvs: SavedCvS
     setDeleting(true);
     setError(null);
     try {
-      const response = await fetch(`/api/cv/${target.id}`, { method: "DELETE" });
-      const data = (await response.json()) as DeleteCvResponse;
-      if (data.ok) {
+      const data = await deleteCvRequest(target.id);
+      if (data === null) {
+        setError(saveErrors.delete_failed);
+      } else if (data.ok) {
         setCvs((current) => current.filter((cv) => cv.id !== target.id));
         setPendingDelete(null);
       } else {
         setError(saveErrors[data.error]);
       }
-    } catch {
-      setError(saveErrors.delete_failed);
     } finally {
       setDeleting(false);
     }

@@ -1,6 +1,7 @@
 ---
 import "../styles/global.css";
 import Banner from "@/components/Banner.astro";
+import Footer from "@/components/Footer.astro";
 import { getMessages } from "@/lib/i18n/messages";
 import type { UiLocale } from "@/lib/i18n/locales";
 import { missingConfigs } from "@/lib/config-status";
@@ -13,6 +14,10 @@ interface Props {
 const locale = Astro.props.locale ?? Astro.locals.locale;
 const messages = getMessages(locale);
 const { title = "AI CV Builder" } = Astro.props;
+
+// Server-resolved observability distinct_id (set once per request in middleware). Threaded to the
+// client init below via a data attribute so the browser SDK shares the server's id.
+const observabilityDistinctId = Astro.locals.observability.distinctId ?? "";
 ---
 
 <!doctype html>
@@ -25,7 +30,7 @@ const { title = "AI CV Builder" } = Astro.props;
     <link rel="apple-touch-icon" href="/apple-touch-icon.png?v=3" />
     <title>{title}</title>
   </head>
-  <body>
+  <body data-obs-distinct-id={observabilityDistinctId}>
     {
       missingConfigs.map((cfg) => (
         <Banner variant="error">
@@ -44,6 +49,19 @@ const { title = "AI CV Builder" } = Astro.props;
       ))
     }
     <slot />
+    <Footer locale={locale} />
+    <script>
+      // Cookieless PostHog init + browser error-hook scaffold. No-op when PUBLIC_POSTHOG_KEY is
+      // unset; emits no funnel events (those land in S-01). See src/lib/observability/client.browser.ts.
+      import { initClientObservability, installClientSmokeTrigger } from "@/lib/observability/client.browser";
+
+      // Bootstrap the SDK with the server-resolved distinct_id (rendered on <body>) so client and
+      // server funnel events share one id. Empty/absent id => no bootstrap (safe no-op).
+      const distinctId = document.body.dataset.obsDistinctId || undefined;
+      initClientObservability(distinctId ? { distinctId } : {});
+      // DEV-only proof-of-life trigger; no-op in production builds. Call window.__obsSmoke() in devtools.
+      installClientSmokeTrigger();
+    </script>
   </body>
 </html>
 

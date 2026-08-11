@@ -1,6 +1,8 @@
 import type { APIRoute } from "astro";
 import { z } from "zod";
-import { createClient } from "@/lib/supabase";
+import { track } from "@/lib/observability";
+import { scheduleErrorReport } from "@/lib/observability/schedule";
+import { createClient, safeGetUser } from "@/lib/supabase";
 import { cvSaveSchema } from "@/lib/cv-answers.schema";
 import { cvSaveErrorMessages } from "@/lib/cv-save-messages";
 import { readBoundedJson } from "@/lib/request-body";
@@ -37,9 +39,7 @@ export const GET: APIRoute = async (context) => {
   if (!supabase) {
     return json(503, { ok: false, error: "service_unavailable", message: cvSaveErrorMessages.service_unavailable });
   }
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const user = await safeGetUser(supabase, context.locals);
   if (!user) {
     return json(401, { ok: false, error: "service_unavailable", message: SESSION_EXPIRED });
   }
@@ -50,7 +50,8 @@ export const GET: APIRoute = async (context) => {
       return json(404, { ok: false, error: "not_found", message: cvSaveErrorMessages.not_found });
     }
     return json(200, { ok: true, cv });
-  } catch {
+  } catch (error) {
+    scheduleErrorReport(error, { error_location: "api/cv/[id]:load" }, context.locals);
     return json(500, { ok: false, error: "load_failed", message: cvSaveErrorMessages.load_failed });
   }
 };
@@ -79,9 +80,7 @@ export const PUT: APIRoute = async (context) => {
   if (!supabase) {
     return json(503, { ok: false, error: "service_unavailable", message: cvSaveErrorMessages.service_unavailable });
   }
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const user = await safeGetUser(supabase, context.locals);
   if (!user) {
     return json(401, { ok: false, error: "service_unavailable", message: SESSION_EXPIRED });
   }
@@ -95,8 +94,12 @@ export const PUT: APIRoute = async (context) => {
     if (!cv) {
       return json(404, { ok: false, error: "not_found", message: cvSaveErrorMessages.not_found });
     }
+    // Funnel step 7: CV persisted (update). Emitted on every successful save; funnel queries
+    // first-touch per distinct_id, so repeat saves inflate raw counts but not conversion.
+    await track("funnel_cv_saved", { locale: context.locals.locale }, context.locals.observability);
     return json(200, { ok: true, cv });
-  } catch {
+  } catch (error) {
+    scheduleErrorReport(error, { error_location: "api/cv/[id]:save" }, context.locals);
     return json(500, { ok: false, error: "save_failed", message: cvSaveErrorMessages.save_failed });
   }
 };
@@ -114,9 +117,7 @@ export const DELETE: APIRoute = async (context) => {
   if (!supabase) {
     return json(503, { ok: false, error: "service_unavailable", message: cvSaveErrorMessages.service_unavailable });
   }
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const user = await safeGetUser(supabase, context.locals);
   if (!user) {
     return json(401, { ok: false, error: "service_unavailable", message: SESSION_EXPIRED });
   }
@@ -127,7 +128,8 @@ export const DELETE: APIRoute = async (context) => {
       return json(404, { ok: false, error: "not_found", message: cvSaveErrorMessages.not_found });
     }
     return json(200, { ok: true });
-  } catch {
+  } catch (error) {
+    scheduleErrorReport(error, { error_location: "api/cv/[id]:delete" }, context.locals);
     return json(500, { ok: false, error: "delete_failed", message: cvSaveErrorMessages.delete_failed });
   }
 };

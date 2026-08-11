@@ -1,4 +1,5 @@
-import { SUPABASE_URL, SUPABASE_KEY } from "astro:env/server";
+import { OBSERVABILITY_ID_SALT, POSTHOG_API_KEY, SUPABASE_URL, SUPABASE_KEY } from "astro:env/server";
+import { PUBLIC_POSTHOG_KEY } from "astro:env/client";
 
 export interface ConfigStatus {
   name: string;
@@ -20,6 +21,17 @@ export const configStatuses: ConfigStatus[] = [
     message: "Supabase is not configured — authentication and saved CVs are unavailable.",
     docsUrl: "https://github.com/Dergacz/AI_CV_Builder#environment-variables",
     docsLabel: "Setup instructions",
+  },
+  {
+    name: "PostHog",
+    // Require the full observability set: the server capture key, the pseudonymous-ID salt
+    // (without it authenticated identity silently degrades to anon sessions), and the public
+    // browser key (without it the client SDK is a no-op). A partial config surfaces the banner.
+    configured: Boolean(POSTHOG_API_KEY && OBSERVABILITY_ID_SALT && PUBLIC_POSTHOG_KEY),
+    message:
+      "PostHog nie jest w pełni skonfigurowany — analityka produktu i monitoring błędów są wyłączone lub ograniczone.",
+    docsUrl: "https://posthog.com/docs",
+    docsLabel: "Zobacz dokumentację PostHog",
   },
 ];
 
