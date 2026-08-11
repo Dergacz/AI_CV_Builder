@@ -1,11 +1,16 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 /**
- * Signup-route funnel emission (S-01, plan phase 2).
+ * Signup-route funnel emission (S-01, plan phase 2) and confirmation-link destination (S-10, R-16).
  *
  * Locks that `funnel_signup_completed` fires on a successful registration (anonymous segment —
  * the anon-session identity), and not when signUp errors. Supabase + the observability contract
  * are mocked.
+ *
+ * Also locks that the signup call carries an `emailRedirectTo` built from the *request* origin.
+ * Without it GoTrue falls back to the project's `Site URL`, which is what pointed every production
+ * confirmation email at localhost. The origin is asserted against a non-localhost host so a
+ * hard-coded destination cannot pass.
  */
 
 const mocks = vi.hoisted(() => ({ signUp: vi.fn(), track: vi.fn() }));
@@ -14,6 +19,7 @@ interface SignUpPayload {
   email: string;
   password: string;
   options: {
+    emailRedirectTo: string;
     data: {
       consent_version: string;
       consent_accepted_at: string;
@@ -30,9 +36,10 @@ vi.mock("@/lib/observability", () => ({ track: mocks.track }));
 import { POST } from "@/pages/api/auth/signup";
 import { POLICY_VERSION } from "@/lib/legal/policy";
 
-function makeContext(form: Record<string, string>) {
+function makeContext(form: Record<string, string>, origin = "http://localhost") {
   return {
-    request: new Request("http://localhost/api/auth/signup", {
+    url: new URL(`${origin}/api/auth/signup`),
+    request: new Request(`${origin}/api/auth/signup`, {
       method: "POST",
       headers: { "Content-Type": "application/x-www-form-urlencoded" },
       body: new URLSearchParams(form),
@@ -67,6 +74,17 @@ describe("POST /api/auth/signup — funnel emission", () => {
     });
     expect(signUpPayload.options.data.consent_accepted_at).toMatch(/^\d{4}-\d{2}-\d{2}T/);
     expect(mocks.track).toHaveBeenCalledWith("funnel_signup_completed", { locale: "en" }, { distinctId: "anon-test" });
+  });
+
+  it("points the confirmation email at /auth/confirm on the request origin", async () => {
+    mocks.signUp.mockResolvedValue({ data: { session: null }, error: null });
+
+    await POST(
+      makeContext({ email: "ada@example.com", password: "pw-123456", consent: "on" }, "https://cv.example.com"),
+    );
+
+    const [signUpPayload] = mocks.signUp.mock.calls[0] as [SignUpPayload];
+    expect(signUpPayload.options.emailRedirectTo).toBe("https://cv.example.com/auth/confirm");
   });
 
   it("does not emit when signUp returns an error", async () => {

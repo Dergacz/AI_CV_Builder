@@ -8,9 +8,10 @@ vi.mock("@/lib/supabase", () => ({
 
 import { POST } from "@/pages/api/auth/resend";
 
-function makeContext(form: Record<string, string>) {
+function makeContext(form: Record<string, string>, origin = "http://localhost") {
   return {
-    request: new Request("http://localhost/api/auth/resend", {
+    url: new URL(`${origin}/api/auth/resend`),
+    request: new Request(`${origin}/api/auth/resend`, {
       method: "POST",
       headers: { "Content-Type": "application/x-www-form-urlencoded" },
       body: new URLSearchParams(form),
@@ -31,9 +32,23 @@ describe("POST /api/auth/resend", () => {
 
     const response = await POST(makeContext({ email: "ada+verify@example.com" }));
 
-    expect(mocks.resend).toHaveBeenCalledWith({ type: "signup", email: "ada+verify@example.com" });
+    expect(mocks.resend).toHaveBeenCalledWith({
+      type: "signup",
+      email: "ada+verify@example.com",
+      options: { emailRedirectTo: "http://localhost/auth/confirm" },
+    });
     expect(response.status).toBe(302);
     expect(response.headers.get("Location")).toBe("/auth/confirm-email?email=ada%2Bverify%40example.com&status=sent");
+  });
+
+  it("points the resent confirmation email at /auth/confirm on the request origin (S-10)", async () => {
+    mocks.resend.mockResolvedValue({ data: { user: null, session: null }, error: null });
+
+    await POST(makeContext({ email: "ada@example.com" }, "https://cv.example.com"));
+
+    expect(mocks.resend).toHaveBeenCalledWith(
+      expect.objectContaining({ options: { emailRedirectTo: "https://cv.example.com/auth/confirm" } }),
+    );
   });
 
   it("redirects with an error notice when resend fails", async () => {
