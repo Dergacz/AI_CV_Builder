@@ -1,5 +1,6 @@
 import type { APIRoute } from "astro";
 import { setConsentCookie } from "@/lib/auth/consent-cookie";
+import { isGoogleAuthConfigured } from "@/lib/auth/google-provider";
 import { classifyAuthError } from "@/lib/i18n/auth-errors";
 import { createClient } from "@/lib/supabase";
 
@@ -11,6 +12,13 @@ export const prerender = false;
  * For a consented signup we persist consent in a short-lived signed cookie (read later by
  * `/auth/callback` to stamp a brand-new account) before handing off to Google. `signInWithOAuth`
  * runs server-side here (PKCE + SSR cookies), returning the provider URL we redirect the browser to.
+ *
+ * The availability pre-check below is NOT redundant with the `error || !data.url` branch further
+ * down: `signInWithOAuth` only *builds* an authorize URL — no network call, no provider validation
+ * — so it always succeeds even when the provider is disabled. Without the pre-check the browser is
+ * handed to Supabase's `/authorize`, which answers "Unsupported provider" outside our app entirely.
+ * The route stays reachable by direct POST or stale HTML no matter what the auth pages rendered,
+ * which is why hiding the button (phase 2) does not make this redundant either.
  */
 export const POST: APIRoute = async (context) => {
   const form = await context.request.formData();
@@ -20,6 +28,13 @@ export const POST: APIRoute = async (context) => {
   // means not-consented. Reject before touching Supabase or setting any cookie.
   if (intent === "signup" && !form.get("consent")) {
     return context.redirect("/auth/signup?error=consent_required");
+  }
+
+  // Ordering is load-bearing: after the consent gate (which is the more specific complaint about
+  // the same request) and before setConsentCookie, so a refused signup never leaves a signed
+  // consent cookie behind with no OAuth round-trip left to consume or clear it.
+  if (!isGoogleAuthConfigured()) {
+    return context.redirect("/auth/signin?error=google_unavailable");
   }
 
   const supabase = createClient(context.request.headers, context.cookies);

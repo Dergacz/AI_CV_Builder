@@ -9,6 +9,10 @@ export const authErrorCodes = [
   "rate_limited",
   "email_not_confirmed",
   "oauth_failed",
+  // Distinct from `oauth_failed` on purpose: that one means "the Google round-trip broke, try
+  // again", while this one means the provider is not configured on this deployment at all — a
+  // retry can never succeed, so the copy has to point at email and password instead.
+  "google_unavailable",
 ] as const;
 
 export type AuthErrorCode = (typeof authErrorCodes)[number];
