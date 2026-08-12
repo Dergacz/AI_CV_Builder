@@ -1,7 +1,7 @@
 ---
 change_id: google-unavailable-state
 title: Degrade the Google sign-in surface when the provider is unconfigured
-status: implementing
+status: implemented
 created: 2026-08-12
 updated: 2026-08-12
 archived_at: null

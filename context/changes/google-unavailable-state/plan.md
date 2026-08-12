@@ -360,15 +360,15 @@ No data migration, no schema change. Rollback is a plain revert; nothing persist
 
 #### Automated
 
-- [x] 4.1 Full unit suite passes: `npm run test`
-- [x] 4.2 Type checking passes: `npx astro sync && npx astro check`
-- [x] 4.3 Linting and formatting pass: `npm run lint` and `npm run format`
-- [x] 4.4 Test-placement guard passes: `npm run test -- src/tests/no-tests-under-pages.test.ts`
-- [x] 4.5 Existing Google E2E specs pass: `npm run test:e2e -- oauth-google`
-- [x] 4.6 Production build succeeds: `npm run build`
+- [x] 4.1 Full unit suite passes: `npm run test` — 4c88b0a
+- [x] 4.2 Type checking passes: `npx astro sync && npx astro check` — 4c88b0a
+- [x] 4.3 Linting and formatting pass: `npm run lint` and `npm run format` — 4c88b0a
+- [x] 4.4 Test-placement guard passes: `npm run test -- src/tests/no-tests-under-pages.test.ts` — 4c88b0a
+- [x] 4.5 Existing Google E2E specs pass: `npm run test:e2e -- oauth-google` — 4c88b0a
+- [x] 4.6 Production build succeeds: `npm run build` — 4c88b0a
 
 #### Manual
 
-- [x] 4.7 Deliberate-break check on the page render test goes red, then reverted
-- [x] 4.8 README env table row matches observed behavior
-- [x] 4.9 R-17's coverage column points at files that exist
+- [x] 4.7 Deliberate-break check on the page render test goes red, then reverted — 4c88b0a
+- [x] 4.8 README env table row matches observed behavior — 4c88b0a
+- [x] 4.9 R-17's coverage column points at files that exist — 4c88b0a
