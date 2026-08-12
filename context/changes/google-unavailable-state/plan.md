@@ -318,28 +318,28 @@ No data migration, no schema change. Rollback is a plain revert; nothing persist
 
 #### Automated
 
-- [x] 1.1 Type checking passes: `npx astro sync && npx astro check`
-- [x] 1.2 Linting passes: `npm run lint`
-- [x] 1.3 Unit tests pass: `npm run test`
-- [x] 1.4 Production build succeeds: `npm run build`
+- [x] 1.1 Type checking passes: `npx astro sync && npx astro check` — 6e1d9c3
+- [x] 1.2 Linting passes: `npm run lint` — 6e1d9c3
+- [x] 1.3 Unit tests pass: `npm run test` — 6e1d9c3
+- [x] 1.4 Production build succeeds: `npm run build` — 6e1d9c3
 
 #### Manual
 
-- [x] 1.5 `.env.example` no longer contains a `###` placeholder for either Google variable
+- [x] 1.5 `.env.example` no longer contains a `###` placeholder for either Google variable — 6e1d9c3
 
 ### Phase 2: Auth pages omit the Google surface
 
 #### Automated
 
-- [ ] 2.1 Type checking passes: `npx astro sync && npx astro check`
-- [ ] 2.2 Linting passes: `npm run lint`
-- [ ] 2.3 Production build succeeds: `npm run build`
+- [x] 2.1 Type checking passes: `npx astro sync && npx astro check`
+- [x] 2.2 Linting passes: `npm run lint`
+- [x] 2.3 Production build succeeds: `npm run build`
 
 #### Manual
 
-- [ ] 2.4 Unconfigured: no Google button, no divider, no leftover gap on either auth page
-- [ ] 2.5 Configured: both pages render exactly as before
-- [ ] 2.6 Both checks repeated in Polish
+- [x] 2.4 Unconfigured: no Google button, no divider, no leftover gap on either auth page
+- [x] 2.5 Configured: both pages render exactly as before
+- [x] 2.6 Both checks repeated in Polish
 
 ### Phase 3: Server gate and the `google_unavailable` error code
 
