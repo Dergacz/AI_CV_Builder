@@ -241,6 +241,18 @@ export interface UiMessages {
     google: {
       button: string;
       divider: string;
+      /**
+       * Consent notice shown under the button — clicking it is the act of acceptance, so the
+       * sentence states what the click commits to rather than promising it in the first person.
+       * Assembled like the signup checkbox: prefix + Terms link + conjunction + Privacy link + suffix.
+       */
+      consent: {
+        prefix: string;
+        termsLabel: string;
+        conjunction: string;
+        privacyLabel: string;
+        suffix: string;
+      };
     };
     errors: Record<AuthErrorCode, string>;
     /** Good news an auth page can be asked to show via `?notice=`. See `auth-notices.ts`. */
@@ -414,6 +426,13 @@ export const messagesByLocale = {
       google: {
         button: "Continue with Google",
         divider: "or",
+        consent: {
+          prefix: "By continuing, you agree to the ",
+          termsLabel: "Terms of Service",
+          conjunction: " and ",
+          privacyLabel: "Privacy Policy",
+          suffix: ".",
+        },
       },
       errors: {
         auth_unavailable: "Account access is temporarily unavailable. Please try again later.",
@@ -752,6 +771,13 @@ export const messagesByLocale = {
       google: {
         button: "Kontynuuj z Google",
         divider: "lub",
+        consent: {
+          prefix: "Kontynuując, akceptujesz ",
+          termsLabel: "Regulamin",
+          conjunction: " i ",
+          privacyLabel: "Politykę prywatności",
+          suffix: ".",
+        },
       },
       errors: {
         auth_unavailable: "Dostęp do konta jest chwilowo niedostępny. Spróbuj ponownie później.",
@@ -1090,6 +1116,13 @@ export const messagesByLocale = {
       google: {
         button: "Продолжить с Google",
         divider: "или",
+        consent: {
+          prefix: "Продолжая, вы принимаете ",
+          termsLabel: "Условия использования",
+          conjunction: " и ",
+          privacyLabel: "Политику конфиденциальности",
+          suffix: ".",
+        },
       },
       errors: {
         auth_unavailable: "Доступ к аккаунту временно недоступен. Попробуйте позже.",
