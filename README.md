@@ -92,6 +92,32 @@ mailbox UI at `http://localhost:54324` — its links are built from `site_url`, 
 to `http://localhost:4321`. Changing anything under `[auth.*]` requires
 `npx supabase stop && npx supabase start`; the running container will not pick it up otherwise.
 
+### Email confirmation in production (dashboard-only settings)
+
+`supabase/config.toml` configures the **local** stack only. The hosted project has its own copy of
+these settings under **Authentication → URL Configuration**, and nothing in this repository can set
+or verify them:
+
+| Setting              | Value                                                                 |
+| -------------------- | --------------------------------------------------------------------- |
+| `Site URL`           | the production origin (**not** `http://localhost:4321`)               |
+| Redirect URLs        | `https://<prod-host>/auth/confirm` and `https://<prod-host>/auth/callback` |
+
+`/auth/confirm` receives the signup confirmation link, `/auth/callback` the Google round-trip. The
+app passes `emailRedirectTo` on both senders (`src/lib/auth/email-redirect.ts`), but **GoTrue
+silently discards a `redirect_to` that is not on the allow-list** and falls back to `Site URL`. That
+failure is invisible from the code: the link still resolves, it just lands on the wrong page. So
+after changing either setting, verify by clicking a real link from a real signup email — manual
+check `M-5` in `context/foundation/test-plan.md` scripts it.
+
+This is the same class of dashboard-only configuration as the Google provider credentials below, and
+the same class of defect: a `Site URL` left at `localhost` sent every production confirmation email
+to a host the user could not reach (roadmap S-10).
+
+Preview deployments (`preview_urls` in `wrangler.jsonc`) serve from a hostname that cannot be
+allow-listed ahead of time, so confirmation links sent from a preview fall back to the production
+`Site URL`. That is the intended degradation — preview signups confirm against production.
+
 ## Environment variables
 
 All are declared in `astro.config.mjs` under `env.schema`. Everything except the two `PUBLIC_`

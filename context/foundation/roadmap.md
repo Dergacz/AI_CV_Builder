@@ -3,7 +3,7 @@ project: AI CV Builder — Launch-Readiness & Validation Release
 version: 1
 status: draft
 created: 2026-06-11
-updated: 2026-08-09
+updated: 2026-08-11
 prd_version: 3
 main_goal: market-feedback
 top_blocker: capacity
@@ -40,6 +40,8 @@ The CV builder works mechanically — landing → questionnaire → AI generatio
 | S-07 | centralized-error-monitoring   | (operator) see failures across all 4 surfaces, scrubbed of sensitive content                                        | F-01          | FR-009                        | done        |
 | S-08 | account-deletion               | permanently delete their account and all associated data via explicit confirmation                                  | F-01          | FR-011, US-03                 | done        |
 | S-09 | legal-pages-and-consent-record | read the real Privacy + Terms pages and have their accepted policy version + acceptance timestamp recorded          | S-03          | FR-005, FR-006, FR-007        | done        |
+| S-10 | verification-link-destination  | click the confirmation link in the signup email and land in the production app, signed in                           | S-02          | FR-001, FR-002, US-01         | done        |
+| S-11 | google-unavailable-state       | see a localized "Google sign-in is unavailable" message instead of a raw provider error page                        | S-04          | FR-003, FR-004, US-02         | todo        |
 
 ## Streams
 
@@ -49,8 +51,9 @@ Navigation aid — groups items that share a Prerequisites chain. Canonical orde
 | ------ | --------------------------- | ---------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | A      | Measurement & observability | `F-01` → `S-01` → (`S-05` / `S-07` / `S-08` parallel)                  | The market-feedback spine. North star `S-01` leads; feedback, error-monitoring, and deletion all hang off the F-01 contract.                                                               |
 | B      | Launch-safety gates         | `F-02` → (`S-02` / `S-03` / `S-06` parallel) → `S-04`; `S-03` → `S-09` | The signup→app gating work that makes the funnel safe to expose; `S-04` (Google) joins after `S-02`. `S-09` (legal pages + consent record) finishes the S-03 scope after the gate shipped. |
+| C      | Post-deploy defects         | `S-02` → `S-10`; `S-04` → `S-11`                                       | Defects found only once Wave A reached production on 2026-08-11 — both are auth-path finishes, not new capability. Independent of each other; each depends only on the slice it corrects.  |
 
-(Every `F-NN` and `S-NN` appears in exactly one stream. The two streams are independent after their foundations — a capacity-constrained solo builder can alternate between them or fan agents across both.)
+(Every `F-NN` and `S-NN` appears in exactly one stream. The streams are independent after their foundations — a capacity-constrained solo builder can alternate between them or fan agents across all three.)
 
 ## Baseline
 
@@ -226,6 +229,38 @@ Foundations below assume these are present and do NOT re-scaffold them.
 - **Delivered:** consent stamp (`POLICY_VERSION` + acceptance timestamp written to `user_metadata` at signup); real `/terms` + `/privacy` pages (English bodies, localized chrome across en/pl/ru) behind a shared `LegalDocument`; a global `Footer` linking both pages site-wide; Playwright E2E for page resolution + link navigation. Legal bodies remain drafts pending the data-flow audit (Open Q1) and legal review (Open Q2).
 - **Status:** done
 
+### S-10: Verification link lands in the app
+
+- **Outcome:** a user who clicks the confirmation link in the signup email arrives on the **production** app — signed in on `/dashboard` when the click comes from the signup browser, or on `/auth/signin` with an "email confirmed" notice when it comes from another device. Never `localhost`, never the landing page carrying a raw `?code=`.
+- **Change ID:** verification-link-destination
+- **PRD refs:** FR-001, FR-002, US-01; Access Control "Change 1". Completes the S-02 outcome rather than extending it.
+- **Prerequisites:** S-02 (the verification wall this finishes)
+- **Parallel with:** S-11
+- **Blockers:** —
+- **Unknowns:** —
+- **Found:** 2026-08-11, first real signup after Wave A reached production. The emailed link opened `http://localhost:4321` — unusable for any real user, and the single most damaging defect currently in the funnel: every new registration dead-ends at the verification step, which is exactly the step S-01 exists to measure.
+- **Two independent causes, both must be fixed:**
+  - **Config.** The hosted Supabase project's `Site URL` is still `http://localhost:4321`. `supabase/config.toml` configures only the local stack, so this was never carried over. GoTrue builds email links from `Site URL`, hence the localhost destination.
+  - **Code.** `src/pages/api/auth/signup.ts:45` calls `signUp` without `emailRedirectTo`, so GoTrue has nothing to redirect to but `Site URL` — which is why the link would land on the landing page rather than sign-in even once the host is corrected.
+- **Risk:** The load-bearing trap is documented in `supabase/config.toml:158-159` — a `redirect_to` absent from the allow-list is **silently discarded** in favour of `site_url`. So adding `emailRedirectTo` without also allow-listing the production URL in the hosted dashboard produces a fix that reads as correct in code review and changes nothing in production. Verification must be a real click on a real emailed link against production, not a unit test asserting the option is passed.
+- **Delivered:** a shared `emailRedirectTo` builder (`src/lib/auth/email-redirect.ts`) wired into **both** senders — planning found the same omission in `/api/auth/resend`, the recovery path a user reaches for precisely when their first link was broken. New `/auth/confirm` route exchanges the PKCE code and signs the user in; a failed exchange (mail opened on a device that did not sign up) routes to `/auth/signin` with a new localized "email confirmed" notice rather than an error, since GoTrue verifies the address before redirecting. Hosted `Site URL` + allow-list corrected in the dashboard and documented in README; R-16 and manual check M-5 added to the test plan.
+- **Departures from this entry:** the destination is `/auth/confirm` → `/dashboard`, not `/auth/signin`. Auto-login removes a password retype and emits funnel step 3 immediately (`trackEmailConfirmedOnce` fires on the first authenticated request). A distinct path rather than a flag on `/auth/callback` because Supabase does not document whether query strings participate in allow-list matching — and the failure mode here is silent.
+- **Status:** done
+
+### S-11: Google-unavailable state on the auth pages
+
+- **Outcome:** when Google sign-in cannot complete, the user sees the localized error banner the auth pages already have (en/pl/ru) instead of a raw Supabase JSON body on a `*.supabase.co` URL.
+- **Change ID:** google-unavailable-state
+- **PRD refs:** FR-003, FR-004, US-02; Access Control "Change 2".
+- **Prerequisites:** S-04 (the Google flow this hardens)
+- **Parallel with:** S-10
+- **Blockers:** —
+- **Unknowns:**
+  - Which detection strategy to take — a preflight provider check (costs a round-trip on every click), a build/env-time "Google configured" flag that hides or disables the button, or handling only the failure modes that do return to `/auth/callback`. — Owner: user/team. Block: no.
+- **Found:** 2026-08-11, production. With the provider disabled in the hosted project, "Continue with Google" produced `{"code":400,"error_code":"validation_failed","msg":"Unsupported provider: provider is not enabled"}` as a bare JSON page.
+- **Risk:** The structural constraint is that `signInWithOAuth` does **not** validate the provider — it builds `/auth/v1/authorize?provider=google` and the browser leaves for the Supabase domain, where GoTrue answers 400. By then the app is out of the request path entirely, so `classifyAuthError` in `src/pages/api/auth/oauth/google.ts:40-42` can never see it. Any fix must therefore act _before_ the redirect or accept that some provider failures stay unhandled — this is a scoping decision, not an implementation detail, and should be settled in the plan rather than during implementation.
+- **Status:** todo
+
 ## Backlog Handoff
 
 | Roadmap ID | Change ID                      | Suggested issue title                                                              | Ready for `/10x-plan` | Notes                                                                                                          |
@@ -241,6 +276,8 @@ Foundations below assume these are present and do NOT re-scaffold them.
 | S-07       | centralized-error-monitoring   | Wire error monitoring across all 4 surfaces with scrubbing                         | no                    | Shipped 2026-08-08; transport-only on the client to avoid double-counting                                      |
 | S-08       | account-deletion               | Self-service permanent account + data deletion                                     | no                    | Shipped 2026-08-09; admin-API deletion behind `SUPABASE_SECRET_KEY` — set it as a Worker secret before release |
 | S-09       | legal-pages-and-consent-record | Author Privacy + Terms pages and record accepted version + timestamp               | no                    | Run after S-03; Privacy copy waits on data-flow audit (Open Q1)                                                |
+| S-10       | verification-link-destination  | Point the signup confirmation link at the production app                           | no                    | Shipped 2026-08-11; hosted `Site URL` + allow-list are dashboard-only — see README and manual check M-5        |
+| S-11       | google-unavailable-state       | Surface a localized message when Google sign-in is unavailable                     | yes                   | Prod defect 2026-08-11; detection strategy is an open scoping decision — settle it in the plan                 |
 
 This table is the clean handoff to Jira/Linear or any MCP-backed backlog. One row per `F-NN` and `S-NN`.
 
