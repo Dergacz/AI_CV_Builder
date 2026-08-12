@@ -11,14 +11,14 @@ This change gives the app a server-side availability signal and makes the surfac
 Google sign-in shipped complete in `google-signin-linking`: button → `POST /api/auth/oauth/google` → Google → `/auth/callback` → `/dashboard`, with consent gating and auto-linking. What it did not ship is a configured-or-not signal.
 
 - **The credentials live outside the app.** `supabase/config.toml:333-337` sets `enabled = true` with `client_id = "env(SUPABASE_AUTH_EXTERNAL_GOOGLE_CLIENT_ID)"`; production sets the same pair in the hosted dashboard (README:217). Neither var appears in `astro.config.mjs` `env.schema`, so no application code can observe them.
-- **The endpoint's error branch cannot fire for this case.** `src/pages/api/auth/oauth/google.ts:35` calls `signInWithOAuth`, which only *builds* an authorize URL — no network round-trip, no provider validation. `data.url` is always populated, so the `if (error || !data.url)` guard at :40 never catches an unconfigured provider. The user leaves the app before anything can be reported.
-- **The best-case landing is misleading.** If the provider error does bounce back through `/auth/callback` (`src/pages/auth/callback.ts:23-25`), the user gets `oauth_failed`: *"We couldn't complete Google sign-in. Please try again or use your email and password."* The retry advice can never succeed.
-- **The precedent is already in the tree.** `src/lib/supabase-admin.ts:31` exports `isAdminConfigured()` — a pure, synchronous, trim-and-non-empty check over an env var. `src/pages/account.astro:28` consults it in frontmatter and passes `configured` down; `src/components/account/DeleteAccountPanel.tsx:95-101` returns a localized `role="note"` instead of the control. The rationale is written at `account.astro:15-18`: *"a button that is guaranteed to fail is worse than an honest 'temporarily unavailable'."*
+- **The endpoint's error branch cannot fire for this case.** `src/pages/api/auth/oauth/google.ts:35` calls `signInWithOAuth`, which only _builds_ an authorize URL — no network round-trip, no provider validation. `data.url` is always populated, so the `if (error || !data.url)` guard at :40 never catches an unconfigured provider. The user leaves the app before anything can be reported.
+- **The best-case landing is misleading.** If the provider error does bounce back through `/auth/callback` (`src/pages/auth/callback.ts:23-25`), the user gets `oauth_failed`: _"We couldn't complete Google sign-in. Please try again or use your email and password."_ The retry advice can never succeed.
+- **The precedent is already in the tree.** `src/lib/supabase-admin.ts:31` exports `isAdminConfigured()` — a pure, synchronous, trim-and-non-empty check over an env var. `src/pages/account.astro:28` consults it in frontmatter and passes `configured` down; `src/components/account/DeleteAccountPanel.tsx:95-101` returns a localized `role="note"` instead of the control. The rationale is written at `account.astro:15-18`: _"a button that is guaranteed to fail is worse than an honest 'temporarily unavailable'."_
 - **The divider is page-level, not island-level.** `signin.astro:51-55` and `signup.astro:33-38` each render the `or` separator immediately above `<GoogleSignInButton />`. Both must disappear together or the page shows a dangling rule.
 
 ## Desired End State
 
-A deployment without a Google client id serves `/auth/signin` and `/auth/signup` exactly as they looked before Google shipped — email/password form, no divider, no Google button, no explanatory copy. `POST /api/auth/oauth/google` reached directly on such a deployment redirects to `/auth/signin?error=google_unavailable`, whose localized banner points the user at email and password rather than at a retry. A deployment *with* the client id set behaves exactly as it does today, with no new network calls and no added latency on either auth page.
+A deployment without a Google client id serves `/auth/signin` and `/auth/signup` exactly as they looked before Google shipped — email/password form, no divider, no Google button, no explanatory copy. `POST /api/auth/oauth/google` reached directly on such a deployment redirects to `/auth/signin?error=google_unavailable`, whose localized banner points the user at email and password rather than at a retry. A deployment _with_ the client id set behaves exactly as it does today, with no new network calls and no added latency on either auth page.
 
 Verify by unsetting `SUPABASE_AUTH_EXTERNAL_GOOGLE_CLIENT_ID`, restarting the dev server, and loading both auth pages: no Google affordance, and a hand-rolled `curl -X POST` to the start endpoint lands on the sign-in page with the new banner.
 
@@ -50,7 +50,7 @@ Two call sites consult it. The pages omit the affordance (cheap, cosmetic, the c
 
 ## Critical Implementation Details
 
-**Ordering inside the start endpoint.** The availability check must run *before* `setConsentCookie` (`src/pages/api/auth/oauth/google.ts:31`), or a refused signup attempt leaves a stray signed consent cookie in the browser with no OAuth round-trip to consume or clear it. Placing it after the existing consent gate but before the Supabase client construction keeps both properties: an unconsented signup still gets `consent_required` (the more specific message), and no cookie is ever set on a refusal.
+**Ordering inside the start endpoint.** The availability check must run _before_ `setConsentCookie` (`src/pages/api/auth/oauth/google.ts:31`), or a refused signup attempt leaves a stray signed consent cookie in the browser with no OAuth round-trip to consume or clear it. Placing it after the existing consent gate but before the Supabase client construction keeps both properties: an unconsented signup still gets `consent_required` (the more specific message), and no cookie is ever set on a refusal.
 
 ## Phase 1: Availability predicate
 
@@ -161,7 +161,7 @@ The start endpoint refuses before it can hand the browser to a provider that wil
 
 **Intent**: Supply en/pl/ru copy that names the working alternative instead of advising a retry.
 
-**Contract**: New `google_unavailable` entry in each of the three `auth.errors` blocks (`:418`, `:755`, `:1092`). English along the lines of *"Google sign-in isn't available right now. Please sign in with your email and password."* Keep it distinct from `oauth_failed` and from `auth_unavailable` in every locale — conflating them is the misleading-copy failure that `src/lib/cv-draft-messages.test.ts:21-24` exists to catch for the generation surface.
+**Contract**: New `google_unavailable` entry in each of the three `auth.errors` blocks (`:418`, `:755`, `:1092`). English along the lines of _"Google sign-in isn't available right now. Please sign in with your email and password."_ Keep it distinct from `oauth_failed` and from `auth_unavailable` in every locale — conflating them is the misleading-copy failure that `src/lib/cv-draft-messages.test.ts:21-24` exists to catch for the generation surface.
 
 #### 3. Start endpoint gate
 
@@ -226,7 +226,7 @@ Pin the three properties that would otherwise regress silently, keep the existin
 
 **Intent**: Keep the two existing Google specs meaningful without requiring any developer to hold real Google credentials.
 
-**Contract**: Add `env: { SUPABASE_AUTH_EXTERNAL_GOOGLE_CLIENT_ID: "e2e-google-client-id" }` to the `webServer` block, mirroring `playwright.quota.config.ts:50`. The value is never used — only its presence — and the specs already stub the provider hop at `**/auth/v1/authorize**` (`e2e/oauth-google.spec.ts:34`), so nothing reaches real Google. Comment it so the next reader understands the dummy is a *signal*, not a credential.
+**Contract**: Add `env: { SUPABASE_AUTH_EXTERNAL_GOOGLE_CLIENT_ID: "e2e-google-client-id" }` to the `webServer` block, mirroring `playwright.quota.config.ts:50`. The value is never used — only its presence — and the specs already stub the provider hop at `**/auth/v1/authorize**` (`e2e/oauth-google.spec.ts:34`), so nothing reaches real Google. Comment it so the next reader understands the dummy is a _signal_, not a credential.
 
 #### 5. Risk register
 
@@ -294,7 +294,7 @@ The predicate is a synchronous string check on a value `astro:env` has already r
 
 ## Migration Notes
 
-There is a **deployment step**, and skipping it is the one way this change can regress production: `SUPABASE_AUTH_EXTERNAL_GOOGLE_CLIENT_ID` must be set as a Cloudflare Worker var *before or with* the deploy, or Google sign-in — which works today — will silently lose its button. The value is the same client id already in the hosted Supabase dashboard (**Authentication → Providers → Google**).
+There is a **deployment step**, and skipping it is the one way this change can regress production: `SUPABASE_AUTH_EXTERNAL_GOOGLE_CLIENT_ID` must be set as a Cloudflare Worker var _before or with_ the deploy, or Google sign-in — which works today — will silently lose its button. The value is the same client id already in the hosted Supabase dashboard (**Authentication → Providers → Google**).
 
 ```bash
 npx wrangler secret put SUPABASE_AUTH_EXTERNAL_GOOGLE_CLIENT_ID
@@ -345,30 +345,30 @@ No data migration, no schema change. Rollback is a plain revert; nothing persist
 
 #### Automated
 
-- [x] 3.1 Type checking passes: `npx astro sync && npx astro check`
-- [x] 3.2 Linting passes: `npm run lint`
-- [x] 3.3 Locale parity test passes: `npm run test -- src/lib/i18n/messages.test.ts`
-- [x] 3.4 Full unit suite passes: `npm run test`
+- [x] 3.1 Type checking passes: `npx astro sync && npx astro check` — 3680c21
+- [x] 3.2 Linting passes: `npm run lint` — 3680c21
+- [x] 3.3 Locale parity test passes: `npm run test -- src/lib/i18n/messages.test.ts` — 3680c21
+- [x] 3.4 Full unit suite passes: `npm run test` — 3680c21
 
 #### Manual
 
-- [x] 3.5 Direct POST to the start endpoint redirects to `/auth/signin?error=google_unavailable`
-- [x] 3.6 The banner reads correctly in all three locales and does not advise retrying Google
-- [x] 3.7 Unconsented signup still yields `consent_required`; neither refusal sets a consent cookie
+- [x] 3.5 Direct POST to the start endpoint redirects to `/auth/signin?error=google_unavailable` — 3680c21
+- [x] 3.6 The banner reads correctly in all three locales and does not advise retrying Google — 3680c21
+- [x] 3.7 Unconsented signup still yields `consent_required`; neither refusal sets a consent cookie — 3680c21
 
 ### Phase 4: Coverage, risk register, and documentation
 
 #### Automated
 
-- [ ] 4.1 Full unit suite passes: `npm run test`
-- [ ] 4.2 Type checking passes: `npx astro sync && npx astro check`
-- [ ] 4.3 Linting and formatting pass: `npm run lint` and `npm run format`
-- [ ] 4.4 Test-placement guard passes: `npm run test -- src/tests/no-tests-under-pages.test.ts`
-- [ ] 4.5 Existing Google E2E specs pass: `npm run test:e2e -- oauth-google`
-- [ ] 4.6 Production build succeeds: `npm run build`
+- [x] 4.1 Full unit suite passes: `npm run test`
+- [x] 4.2 Type checking passes: `npx astro sync && npx astro check`
+- [x] 4.3 Linting and formatting pass: `npm run lint` and `npm run format`
+- [x] 4.4 Test-placement guard passes: `npm run test -- src/tests/no-tests-under-pages.test.ts`
+- [x] 4.5 Existing Google E2E specs pass: `npm run test:e2e -- oauth-google`
+- [x] 4.6 Production build succeeds: `npm run build`
 
 #### Manual
 
-- [ ] 4.7 Deliberate-break check on the page render test goes red, then reverted
-- [ ] 4.8 README env table row matches observed behavior
-- [ ] 4.9 R-17's coverage column points at files that exist
+- [x] 4.7 Deliberate-break check on the page render test goes red, then reverted
+- [x] 4.8 README env table row matches observed behavior
+- [x] 4.9 R-17's coverage column points at files that exist

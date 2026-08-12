@@ -16,17 +16,17 @@ A deployment without a Google client id serves both auth pages exactly as they l
 
 ## Key Decisions Made
 
-| Decision | Choice | Why (1 sentence) |
-| --- | --- | --- |
-| Availability signal | App-side env var, not a runtime probe | Mirrors `isAdminConfigured()` — synchronous, pure, zero network cost, trivially testable; a probe would add a failure mode and non-determinism to two pages that have neither |
-| Which variable | Reuse `SUPABASE_AUTH_EXTERNAL_GOOGLE_CLIENT_ID` | The same var `config.toml` already substitutes, so local setup stays one step and there is no way to set credentials without the signal |
-| Degraded UI | Omit button **and** divider entirely | A sign-in page owes no explanation for an absent option, and a dangling divider reads as a rendering bug; zero new copy means zero locale-parity surface |
-| Placeholder handling | Blank `.env.example`, plain trim-check | Keeps the predicate a one-liner identical to the precedent rather than baking a `###` sentinel into shipping code |
-| Server gate | Refuse in the start endpoint too | The endpoint is reachable regardless of what rendered; this is the call site that actually closes the dead end |
-| Gate ordering | After `consent_required`, before `setConsentCookie` | A refused signup must not leave an orphaned signed consent cookie with no round-trip to clear it |
-| Error code | New `google_unavailable` + 3 locales | `oauth_failed` advises a retry that can never work — conflating permanent config gaps with transient hiccups is the misleading-copy failure mode |
-| E2E strategy | Dummy client id via `webServer.env` | Follows `playwright.quota.config.ts:50`; the existing specs already stub the provider hop, so they never needed real credentials |
-| Coverage | Unit + component + route, new `R-17` | Matches what the identical deletion surface got, and satisfies the repo rule that a Testing Strategy cite a risk |
+| Decision             | Choice                                              | Why (1 sentence)                                                                                                                                                              |
+| -------------------- | --------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Availability signal  | App-side env var, not a runtime probe               | Mirrors `isAdminConfigured()` — synchronous, pure, zero network cost, trivially testable; a probe would add a failure mode and non-determinism to two pages that have neither |
+| Which variable       | Reuse `SUPABASE_AUTH_EXTERNAL_GOOGLE_CLIENT_ID`     | The same var `config.toml` already substitutes, so local setup stays one step and there is no way to set credentials without the signal                                       |
+| Degraded UI          | Omit button **and** divider entirely                | A sign-in page owes no explanation for an absent option, and a dangling divider reads as a rendering bug; zero new copy means zero locale-parity surface                      |
+| Placeholder handling | Blank `.env.example`, plain trim-check              | Keeps the predicate a one-liner identical to the precedent rather than baking a `###` sentinel into shipping code                                                             |
+| Server gate          | Refuse in the start endpoint too                    | The endpoint is reachable regardless of what rendered; this is the call site that actually closes the dead end                                                                |
+| Gate ordering        | After `consent_required`, before `setConsentCookie` | A refused signup must not leave an orphaned signed consent cookie with no round-trip to clear it                                                                              |
+| Error code           | New `google_unavailable` + 3 locales                | `oauth_failed` advises a retry that can never work — conflating permanent config gaps with transient hiccups is the misleading-copy failure mode                              |
+| E2E strategy         | Dummy client id via `webServer.env`                 | Follows `playwright.quota.config.ts:50`; the existing specs already stub the provider hop, so they never needed real credentials                                              |
+| Coverage             | Unit + component + route, new `R-17`                | Matches what the identical deletion surface got, and satisfies the repo rule that a Testing Strategy cite a risk                                                              |
 
 ## Scope
 
@@ -40,12 +40,12 @@ One pure predicate module (`src/lib/auth/google-provider.ts`), consulted server-
 
 ## Phases at a Glance
 
-| Phase | What it delivers | Key risk |
-| --- | --- | --- |
-| 1. Availability predicate | Env var + `isGoogleAuthConfigured()` + blanked example | Nothing observable changes yet — easy to under-verify |
-| 2. Auth pages degrade | Button and divider omitted together | Leaving a stray gap or an orphaned divider |
-| 3. Server gate + error code | Endpoint refusal, `google_unavailable` in 3 locales | Gate placed after `setConsentCookie` would orphan a cookie |
-| 4. Coverage, risk, docs | 3 test files, E2E dummy, `R-17`, README | Forgetting the Worker var makes prod lose a working button |
+| Phase                       | What it delivers                                       | Key risk                                                   |
+| --------------------------- | ------------------------------------------------------ | ---------------------------------------------------------- |
+| 1. Availability predicate   | Env var + `isGoogleAuthConfigured()` + blanked example | Nothing observable changes yet — easy to under-verify      |
+| 2. Auth pages degrade       | Button and divider omitted together                    | Leaving a stray gap or an orphaned divider                 |
+| 3. Server gate + error code | Endpoint refusal, `google_unavailable` in 3 locales    | Gate placed after `setConsentCookie` would orphan a cookie |
+| 4. Coverage, risk, docs     | 3 test files, E2E dummy, `R-17`, README                | Forgetting the Worker var makes prod lose a working button |
 
 **Prerequisites:** Local Supabase + Docker for the E2E leg. No Google credentials needed at any point — the dummy value is a signal, not a credential.
 **Estimated effort:** ~2 sessions across 4 phases.
@@ -53,7 +53,7 @@ One pure predicate module (`src/lib/auth/google-provider.ts`), consulted server-
 ## Open Risks & Assumptions
 
 - **The one production regression path:** the client id must be set as a Cloudflare Worker var at deploy time, or Google sign-in — which works today — silently loses its button. Called out in Migration Notes with the `wrangler secret put` command.
-- The signal is *presence*, not validity: a garbage client id still renders the button, and the user still dead-ends. Verifying the credential would require the provider round-trip this change deliberately avoids.
+- The signal is _presence_, not validity: a garbage client id still renders the button, and the user still dead-ends. Verifying the credential would require the provider round-trip this change deliberately avoids.
 - The env var can drift from the hosted Supabase dashboard in either direction — accepted as the cost of the no-probe decision.
 
 ## Success Criteria (Summary)
