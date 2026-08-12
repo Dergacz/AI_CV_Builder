@@ -437,16 +437,16 @@ precisely why the resend path is in scope here.
 
 #### Automated
 
-- [x] 3.1 Linting passes (`npm run lint`)
-- [x] 3.2 Full suite passes (`npm run test`)
-- [x] 3.3 Production build succeeds (`npm run build`)
+- [x] 3.1 Linting passes (`npm run lint`) — f4a2dad
+- [x] 3.2 Full suite passes (`npm run test`) — f4a2dad
+- [x] 3.3 Production build succeeds (`npm run build`) — f4a2dad
 
 #### Manual
 
-- [x] 3.4 Hosted `Site URL` and redirect allow-list updated before deploy
-- [x] 3.5 Production email link points at `https://<prod-host>/auth/confirm`
-- [x] 3.6 Same-browser click lands on `/dashboard`, signed in
-- [x] 3.7 Second-device click lands on `/auth/signin` with the confirmed notice, and sign-in works
-- [x] 3.8 Resend produces a link with the same destination
-- [x] 3.9 Already-used link shows the `email_not_confirmed` message
-- [x] 3.10 PostHog shows funnel step 3 for the completed signups
+- [x] 3.4 Hosted `Site URL` and redirect allow-list updated before deploy — f4a2dad
+- [x] 3.5 Production email link points at `https://<prod-host>/auth/confirm` — f4a2dad
+- [x] 3.6 Same-browser click lands on `/dashboard`, signed in — f4a2dad
+- [x] 3.7 Second-device click lands on `/auth/signin` with the confirmed notice, and sign-in works — f4a2dad
+- [x] 3.8 Resend produces a link with the same destination — f4a2dad
+- [x] 3.9 Already-used link shows the `email_not_confirmed` message — f4a2dad
+- [x] 3.10 PostHog shows funnel step 3 for the completed signups — f4a2dad
