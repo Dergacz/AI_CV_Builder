@@ -3,7 +3,9 @@ import Layout from "@/layouts/Layout.astro";
 import LanguageSwitcher from "@/components/LanguageSwitcher.astro";
 import SignInForm from "@/components/auth/SignInForm";
 import GoogleSignInButton from "@/components/auth/GoogleSignInButton";
+import { isGoogleAuthConfigured } from "@/lib/auth/google-provider";
 import { getAuthErrorMessage, resolveAuthErrorCode } from "@/lib/i18n/auth-errors";
+import { getAuthNoticeMessage, isAuthNoticeCode } from "@/lib/i18n/auth-notices";
 import { getMessages } from "@/lib/i18n/messages";
 
 const locale = Astro.locals.locale;
@@ -11,6 +13,15 @@ const messages = getMessages(locale);
 const content = messages.auth.signin;
 const error = Astro.url.searchParams.get("error");
 const serverError = error ? getAuthErrorMessage(locale, resolveAuthErrorCode(error, "signin_failed")) : null;
+// Success channel (S-10): a confirmation link opened on a device that did not sign up lands here.
+// Unlike errors there is no fallback code — an unrecognized `?notice=` renders nothing at all.
+const notice = Astro.url.searchParams.get("notice");
+const serverNotice = isAuthNoticeCode(notice) ? getAuthNoticeMessage(locale, notice) : null;
+// Consulted server-side, same reasoning as `/account` and its delete button (see the comment in
+// src/pages/account.astro): without Google credentials the button could only ever hand the user to
+// a provider that rejects them, and an affordance guaranteed to fail is worse than none. The
+// divider goes with it — a separator with nothing beneath it reads as a rendering bug.
+const googleAvailable = isGoogleAuthConfigured();
 ---
 
 <Layout locale={locale} title={content.title}>
@@ -31,13 +42,29 @@ const serverError = error ? getAuthErrorMessage(locale, resolveAuthErrorCode(err
       <div class="w-full rounded-lg border border-slate-200 bg-white p-6 text-slate-950 shadow-xl sm:p-8">
         <h2 class="mb-2 text-2xl font-semibold text-slate-950">{content.formTitle}</h2>
         <p class="mb-6 text-sm leading-6 text-slate-600">{content.formDescription}</p>
+        {
+          serverNotice && (
+            <p
+              class="mb-6 rounded-md border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm leading-6 text-emerald-900"
+              role="status"
+            >
+              {serverNotice}
+            </p>
+          )
+        }
         <SignInForm locale={locale} serverError={serverError} client:only="react" />
-        <div class="my-6 flex items-center gap-3 text-xs text-slate-400">
-          <span class="h-px flex-1 bg-slate-200"></span>
-          {messages.auth.google.divider}
-          <span class="h-px flex-1 bg-slate-200"></span>
-        </div>
-        <GoogleSignInButton locale={locale} intent="signin" client:only="react" />
+        {
+          googleAvailable && (
+            <>
+              <div class="my-6 flex items-center gap-3 text-xs text-slate-400">
+                <span class="h-px flex-1 bg-slate-200" />
+                {messages.auth.google.divider}
+                <span class="h-px flex-1 bg-slate-200" />
+              </div>
+              <GoogleSignInButton locale={locale} intent="signin" client:only="react" />
+            </>
+          )
+        }
         <p class="mt-4 text-center text-sm text-slate-600">
           {content.alternatePrompt}{" "}
           <a href="/auth/signup" class="font-medium text-emerald-700 hover:underline">{content.alternateLink}</a>

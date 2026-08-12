@@ -1,5 +1,6 @@
 import type { APIRoute } from "astro";
 import { z } from "zod";
+import { emailConfirmRedirectUrl } from "@/lib/auth/email-redirect";
 import { classifyAuthError } from "@/lib/i18n/auth-errors";
 import { createClient } from "@/lib/supabase";
 
@@ -28,7 +29,13 @@ export const POST: APIRoute = async (context) => {
     return context.redirect("/auth/confirm-email?status=unavailable");
   }
 
-  const { error } = await supabase.auth.resend({ type: "signup", email });
+  // Same destination as the original signup mail (S-10): this is the recovery path for a user whose
+  // first link was broken, so it must not hand them a second broken one.
+  const { error } = await supabase.auth.resend({
+    type: "signup",
+    email,
+    options: { emailRedirectTo: emailConfirmRedirectUrl(context.url) },
+  });
   if (error) {
     const code = classifyAuthError(error, "signup_failed");
     if (code === "rate_limited") {

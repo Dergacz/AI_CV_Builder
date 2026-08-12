@@ -92,27 +92,54 @@ mailbox UI at `http://localhost:54324` — its links are built from `site_url`, 
 to `http://localhost:4321`. Changing anything under `[auth.*]` requires
 `npx supabase stop && npx supabase start`; the running container will not pick it up otherwise.
 
+### Email confirmation in production (dashboard-only settings)
+
+`supabase/config.toml` configures the **local** stack only. The hosted project has its own copy of
+these settings under **Authentication → URL Configuration**, and nothing in this repository can set
+or verify them:
+
+| Setting       | Value                                                                      |
+| ------------- | -------------------------------------------------------------------------- |
+| `Site URL`    | the production origin (**not** `http://localhost:4321`)                    |
+| Redirect URLs | `https://<prod-host>/auth/confirm` and `https://<prod-host>/auth/callback` |
+
+`/auth/confirm` receives the signup confirmation link, `/auth/callback` the Google round-trip. The
+app passes `emailRedirectTo` on both senders (`src/lib/auth/email-redirect.ts`), but **GoTrue
+silently discards a `redirect_to` that is not on the allow-list** and falls back to `Site URL`. That
+failure is invisible from the code: the link still resolves, it just lands on the wrong page. So
+after changing either setting, verify by clicking a real link from a real signup email — manual
+check `M-5` in `context/foundation/test-plan.md` scripts it.
+
+This is the same class of dashboard-only configuration as the Google provider credentials below, and
+the same class of defect: a `Site URL` left at `localhost` sent every production confirmation email
+to a host the user could not reach (roadmap S-10).
+
+Preview deployments (`preview_urls` in `wrangler.jsonc`) serve from a hostname that cannot be
+allow-listed ahead of time, so confirmation links sent from a preview fall back to the production
+`Site URL`. That is the intended degradation — preview signups confirm against production.
+
 ## Environment variables
 
 All are declared in `astro.config.mjs` under `env.schema`. Everything except the two `PUBLIC_`
 entries is **server-only** and never reaches the client bundle. Every one is `optional`, so a missing
 value degrades a feature rather than crashing the app.
 
-| Variable                    | Required for      | Missing-value behavior                                      |
-| --------------------------- | ----------------- | ----------------------------------------------------------- |
-| `SUPABASE_URL`              | auth, saved CVs   | Config banner on every page; auth and persistence disabled  |
-| `SUPABASE_KEY`              | auth, saved CVs   | Same as above (publishable/anon key — never a secret key)   |
-| `SUPABASE_SECRET_KEY`       | account deletion  | `/account` shows "unavailable"; the delete route 503s       |
-| `OPENAI_API_KEY`            | CV generation     | `POST /api/cv/generate` answers 503 `service_unavailable`   |
-| `OPENAI_MODEL`              | —                 | Falls back to `gpt-4o-mini`                                 |
-| `POSTHOG_API_KEY`           | analytics, errors | Server-side observability emission disabled; config banner  |
-| `POSTHOG_HOST`              | —                 | Defaults to the EU ingest host                              |
-| `OBSERVABILITY_ID_SALT`     | analytics         | Pseudonymous user IDs cannot be derived                     |
-| `OBSERVABILITY_SMOKE_TOKEN` | F-01 smoke check  | `/api/observability/smoke` stays a `404` — the safe default |
-| `GENERATION_DAILY_LIMIT`    | —                 | Falls back to the default in `generation-quota.ts`          |
-| `GENERATION_HOURLY_CEILING` | —                 | Same as above                                               |
-| `PUBLIC_POSTHOG_KEY`        | browser analytics | Client-side capture disabled                                |
-| `PUBLIC_POSTHOG_HOST`       | —                 | Defaults to the EU ingest host                              |
+| Variable                                  | Required for      | Missing-value behavior                                                 |
+| ----------------------------------------- | ----------------- | ---------------------------------------------------------------------- |
+| `SUPABASE_URL`                            | auth, saved CVs   | Config banner on every page; auth and persistence disabled             |
+| `SUPABASE_KEY`                            | auth, saved CVs   | Same as above (publishable/anon key — never a secret key)              |
+| `SUPABASE_SECRET_KEY`                     | account deletion  | `/account` shows "unavailable"; the delete route 503s                  |
+| `OPENAI_API_KEY`                          | CV generation     | `POST /api/cv/generate` answers 503 `service_unavailable`              |
+| `OPENAI_MODEL`                            | —                 | Falls back to `gpt-4o-mini`                                            |
+| `POSTHOG_API_KEY`                         | analytics, errors | Server-side observability emission disabled; config banner             |
+| `POSTHOG_HOST`                            | —                 | Defaults to the EU ingest host                                         |
+| `OBSERVABILITY_ID_SALT`                   | analytics         | Pseudonymous user IDs cannot be derived                                |
+| `OBSERVABILITY_SMOKE_TOKEN`               | F-01 smoke check  | `/api/observability/smoke` stays a `404` — the safe default            |
+| `GENERATION_DAILY_LIMIT`                  | —                 | Falls back to the default in `generation-quota.ts`                     |
+| `GENERATION_HOURLY_CEILING`               | —                 | Same as above                                                          |
+| `PUBLIC_POSTHOG_KEY`                      | browser analytics | Client-side capture disabled                                           |
+| `PUBLIC_POSTHOG_HOST`                     | —                 | Defaults to the EU ingest host                                         |
+| `SUPABASE_AUTH_EXTERNAL_GOOGLE_CLIENT_ID` | Google sign-in    | Google button hidden on both auth pages; the OAuth start route refuses |
 
 ## Scripts
 
@@ -189,6 +216,35 @@ also fails if a _new_ table starts referencing `auth.users` without `on delete c
 4. Export these into the shell (or `source .env`) **before** running `npx supabase start` — the local Supabase container reads them via env substitution. `skip_nonce_check = true` is set for local; the app's own callback URL (`/auth/callback`) is allow-listed in `additional_redirect_urls`.
 
 In production, set the same two values in the hosted Supabase dashboard (**Authentication → Providers → Google**) rather than in env files.
+
+### When Google is not configured
+
+Supabase's `signInWithOAuth` never contacts the provider — it only builds an authorize URL — so a
+missing provider cannot be detected at the point of failure. Left unguarded, the button hands the
+browser to Supabase's `/authorize`, which answers "Unsupported provider" on a page outside this app.
+
+So the app reads `SUPABASE_AUTH_EXTERNAL_GOOGLE_CLIENT_ID` as a **signal**, never as a value
+(`src/lib/auth/google-provider.ts`). When it is empty or unset, `/auth/signin` and `/auth/signup`
+omit the Google button along with its `or` divider, and `POST /api/auth/oauth/google` redirects to
+`/auth/signin?error=google_unavailable` — copy that points at email and password rather than
+advising a retry that cannot succeed. Everything else is unaffected. This is the same
+degrade-don't-break posture as `SUPABASE_SECRET_KEY` and account deletion above.
+
+**Production needs the client id in two places**, and this is the one way to regress a working
+setup: the hosted Supabase dashboard is where Supabase reads the credentials, but the Worker needs
+the variable to know the provider exists.
+
+```bash
+npx wrangler secret put SUPABASE_AUTH_EXTERNAL_GOOGLE_CLIENT_ID
+```
+
+Set in the dashboard but not on the Worker ⇒ Google sign-in works, yet the button never appears. Set
+on the Worker but not in the dashboard ⇒ the button appears and dead-ends, which is exactly what the
+signal exists to prevent. The value is not a secret (a client id is public by nature); it is
+declared `access: "secret"` in `astro.config.mjs` only to keep it out of the client bundle.
+
+The E2E suite injects a dummy value via `webServer.env` in `playwright.config.ts`, so
+`e2e/oauth-google.spec.ts` passes without anyone holding real Google credentials.
 
 ## PostHog Observability Configuration
 

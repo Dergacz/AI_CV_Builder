@@ -44,5 +44,16 @@ export default defineConfig({
     url: baseURL,
     reuseExistingServer: !process.env.CI,
     timeout: 120_000,
+    // A SIGNAL, not a credential. The app reads only this variable's presence to decide whether the
+    // Google button renders at all (R-17, src/lib/auth/google-provider.ts), so oauth-google.spec.ts
+    // would find no button on a machine without Google credentials. The spec never reaches real
+    // Google — it stubs the provider hop at **/auth/v1/authorize — so any non-empty value serves.
+    //
+    // Precedence, measured rather than assumed: `.dev.vars` WINS over the process environment under
+    // the Cloudflare adapter's dev server. So this line is what makes the spec pass on a machine
+    // with no Google credentials, and it is inert on a machine whose `.dev.vars` already sets the
+    // variable. Either way the button renders — which is all the spec needs. The same applies to
+    // GENERATION_DAILY_LIMIT in playwright.quota.config.ts, which no `.dev.vars` defines.
+    env: { SUPABASE_AUTH_EXTERNAL_GOOGLE_CLIENT_ID: "e2e-google-client-id" },
   },
 });

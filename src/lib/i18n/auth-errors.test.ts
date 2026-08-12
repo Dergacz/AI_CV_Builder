@@ -19,6 +19,7 @@ describe("auth error localization contract", () => {
       "rate_limited",
       "email_not_confirmed",
       "oauth_failed",
+      "google_unavailable",
     ]);
   });
 
