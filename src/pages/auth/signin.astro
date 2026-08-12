@@ -1,5 +1,4 @@
 ---
-import { CircleCheck } from "lucide-react";
 import Layout from "@/layouts/Layout.astro";
 import LanguageSwitcher from "@/components/LanguageSwitcher.astro";
 import SignInForm from "@/components/auth/SignInForm";
@@ -39,8 +38,10 @@ const serverNotice = isAuthNoticeCode(notice) ? getAuthNoticeMessage(locale, not
         <p class="mb-6 text-sm leading-6 text-slate-600">{content.formDescription}</p>
         {
           serverNotice && (
-            <p class="mb-6 flex items-center gap-2 rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm text-emerald-800">
-              <CircleCheck className="size-4 shrink-0" />
+            <p
+              class="mb-6 rounded-md border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm leading-6 text-emerald-900"
+              role="status"
+            >
               {serverNotice}
             </p>
           )
