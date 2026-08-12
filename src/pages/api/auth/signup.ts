@@ -1,4 +1,5 @@
 import type { APIRoute } from "astro";
+import { emailConfirmRedirectUrl } from "@/lib/auth/email-redirect";
 import { classifyAuthError } from "@/lib/i18n/auth-errors";
 import { POLICY_VERSION } from "@/lib/legal/policy";
 import { track } from "@/lib/observability";
@@ -23,6 +24,9 @@ export const POST: APIRoute = async (context) => {
     email,
     password,
     options: {
+      // Without this, GoTrue builds the confirmation link from the project's `Site URL` — which is
+      // how every production signup email ended up pointing at localhost (S-10).
+      emailRedirectTo: emailConfirmRedirectUrl(context.url),
       data: {
         consent_version: POLICY_VERSION,
         consent_accepted_at: new Date().toISOString(),

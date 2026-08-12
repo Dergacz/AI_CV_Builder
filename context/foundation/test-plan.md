@@ -76,6 +76,7 @@ already happened once; `src/tests/no-tests-under-pages.test.ts` now fails if it 
 | R-13 | An unauthenticated visitor reaches `/dashboard` or `/cv/*`                       | Access-control failure — protected content served without a session                            | **E2E** — `e2e/auth-redirect.spec.ts`. Fully real; the guard lives in `src/middleware.ts` + cookie handling and is only observable through the routing layer                                                                                                                               |
 | R-14 | A user-scoped table stops cascading from `auth.users`                            | Account deletion silently orphans personal data — erasure is claimed but not performed         | **pgTAP** — `supabase/tests/database/account_deletion_cascade.test.sql` (`npm run test:db`). Behavioral proof for the four known tables plus a foreign-key inventory, so a NEW table without a cascade fails too                                                                           |
 | R-15 | The deletion confirmation gate lets through someone who is not the account owner | Irreversible loss of everything a user has, one accidental click away                          | **E2E** — `e2e/account-deletion.spec.ts` (never confirms; see the spec header). Server-side gate: `src/lib/account-deletion-confirmation.test.ts` + the route contract tests in `src/tests/api/`                                                                                           |
+| R-16 | The emailed confirmation link points somewhere the user cannot reach             | Every new registration dead-ends at verification — the funnel step S-01 exists to measure      | Routes: `src/tests/api/auth-signup.test.ts`, `auth-resend.test.ts` (both senders pass a request-derived `emailRedirectTo`), `auth-confirm.test.ts` (all four landing branches). Destination correctness is **manual only** — [M-5](#manual-verification); see below                       |
 
 ### Browser-level (E2E) risks
 
@@ -93,6 +94,18 @@ R-14 is the only risk proven at the database layer. It belongs there because the
 schema: no application code re-checks the cascade, so no unit or browser test can observe its loss.
 `npm run test:db` needs a running local stack and is not gated by CI (`ci.yml` has no Postgres),
 exactly like the E2E suite.
+
+### Configuration-level risks
+
+R-16 is the only risk whose decisive check is a human clicking a link. The seam that failed lives in
+the hosted Supabase dashboard (`Site URL` + the redirect allow-list), which no in-repo layer can read
+— and GoTrue answers a non-allow-listed `redirect_to` by *silently* substituting `Site URL`, so the
+broken state is indistinguishable from the working one at every level the test suite can see. The
+route tests lock what the code controls (both senders pass a request-derived `emailRedirectTo`, and
+each landing branch routes to the right message); M-5 covers the rest. An E2E spec was considered and
+rejected: local `enable_confirmations = false` keeps E2E auth working without an inbox (README), so
+there is no confirmation email to click and a synthesized link would prove nothing about the hosted
+allow-list.
 
 ### Coverage the register deliberately does not claim
 
@@ -122,6 +135,18 @@ the CV still on screen and no raw error text leaked.
 **M-4 — Interface localization (R-01, R-08).** Switch UI locale on landing, auth, dashboard,
 questionnaire, and review screens; confirm `<html lang>` follows, the choice survives a refresh, and
 the CV output language is unaffected.
+
+**M-5 — Confirmation-link destination (R-16).** Run against **production**, after the hosted `Site
+URL` and redirect allow-list are set (README, "Email confirmation in production") and the build is
+deployed — in that order, since an allow-list entry added later cannot repair links already sent.
+With a fresh real address: sign up, and confirm the emailed link points at
+`https://<prod-host>/auth/confirm` — no `localhost`, no bare landing-page URL. Click it in the signup
+browser: it must land on `/dashboard`, already signed in. Sign up again and open that email on a
+phone: it must land on `/auth/signin` showing the "email confirmed" notice, and signing in there must
+work. Then check the recovery path — Resend from `/auth/confirm-email` produces a link with the same
+destination — and the expiry path: re-clicking a consumed link shows the `email_not_confirmed`
+message rather than a raw error. Finally confirm PostHog recorded funnel step 3 for the completed
+signups.
 
 ## Gates
 
