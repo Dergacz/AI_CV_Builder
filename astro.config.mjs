@@ -29,6 +29,16 @@ export default defineConfig({
       POSTHOG_HOST: envField.string({ context: "server", access: "public", optional: true }),
       OBSERVABILITY_ID_SALT: envField.string({ context: "server", access: "secret", optional: true }),
       OBSERVABILITY_SMOKE_TOKEN: envField.string({ context: "server", access: "secret", optional: true }),
+      // Google sign-in. The app reads this variable's PRESENCE, never its value — it is the only
+      // signal available that Supabase's Google provider is configured, since the credentials
+      // themselves live in supabase/config.toml (local) and the hosted dashboard (prod). Unset ⇒
+      // the auth pages omit the Google button and the start endpoint refuses. Production must set
+      // it as a Worker var IN ADDITION to the hosted dashboard; see README "Google sign-in".
+      SUPABASE_AUTH_EXTERNAL_GOOGLE_CLIENT_ID: envField.string({
+        context: "server",
+        access: "secret",
+        optional: true,
+      }),
       // S-06 abuse guards. Defaults live in src/lib/services/generation-quota.ts, not here, so
       // an unset var and an unparseable one behave identically.
       GENERATION_DAILY_LIMIT: envField.number({ context: "server", access: "public", optional: true }),
