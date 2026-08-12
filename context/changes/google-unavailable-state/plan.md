@@ -331,30 +331,30 @@ No data migration, no schema change. Rollback is a plain revert; nothing persist
 
 #### Automated
 
-- [x] 2.1 Type checking passes: `npx astro sync && npx astro check`
-- [x] 2.2 Linting passes: `npm run lint`
-- [x] 2.3 Production build succeeds: `npm run build`
+- [x] 2.1 Type checking passes: `npx astro sync && npx astro check` — fb08c54
+- [x] 2.2 Linting passes: `npm run lint` — fb08c54
+- [x] 2.3 Production build succeeds: `npm run build` — fb08c54
 
 #### Manual
 
-- [x] 2.4 Unconfigured: no Google button, no divider, no leftover gap on either auth page
-- [x] 2.5 Configured: both pages render exactly as before
-- [x] 2.6 Both checks repeated in Polish
+- [x] 2.4 Unconfigured: no Google button, no divider, no leftover gap on either auth page — fb08c54
+- [x] 2.5 Configured: both pages render exactly as before — fb08c54
+- [x] 2.6 Both checks repeated in Polish — fb08c54
 
 ### Phase 3: Server gate and the `google_unavailable` error code
 
 #### Automated
 
-- [ ] 3.1 Type checking passes: `npx astro sync && npx astro check`
-- [ ] 3.2 Linting passes: `npm run lint`
-- [ ] 3.3 Locale parity test passes: `npm run test -- src/lib/i18n/messages.test.ts`
-- [ ] 3.4 Full unit suite passes: `npm run test`
+- [x] 3.1 Type checking passes: `npx astro sync && npx astro check`
+- [x] 3.2 Linting passes: `npm run lint`
+- [x] 3.3 Locale parity test passes: `npm run test -- src/lib/i18n/messages.test.ts`
+- [x] 3.4 Full unit suite passes: `npm run test`
 
 #### Manual
 
-- [ ] 3.5 Direct POST to the start endpoint redirects to `/auth/signin?error=google_unavailable`
-- [ ] 3.6 The banner reads correctly in all three locales and does not advise retrying Google
-- [ ] 3.7 Unconsented signup still yields `consent_required`; neither refusal sets a consent cookie
+- [x] 3.5 Direct POST to the start endpoint redirects to `/auth/signin?error=google_unavailable`
+- [x] 3.6 The banner reads correctly in all three locales and does not advise retrying Google
+- [x] 3.7 Unconsented signup still yields `consent_required`; neither refusal sets a consent cookie
 
 ### Phase 4: Coverage, risk register, and documentation
 

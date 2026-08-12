@@ -1,12 +1,17 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const mocks = vi.hoisted(() => ({ signInWithOAuth: vi.fn(), createClient: vi.fn() }));
-const mockEnv = vi.hoisted(() => ({ salt: "test-salt" }));
+const mockEnv = vi.hoisted(() => ({ salt: "test-salt", googleClientId: "test-google-client-id" }));
 
 vi.mock("@/lib/supabase", () => ({ createClient: mocks.createClient }));
 vi.mock("astro:env/server", () => ({
   get OBSERVABILITY_ID_SALT() {
     return mockEnv.salt;
+  },
+  // Getter rather than a fixed value: the route's availability gate reads this per call, so a test
+  // can blank it mid-suite to exercise the unconfigured branch.
+  get SUPABASE_AUTH_EXTERNAL_GOOGLE_CLIENT_ID() {
+    return mockEnv.googleClientId;
   },
 }));
 
@@ -41,6 +46,7 @@ function makeContext(form: Record<string, string>) {
 
 beforeEach(() => {
   mockEnv.salt = "test-salt";
+  mockEnv.googleClientId = "test-google-client-id";
   mocks.signInWithOAuth.mockReset();
   mocks.createClient.mockReturnValue({ auth: { signInWithOAuth: mocks.signInWithOAuth } });
   mocks.signInWithOAuth.mockResolvedValue({ data: { url: GOOGLE_URL }, error: null });
