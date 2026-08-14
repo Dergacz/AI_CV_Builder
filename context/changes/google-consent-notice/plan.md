@@ -408,9 +408,9 @@ Phase 4 records this in the README.
 
 #### Automated
 
-- [x] 2.1 Unit and route tests pass: `npm run test`
-- [x] 2.2 Type checking passes: `npx astro check`
-- [x] 2.3 Linting passes: `npm run lint`
+- [x] 2.1 Unit and route tests pass: `npm run test` — ad95309
+- [x] 2.2 Type checking passes: `npx astro check` — ad95309
+- [x] 2.3 Linting passes: `npm run lint` — ad95309
 
 #### Manual
 
@@ -421,10 +421,10 @@ Phase 4 records this in the README.
 
 #### Automated
 
-- [ ] 3.1 Unit tests pass: `npm run test`
-- [ ] 3.2 Type checking passes: `npx astro check`
-- [ ] 3.3 Linting passes: `npm run lint`
-- [ ] 3.4 Production build succeeds: `npm run build`
+- [x] 3.1 Unit tests pass: `npm run test`
+- [x] 3.2 Type checking passes: `npx astro check`
+- [x] 3.3 Linting passes: `npm run lint`
+- [x] 3.4 Production build succeeds: `npm run build`
 
 #### Manual
 
