@@ -1,9 +1,9 @@
 {
   "package": "@przeprogramowani/10x-cli",
-  "version": "1.8.0",
+  "version": "1.13.0",
   "manifestVersion": 3,
-  "lastApplied": "2026-06-10T10:04:15.702Z",
-  "lessonId": "m3l4",
+  "lastApplied": "2026-08-14T05:28:30.454Z",
+  "lessonId": "m5l1",
   "course": "10xdevs3",
   "tool": "claude-code",
   "files": {
@@ -238,6 +238,22 @@
           "references/e2e-quality-rules.md": "d161cf3659ae5321b7f597987664e4017aecc7e15f5caa7a15a1eaf73bf4162b",
           "references/seed-test-pattern.md": "90fa8778a557d0c88320e839c6a8879735b3390b68ed89b3487258f2562b2f80",
           "SKILL.md": "994b511efafdcbe7526bb32a9908b330bd78326c42c5e41896983e497c61cd54"
+        }
+      },
+      "10x-opportunity-map": {
+        "files": [
+          "SKILL.md"
+        ],
+        "contentHashes": {
+          "SKILL.md": "df8ddeb8377253b41b2de7812dedcf3fce8ddf3489e4ad52a7cc20e8b72f939f"
+        }
+      },
+      "10x-mom-test": {
+        "files": [
+          "SKILL.md"
+        ],
+        "contentHashes": {
+          "SKILL.md": "6b992b77c723413a9b805280cf83da0ca5b848742dca49129d34f59e241149e8"
         }
       }
     },
@@ -1440,6 +1456,23 @@
         "m1l5-4-store-plan.md",
         "m3l2-ad-hoc-testing.md"
       ],
+      "configs": []
+    },
+    "m5l1": {
+      "appliedAt": "2026-08-14T05:28:30.453Z",
+      "skills": {
+        "10x-opportunity-map": {
+          "files": [
+            "SKILL.md"
+          ]
+        },
+        "10x-mom-test": {
+          "files": [
+            "SKILL.md"
+          ]
+        }
+      },
+      "prompts": [],
       "configs": []
     }
   }
