@@ -1,13 +1,12 @@
-import React, { useState } from "react";
-import { ConsentCheckbox } from "@/components/auth/ConsentCheckbox";
 import { Button } from "@/components/ui/button";
 import { getMessages } from "@/lib/i18n/messages";
 import type { UiLocale } from "@/lib/i18n/locales";
 
 interface Props {
   locale: UiLocale;
-  intent: "signin" | "signup";
 }
+
+const CONSENT_NOTICE_ID = "google-consent-notice";
 
 /** The Google "G" mark — lucide-react carries no brand logos, so it's inlined. */
 function GoogleIcon() {
@@ -31,52 +30,42 @@ function GoogleIcon() {
 }
 
 /**
- * "Continue with Google" island used by both auth pages. On signup it carries its own consent
- * checkbox and blocks submit until it's checked — mirroring SignInForm's preventDefault gate —
- * so the OAuth redirect never starts without consent. The form POSTs to the start endpoint,
- * which sets the signed consent cookie before handing off to Google.
+ * "Continue with Google" island used by both auth pages, identically. Consent is expressed by the
+ * click itself: the notice under the button states what activating it commits to, and the start
+ * endpoint records that consent in a signed cookie for `/auth/callback` to stamp onto a brand-new
+ * account. `aria-describedby` ties the notice to the button so a screen reader announces the terms
+ * before the control is activated, not after.
+ *
+ * There is deliberately no checkbox and no `intent` field — the endpoint treats every start the
+ * same, because a click from the sign-in page creates an account just as readily as one from the
+ * sign-up page.
  */
-export default function GoogleSignInButton({ locale, intent }: Props) {
-  const messages = getMessages(locale);
-  const copy = messages.auth.google;
-  const signupCopy = messages.auth.form.signup;
-
-  const [consent, setConsent] = useState(false);
-  const [consentError, setConsentError] = useState<string | undefined>(undefined);
-
-  function handleSubmit(e: React.SubmitEvent<HTMLFormElement>) {
-    if (intent === "signup" && !consent) {
-      e.preventDefault();
-      setConsentError(signupCopy.validation.consentRequired);
-    }
-  }
+export default function GoogleSignInButton({ locale }: Props) {
+  const copy = getMessages(locale).auth.google;
 
   return (
-    <form method="POST" action="/api/auth/oauth/google" className="space-y-4" onSubmit={handleSubmit} noValidate>
-      <input type="hidden" name="intent" value={intent} />
-
-      {intent === "signup" ? (
-        <ConsentCheckbox
-          id="google-consent"
-          name="consent"
-          checked={consent}
-          onChange={(value) => {
-            setConsent(value);
-            if (value) setConsentError(undefined);
-          }}
-          error={consentError}
-          copy={signupCopy.consent}
-        />
-      ) : null}
-
+    <form method="POST" action="/api/auth/oauth/google" className="space-y-3">
       <Button
         type="submit"
         variant="outline"
+        aria-describedby={CONSENT_NOTICE_ID}
         className="w-full rounded-lg border-slate-300 bg-white px-4 py-2 font-medium text-slate-700 hover:bg-slate-50"
       >
         <GoogleIcon />
         {copy.button}
       </Button>
+
+      <p id={CONSENT_NOTICE_ID} className="text-center text-xs leading-5 text-slate-500">
+        {copy.consent.prefix}
+        <a href="/terms" className="font-medium text-emerald-700 hover:underline">
+          {copy.consent.termsLabel}
+        </a>
+        {copy.consent.conjunction}
+        <a href="/privacy" className="font-medium text-emerald-700 hover:underline">
+          {copy.consent.privacyLabel}
+        </a>
+        {copy.consent.suffix}
+      </p>
     </form>
   );
 }

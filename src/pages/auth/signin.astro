@@ -61,7 +61,7 @@ const googleAvailable = isGoogleAuthConfigured();
                 {messages.auth.google.divider}
                 <span class="h-px flex-1 bg-slate-200" />
               </div>
-              <GoogleSignInButton locale={locale} intent="signin" client:only="react" />
+              <GoogleSignInButton locale={locale} client:only="react" />
             </>
           )
         }

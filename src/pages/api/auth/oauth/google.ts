@@ -7,32 +7,28 @@ import { createClient } from "@/lib/supabase";
 export const prerender = false;
 
 /**
- * Starts the Google OAuth redirect. The signup-page button carries `intent=signup` plus the
- * consent checkbox; the signin-page button carries `intent=signin` with no consent affordance.
- * For a consented signup we persist consent in a short-lived signed cookie (read later by
- * `/auth/callback` to stamp a brand-new account) before handing off to Google. `signInWithOAuth`
- * runs server-side here (PKCE + SSR cookies), returning the provider URL we redirect the browser to.
+ * Starts the Google OAuth redirect. Both auth pages render the same button under a notice reading
+ * "By continuing, you agree to the Terms of Service and Privacy Policy" — the click itself is the
+ * act of consent, so this route takes no consent field and does not distinguish signin from signup.
+ * Consent is persisted in a short-lived signed cookie on every start, read later by
+ * `/auth/callback` to stamp a brand-new account. `signInWithOAuth` runs server-side here
+ * (PKCE + SSR cookies), returning the provider URL we redirect the browser to.
+ *
+ * Setting the cookie unconditionally is what makes the callback's fail-closed branch a genuine
+ * safety net: previously it was set only on the signup path, so a first-time visitor clicking the
+ * button on `/auth/signin` completed the whole round-trip and was then signed out.
  *
  * The availability pre-check below is NOT redundant with the `error || !data.url` branch further
  * down: `signInWithOAuth` only *builds* an authorize URL — no network call, no provider validation
  * — so it always succeeds even when the provider is disabled. Without the pre-check the browser is
  * handed to Supabase's `/authorize`, which answers "Unsupported provider" outside our app entirely.
  * The route stays reachable by direct POST or stale HTML no matter what the auth pages rendered,
- * which is why hiding the button (phase 2) does not make this redundant either.
+ * which is why hiding the button does not make this redundant either.
  */
 export const POST: APIRoute = async (context) => {
-  const form = await context.request.formData();
-  const intent = form.get("intent") === "signup" ? "signup" : "signin";
-
-  // Consent gate for new-account creation: an unchecked checkbox sends no field, so absent/falsy
-  // means not-consented. Reject before touching Supabase or setting any cookie.
-  if (intent === "signup" && !form.get("consent")) {
-    return context.redirect("/auth/signup?error=consent_required");
-  }
-
-  // Ordering is load-bearing: after the consent gate (which is the more specific complaint about
-  // the same request) and before setConsentCookie, so a refused signup never leaves a signed
-  // consent cookie behind with no OAuth round-trip left to consume or clear it.
+  // Ordering is load-bearing: the availability gate runs before setConsentCookie, so a refused
+  // start never leaves a signed consent cookie behind with no OAuth round-trip left to consume or
+  // clear it.
   if (!isGoogleAuthConfigured()) {
     return context.redirect("/auth/signin?error=google_unavailable");
   }
@@ -42,9 +38,7 @@ export const POST: APIRoute = async (context) => {
     return context.redirect("/auth/signin?error=auth_unavailable");
   }
 
-  if (intent === "signup") {
-    await setConsentCookie(context.cookies);
-  }
+  await setConsentCookie(context.cookies);
 
   const redirectTo = new URL("/auth/callback", context.url).toString();
   const { data, error } = await supabase.auth.signInWithOAuth({

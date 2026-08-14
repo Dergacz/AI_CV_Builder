@@ -3,11 +3,12 @@ import { POLICY_VERSION } from "@/lib/legal/policy";
 
 /**
  * Short-lived, HMAC-signed cookie that carries a user's Terms/Privacy consent across the Google
- * OAuth redirect. The signup-page Google button sets it before redirecting to Google; the
- * `/auth/callback` route reads it to stamp consent on a brand-new account, then clears it.
+ * OAuth redirect. The OAuth start endpoint sets it on every Google click — the button's notice
+ * makes the click itself the act of consent — and the `/auth/callback` route reads it to stamp
+ * consent on a brand-new account, then clears it.
  *
  * It is server-set + httpOnly + signed so the callback can trust that the consent decision
- * originated from our own consent-gated form and was not forged. The signing key is reused from
+ * originated from our own consent surface and was not forged. The signing key is reused from
  * the observability HMAC salt (`OBSERVABILITY_ID_SALT`) — an already-configured server secret —
  * rather than introducing a new required secret whose omission in prod would silently break every
  * Google signup. If the secret is absent the helper fails closed: it writes nothing and reads null.
