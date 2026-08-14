@@ -58,13 +58,16 @@ generating a new E2E test here.
 ## Google OAuth ("Continue with Google") — `e2e/oauth-google.spec.ts`
 
 - **Locators.** Default-locale (`en`) accessible name is `Continue with Google`:
-  `getByRole('button', { name: /Google/ })`. On `/auth/signup` there are **two**
-  consent checkboxes with identical name/label (SignUpForm's own + the Google
-  button's), so role/label are ambiguous — scope to the Google form by its action
+  `getByRole('button', { name: /Google/ })`. Scope to the Google form by its action
   contract, `page.locator('form[action="/api/auth/oauth/google"]')`, then use role
-  locators within it (`getByRole('checkbox')`, the Google button). The signup
-  consent gate is client-side: clicking without consent surfaces the validation
-  error and does **not** navigate.
+  locators within it — `/auth/signup` still renders SignUpForm's own consent
+  checkbox, and only the action-scoped locator can tell "no checkbox in the Google
+  form" apart from "no checkbox on the page".
+- **Consent is the click.** The Google button has no checkbox on either page; a
+  notice beneath it reads `By continuing, you agree to the Terms of Service and
+Privacy Policy` (links to `/terms` and `/privacy`), and the first click starts
+  OAuth. The start endpoint sets the signed consent cookie on every start — there
+  is no signup/signin distinction and no client-side gate to satisfy.
 - **Mock seam (the provider hop).** The button POSTs to `/api/auth/oauth/google`,
   which runs `signInWithOAuth` **server-side** and 303-redirects the browser to
   Supabase's `/auth/v1/authorize` (which would then go to real Google). Stop the

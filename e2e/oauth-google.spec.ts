@@ -1,13 +1,14 @@
 import { test, expect } from "@playwright/test";
 
 /**
- * Phase 5 — "Continue with Google" buttons render and clicking initiates the OAuth redirect.
+ * "Continue with Google" renders on both auth pages, states what the click consents to, and hands
+ * off to the OAuth provider on the first click.
  *
- * Risk (plan.md Phase 5 / desired end state): a regression silently drops the Google button
- * from an auth page, or the button stops handing off to the provider, or the signup consent
- * gate stops blocking submit — none of which a unit test sees, because they live only in the
- * rendered island (client-side consent validation) and the UI → start endpoint → 303 → provider
- * authorize boundary.
+ * Risk (R-17, R-18): a regression silently drops the Google button from an auth page, or the button
+ * stops handing off to the provider, or the consent notice disappears — leaving a click that
+ * creates an account with nothing telling the user what they agreed to. None of that is visible to
+ * a unit test: it lives in the rendered island (mounted `client:only`, so absent from SSR output)
+ * and at the UI → start endpoint → 303 → provider authorize boundary.
  *
  * Real vs mocked: the page, the React island, and the real POST to /api/auth/oauth/google (which
  * runs signInWithOAuth server-side) all stay REAL — that's the boundary under test. We mock only
@@ -15,13 +16,12 @@ import { test, expect } from "@playwright/test";
  * the request the browser makes there is the proof the redirect was initiated. No session or
  * account is created (we stop before the provider), so there is nothing to clean up.
  *
- * Locators: the signup page renders TWO consent checkboxes with identical name/label (SignUpForm's
- * own + the Google button's), so role/label are ambiguous there — we scope to the Google form by
- * its action contract (the POST target), then use role locators within it.
+ * Locators: the Google form is scoped by its action contract (the POST target) rather than by role,
+ * so the signup page's own email-form consent checkbox can never be mistaken for something inside
+ * it — which is exactly what the "no checkbox" assertion below needs to be able to distinguish.
  *
- * Deliberate-break check (VERIFY): in GoogleSignInButton.tsx drop the `e.preventDefault()` in
- * handleSubmit → the signup "blocked until consent" assertion must go red (the form submits without
- * consent) → revert. Never commit the break.
+ * Deliberate-break check (VERIFY): in GoogleSignInButton.tsx delete the `<p>` notice (or its
+ * `/terms` anchor) → the signup notice assertion must go red → revert. Never commit the break.
  *
  * Runs anonymous (these are pre-auth pages) — opt out of the shared storageState.
  */
@@ -41,9 +41,12 @@ test("Google button on sign in hands off to the OAuth provider", async ({ page }
 
   await page.goto("/auth/signin");
 
-  // The button is present on the sign-in card (bare — no consent affordance).
   const googleButton = page.getByRole("button", { name: /Google/ });
   await expect(googleButton).toBeVisible();
+
+  // The notice appears here too: a click from the sign-in page creates an account just as readily,
+  // so this is the page where consent used to be silently skipped.
+  await expect(page.locator(GOOGLE_FORM).getByText(/By continuing, you agree to the/i)).toBeVisible();
 
   // Clicking initiates the real start endpoint, which redirects the browser toward the provider.
   const [authorizeRequest] = await Promise.all([
@@ -57,7 +60,7 @@ test("Google button on sign in hands off to the OAuth provider", async ({ page }
   expect(authorizeUrl.searchParams.get("redirect_to")).toContain("/auth/callback");
 });
 
-test("Google button on sign up is blocked until consent, then hands off to the provider", async ({ page }) => {
+test("Google button on sign up states the consent inline and hands off on the first click", async ({ page }) => {
   await stubProviderHandoff(page);
 
   await page.goto("/auth/signup");
@@ -66,13 +69,16 @@ test("Google button on sign up is blocked until consent, then hands off to the p
   const googleButton = googleForm.getByRole("button", { name: /Google/ });
   await expect(googleButton).toBeVisible();
 
-  // Clicking without consent must NOT start OAuth: the client gate blocks submit and surfaces an error.
-  await googleButton.click();
-  await expect(googleForm.getByText(/accept the Terms of Service and Privacy Policy/i)).toBeVisible();
-  await expect(page).toHaveURL(/\/auth\/signup/);
+  // No checkbox inside the Google form — the click itself is the consent. The signup page still has
+  // one for its email form, which is why this is scoped to the Google form rather than the page.
+  await expect(googleForm.getByRole("checkbox")).toHaveCount(0);
 
-  // Once consent is given, the same click initiates the provider handoff.
-  await googleForm.getByRole("checkbox").check();
+  // The user must be able to read what the click commits them to, and reach both documents.
+  await expect(googleForm.getByText(/By continuing, you agree to the/i)).toBeVisible();
+  await expect(googleForm.getByRole("link", { name: "Terms of Service" })).toHaveAttribute("href", "/terms");
+  await expect(googleForm.getByRole("link", { name: "Privacy Policy" })).toHaveAttribute("href", "/privacy");
+
+  // The FIRST click starts OAuth — no intermediate gate to satisfy.
   const [authorizeRequest] = await Promise.all([
     page.waitForRequest((r) => r.url().includes("/auth/v1/authorize")),
     googleButton.click(),
