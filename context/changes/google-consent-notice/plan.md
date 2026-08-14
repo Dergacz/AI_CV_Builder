@@ -414,8 +414,8 @@ Phase 4 records this in the README.
 
 #### Manual
 
-- [ ] 2.4 A never-seen Google account clicking from `/auth/signin` ends on `/dashboard`
-- [ ] 2.5 The resulting account carries `consent_version` in its `user_metadata`
+- [x] 2.4 A never-seen Google account clicking from `/auth/signin` ends on `/dashboard` — ad95309
+- [x] 2.5 The resulting account carries `consent_version` in its `user_metadata` — ad95309
 
 ### Phase 3: Google button — checkbox to notice
 
@@ -428,21 +428,21 @@ Phase 4 records this in the README.
 
 #### Manual
 
-- [ ] 3.5 Both auth pages show the button with the notice and no checkbox in the Google form
-- [ ] 3.6 The notice's links open `/terms` and `/privacy`
-- [ ] 3.7 `/auth/signup` shows exactly one checkbox overall — the email form's
-- [ ] 3.8 Polish and Russian render the notice translated with links intact
+- [x] 3.5 Both auth pages show the button with the notice and no checkbox in the Google form — 6fd7c01
+- [x] 3.6 The notice's links open `/terms` and `/privacy` — 6fd7c01
+- [x] 3.7 `/auth/signup` shows exactly one checkbox overall — the email form's — 6fd7c01
+- [x] 3.8 Polish and Russian render the notice translated with links intact — 6fd7c01
 
 ### Phase 4: E2E, risk register, docs
 
 #### Automated
 
-- [x] 4.1 Unit tests pass: `npm run test`
-- [x] 4.2 E2E suite passes with local Supabase up: `npm run test:e2e`
-- [x] 4.3 Type checking passes: `npx astro check`
-- [x] 4.4 Linting passes: `npm run lint`
-- [x] 4.5 Formatting is clean on touched files: `npx prettier --check <touched files>`
+- [x] 4.1 Unit tests pass: `npm run test` — 6f1cb97
+- [x] 4.2 E2E suite passes with local Supabase up: `npm run test:e2e` — 6f1cb97
+- [x] 4.3 Type checking passes: `npx astro check` — 6f1cb97
+- [x] 4.4 Linting passes: `npm run lint` — 6f1cb97
+- [x] 4.5 Formatting is clean on touched files: `npx prettier --check <touched files>` — 6f1cb97
 
 #### Manual
 
-- [x] 4.6 The rewritten deliberate-break check goes red when applied, then green once reverted
+- [x] 4.6 The rewritten deliberate-break check goes red when applied, then green once reverted — 6f1cb97

@@ -1,9 +1,9 @@
 ---
 change_id: google-consent-notice
 title: Replace the Google-button consent checkbox with an inline consent notice
-status: implementing
+status: implemented
 created: 2026-08-12
-updated: 2026-08-12
+updated: 2026-08-14
 archived_at: null
 ---
 
