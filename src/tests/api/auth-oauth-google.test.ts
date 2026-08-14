@@ -19,7 +19,10 @@ import { POST } from "@/pages/api/auth/oauth/google";
 
 const GOOGLE_URL = "https://accounts.google.com/o/oauth2/auth?client_id=x";
 
-function makeContext(form: Record<string, string>) {
+// The route reads no form fields since the consent checkbox became a notice — clicking the button
+// IS the consent — so every start posts an empty body. The parameter stays so a test can prove that
+// leftover fields from stale HTML change nothing.
+function makeContext(form: Record<string, string> = {}) {
   const store = new Map<string, string>();
   const cookies = {
     get: (name: string) => {
@@ -53,18 +56,8 @@ beforeEach(() => {
 });
 
 describe("POST /api/auth/oauth/google", () => {
-  it("rejects a signup-intent start without consent and never calls Supabase", async () => {
-    const { context, cookies } = makeContext({ intent: "signup" });
-
-    const response = await POST(context as never);
-
-    expect(response.headers.get("Location")).toBe("/auth/signup?error=consent_required");
-    expect(mocks.signInWithOAuth).not.toHaveBeenCalled();
-    expect(cookies.set).not.toHaveBeenCalledWith("oauth_consent", expect.anything(), expect.anything());
-  });
-
-  it("sets the consent cookie and redirects to the provider URL on a consented signup", async () => {
-    const { context, cookies } = makeContext({ intent: "signup", consent: "on" });
+  it("sets the consent cookie and redirects to the provider URL on a start with no fields", async () => {
+    const { context, cookies } = makeContext();
 
     const response = await POST(context as never);
 
@@ -72,12 +65,18 @@ describe("POST /api/auth/oauth/google", () => {
     expect(response.headers.get("Location")).toBe(GOOGLE_URL);
   });
 
-  it("starts the signin-intent flow without setting a consent cookie", async () => {
+  /**
+   * R-18. The cookie is what lets `/auth/callback` stamp `consent_version` onto a brand-new account;
+   * without it the callback fails closed and signs the user out. It must therefore be set on EVERY
+   * start, not just one page's — a start from the sign-in page creates an account just as readily,
+   * since Supabase provisions one for any Google identity it has not seen before.
+   */
+  it("sets the consent cookie regardless of which page the click came from", async () => {
     const { context, cookies } = makeContext({ intent: "signin" });
 
     const response = await POST(context as never);
 
-    expect(cookies.set).not.toHaveBeenCalledWith("oauth_consent", expect.anything(), expect.anything());
+    expect(cookies.set).toHaveBeenCalledWith("oauth_consent", expect.any(String), expect.anything());
     expect(response.headers.get("Location")).toBe(GOOGLE_URL);
   });
 
@@ -92,8 +91,8 @@ describe("POST /api/auth/oauth/google", () => {
       mockEnv.googleClientId = "";
     });
 
-    it("refuses a signin-intent start and never calls Supabase", async () => {
-      const { context } = makeContext({ intent: "signin" });
+    it("refuses the start and never calls Supabase", async () => {
+      const { context } = makeContext();
 
       const response = await POST(context as never);
 
@@ -101,30 +100,21 @@ describe("POST /api/auth/oauth/google", () => {
       expect(mocks.signInWithOAuth).not.toHaveBeenCalled();
     });
 
-    it("refuses a consented signup WITHOUT leaving a consent cookie behind", async () => {
-      const { context, cookies } = makeContext({ intent: "signup", consent: "on" });
+    it("refuses WITHOUT leaving a consent cookie behind", async () => {
+      const { context, cookies } = makeContext();
 
       const response = await POST(context as never);
 
       expect(response.headers.get("Location")).toBe("/auth/signin?error=google_unavailable");
-      // The ordering guarantee: the gate runs before setConsentCookie, so a refused signup does not
+      // The ordering guarantee: the gate runs before setConsentCookie, so a refused start does not
       // strand a signed cookie in the browser with no OAuth round-trip left to consume or clear it.
       expect(cookies.set).not.toHaveBeenCalledWith("oauth_consent", expect.anything(), expect.anything());
       expect(mocks.signInWithOAuth).not.toHaveBeenCalled();
     });
 
-    it("still reports the missing consent first — it is the more specific complaint", async () => {
-      const { context, cookies } = makeContext({ intent: "signup" });
-
-      const response = await POST(context as never);
-
-      expect(response.headers.get("Location")).toBe("/auth/signup?error=consent_required");
-      expect(cookies.set).not.toHaveBeenCalledWith("oauth_consent", expect.anything(), expect.anything());
-    });
-
     it.each(["   ", "\t"])("treats a whitespace-only client id as unconfigured (%j)", async (value) => {
       mockEnv.googleClientId = value;
-      const { context } = makeContext({ intent: "signin" });
+      const { context } = makeContext();
 
       const response = await POST(context as never);
 

@@ -400,17 +400,17 @@ Phase 4 records this in the README.
 
 #### Automated
 
-- [x] 1.1 Type checking passes: `npx astro check`
-- [x] 1.2 Locale parity holds (R-08): `npm run test`
-- [x] 1.3 Linting passes: `npm run lint`
+- [x] 1.1 Type checking passes: `npx astro check` — 72c423f
+- [x] 1.2 Locale parity holds (R-08): `npm run test` — 72c423f
+- [x] 1.3 Linting passes: `npm run lint` — 72c423f
 
 ### Phase 2: Start endpoint — drop the consent gate, always set the cookie
 
 #### Automated
 
-- [ ] 2.1 Unit and route tests pass: `npm run test`
-- [ ] 2.2 Type checking passes: `npx astro check`
-- [ ] 2.3 Linting passes: `npm run lint`
+- [x] 2.1 Unit and route tests pass: `npm run test`
+- [x] 2.2 Type checking passes: `npx astro check`
+- [x] 2.3 Linting passes: `npm run lint`
 
 #### Manual
 
