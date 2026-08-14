@@ -421,10 +421,10 @@ Phase 4 records this in the README.
 
 #### Automated
 
-- [x] 3.1 Unit tests pass: `npm run test`
-- [x] 3.2 Type checking passes: `npx astro check`
-- [x] 3.3 Linting passes: `npm run lint`
-- [x] 3.4 Production build succeeds: `npm run build`
+- [x] 3.1 Unit tests pass: `npm run test` — 6fd7c01
+- [x] 3.2 Type checking passes: `npx astro check` — 6fd7c01
+- [x] 3.3 Linting passes: `npm run lint` — 6fd7c01
+- [x] 3.4 Production build succeeds: `npm run build` — 6fd7c01
 
 #### Manual
 
@@ -437,12 +437,12 @@ Phase 4 records this in the README.
 
 #### Automated
 
-- [ ] 4.1 Unit tests pass: `npm run test`
-- [ ] 4.2 E2E suite passes with local Supabase up: `npm run test:e2e`
-- [ ] 4.3 Type checking passes: `npx astro check`
-- [ ] 4.4 Linting passes: `npm run lint`
-- [ ] 4.5 Formatting is clean on touched files: `npx prettier --check <touched files>`
+- [x] 4.1 Unit tests pass: `npm run test`
+- [x] 4.2 E2E suite passes with local Supabase up: `npm run test:e2e`
+- [x] 4.3 Type checking passes: `npx astro check`
+- [x] 4.4 Linting passes: `npm run lint`
+- [x] 4.5 Formatting is clean on touched files: `npx prettier --check <touched files>`
 
 #### Manual
 
-- [ ] 4.6 The rewritten deliberate-break check goes red when applied, then green once reverted
+- [x] 4.6 The rewritten deliberate-break check goes red when applied, then green once reverted

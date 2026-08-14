@@ -217,6 +217,32 @@ also fails if a _new_ table starts referencing `auth.users` without `on delete c
 
 In production, set the same two values in the hosted Supabase dashboard (**Authentication → Providers → Google**) rather than in env files.
 
+### How consent is captured on the Google path
+
+The Google button carries no checkbox. A notice beneath it reads "By continuing, you agree to the
+Terms of Service and Privacy Policy" (both linked), so activating the button _is_ the act of
+acceptance — the same pattern the email form expresses with an explicit checkbox, which it keeps.
+
+Mechanically, `POST /api/auth/oauth/google` writes a short-lived (10 min), httpOnly, HMAC-signed
+cookie recording `POLICY_VERSION` and a timestamp before redirecting to the provider
+(`src/lib/auth/consent-cookie.ts`). `/auth/callback` reads it back and stamps `consent_version` +
+`consent_accepted_at` onto a brand-new account's metadata. An account that already carries
+`consent_version` — from a password signup or a prior Google signup, including one Supabase
+auto-linked by matching verified email — skips this entirely. A new account arriving with **no**
+cookie fails closed: the session is dropped and the user is sent back to signup.
+
+The cookie is set on **every** start, not only clicks from `/auth/signup`. This matters: Supabase
+provisions an account for any Google identity it has not seen before, so a click from the sign-in
+page creates one just as readily. Setting it conditionally is what previously made the fail-closed
+branch fire for ordinary first-time users instead of staying the safety net it is.
+
+> **Operational dependency.** The signing key is `OBSERVABILITY_ID_SALT` — reused deliberately
+> rather than adding a new required secret — and the helper **fails closed** when it is absent:
+> nothing is written, nothing reads back. Removing that secret from the Worker therefore breaks
+> every _new_ Google signup (each one dead-ends at `/auth/signup?error=consent_required`), while
+> existing accounts and the whole email path keep working. Observability going quiet and Google
+> signups dying share one cause; check `npx wrangler secret list` first.
+
 ### When Google is not configured
 
 Supabase's `signInWithOAuth` never contacts the provider — it only builds an authorize URL — so a
