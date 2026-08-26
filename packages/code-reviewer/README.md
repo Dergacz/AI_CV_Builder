@@ -52,7 +52,7 @@ await reviewCode(input, { model: provider("openai/gpt-5.6-terra"), temperature: 
 | Переменная            | Обязательна | По умолчанию              |
 | --------------------- | ----------- | ------------------------- |
 | `OPENROUTER_API_KEY`  | да          | —                         |
-| `OPENROUTER_MODEL`    | нет         | `anthropic/claude-sonnet-5` |
+| `OPENROUTER_MODEL`    | нет         | `google/gemini-3.7-flash` |
 | `OPENROUTER_APP_NAME` | нет         | `10x-code-reviewer`       |
 | `OPENROUTER_APP_URL`  | нет         | —                         |
 

@@ -7,7 +7,7 @@ import { z } from "zod";
 export const envSchema = z.object({
   OPENROUTER_API_KEY: z.string().min(1, "OPENROUTER_API_KEY is required"),
   /** Any model id from https://openrouter.ai/models */
-  OPENROUTER_MODEL: z.string().min(1).default("anthropic/claude-sonnet-5"),
+  OPENROUTER_MODEL: z.string().min(1).default("google/gemini-3.7-flash"),
   /** Shown on the OpenRouter dashboard (X-OpenRouter-Title header). */
   OPENROUTER_APP_NAME: z.string().min(1).default("10x-code-reviewer"),
   /** Shown on the OpenRouter dashboard (HTTP-Referer header). */
