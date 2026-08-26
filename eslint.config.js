@@ -108,7 +108,10 @@ const astroConfig = tseslint.config({
 export default tseslint.config(
   includeIgnoreFile(gitignorePath),
   // Supabase-generated DB types use their own formatting; exclude from lint/format.
-  { ignores: ["src/db/database.types.ts"] },
+  // packages/* are standalone TypeScript projects with their own tsconfig, dependencies
+  // and typecheck script. The root install never sees their node_modules, so linting or
+  // typechecking them from here fails in CI on unresolvable imports.
+  { ignores: ["src/db/database.types.ts", "packages/**"] },
   baseConfig,
   secretKeyFenceConfig,
   reactConfig,
