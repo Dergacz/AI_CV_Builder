@@ -1,0 +1,114 @@
+name: AI Code Review
+
+on:
+  pull_request:
+    branches: [master]
+    types: [opened, reopened, synchronize, labeled]
+  workflow_dispatch:
+    inputs:
+      base-ref:
+        description: "Branch to diff against."
+        required: false
+        default: master
+
+# Least privilege: read the code, write to the PR conversation. Nothing else.
+# Note this is why the action never creates labels — that needs `issues: write`.
+permissions:
+  contents: read
+  pull-requests: write
+
+concurrency:
+  # A rapid push sequence should pay for one review, not four.
+  group: ai-review-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  review:
+    name: Review
+    runs-on: ubuntu-latest
+    # `labeled` fires for every label on the PR, so ignore all but the retrigger one.
+    # Fork PRs get a read-only token and no secrets, so the review cannot run there.
+    if: >-
+      (github.event_name != 'pull_request' ||
+       github.event.action != 'labeled' ||
+       github.event.label.name == 'ai-cr:review') &&
+      (github.event_name != 'pull_request' ||
+       github.event.pull_request.head.repo.full_name == github.repository)
+    steps:
+      - name: Checkout
+        # fetch-depth: 0 — the default shallow clone has no base commit, so
+        # `git diff base...head` would produce nothing to review.
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+
+      - name: Set up Node
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+          cache-dependency-path: packages/code-reviewer/package-lock.json
+
+      - name: Collect diff
+        id: diff
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+          DISPATCH_BASE: ${{ inputs.base-ref }}
+        run: |
+          set -euo pipefail
+
+          if [ -n "${BASE_SHA:-}" ]; then
+            base="$BASE_SHA"; head="$HEAD_SHA"
+          else
+            git fetch --no-tags --quiet origin "$DISPATCH_BASE"
+            base=$(git rev-parse FETCH_HEAD); head=$(git rev-parse HEAD)
+          fi
+
+          # Written to RUNNER_TEMP, outside the workspace, so it can never be picked
+          # up as a repo change. The action receives this path, not the contents:
+          # a multi-line diff in an input breaks on quotes and backslashes.
+          diff_file="$RUNNER_TEMP/pr.diff"
+          echo "path=$diff_file" >> "$GITHUB_OUTPUT"
+
+          # --merge-base matches what the PR actually proposes, ignoring commits that
+          # merely landed on master since the branch started.
+          # Excluding docs and lockfiles here rather than via paths-ignore keeps the
+          # job running (so a required check still reports) and, when a PR touches both
+          # code and docs, sends only the code to the model.
+          git diff --merge-base "$base" "$head" -- . \
+            ':(exclude)*.md' \
+            ':(exclude)*package-lock.json' \
+            ':(exclude)*pnpm-lock.yaml' \
+            ':(exclude)*yarn.lock' \
+            ':(exclude)docs/' \
+            ':(exclude)LICENSE' \
+            > "$diff_file"
+
+          if [ -s "$diff_file" ]; then
+            echo "reviewable=true" >> "$GITHUB_OUTPUT"
+            echo "Diff is $(wc -c < "$diff_file") bytes."
+          else
+            echo "reviewable=false" >> "$GITHUB_OUTPUT"
+            echo "Only documentation or lockfile changes — skipping the review."
+          fi
+
+      - name: AI review
+        id: review
+        if: steps.diff.outputs.reviewable == 'true'
+        uses: ./.github/actions/ai-review
+        with:
+          diff-path: ${{ steps.diff.outputs.path }}
+          api-key: ${{ secrets.OPENROUTER_API_KEY }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          pr-number: ${{ github.event.pull_request.number }}
+          pr-title: ${{ github.event.pull_request.title }}
+          pr-body: ${{ github.event.pull_request.body }}
+
+      - name: Enforce verdict
+        # The gate is a separate step on purpose: the action must finish commenting
+        # and labelling before anything is allowed to fail the job.
+        if: steps.review.outputs.verdict == 'fail'
+        run: |
+          echo "::error::AI review requested changes (${{ steps.review.outputs.findings-count }} finding(s))."
+          exit 1
