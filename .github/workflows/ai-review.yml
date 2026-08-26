@@ -100,6 +100,10 @@ jobs:
         with:
           diff-path: ${{ steps.diff.outputs.path }}
           api-key: ${{ secrets.OPENROUTER_API_KEY }}
+          # A model id is not a credential: as a variable it stays readable in the
+          # run log, where a secret would be masked to *** exactly when you need to
+          # know which model produced a review. Unset falls back to the agent default.
+          model: ${{ vars.OPENROUTER_MODEL }}
           github-token: ${{ secrets.GITHUB_TOKEN }}
           pr-number: ${{ github.event.pull_request.number }}
           pr-title: ${{ github.event.pull_request.title }}
