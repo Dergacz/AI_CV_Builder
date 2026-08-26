@@ -62,7 +62,7 @@ async function readStdin(): Promise<string> {
 }
 
 const USAGE = `Usage:
-  npm start -- <file> [--json] [--context-file <path>]
+  npm start -- <file> [--json] [--context-file <path>] [--max-output-tokens <n>]
   git diff | npm start -- --json [--context-file <path>]
 
 Env: OPENROUTER_API_KEY (required), OPENROUTER_MODEL, OPENROUTER_APP_NAME, OPENROUTER_APP_URL`;
@@ -102,6 +102,7 @@ async function main(): Promise<void> {
   }
 
   const contextPath = takeOption(args, "context-file");
+  const maxTokensRaw = takeOption(args, "max-output-tokens");
   const asJson = args.includes("--json");
   const files = args.filter((arg) => !arg.startsWith("-"));
 
@@ -117,11 +118,24 @@ async function main(): Promise<void> {
   // routinely contain quotes, backticks and newlines.
   const context = contextPath === undefined ? "" : await readFile(contextPath, "utf8");
 
-  const { review, usage } = await reviewCode({
-    code,
-    ...(path ? { path } : {}),
-    ...(context.trim() ? { context } : {}),
-  });
+  // Left unset, providers reserve the model's full output ceiling against the API
+  // key's balance, which fails outright on a key with limited remaining credit.
+  let maxOutputTokens: number | undefined;
+  if (maxTokensRaw !== undefined) {
+    maxOutputTokens = Number.parseInt(maxTokensRaw, 10);
+    if (!Number.isInteger(maxOutputTokens) || maxOutputTokens <= 0) {
+      throw new Error("--max-output-tokens must be a positive integer.");
+    }
+  }
+
+  const { review, usage } = await reviewCode(
+    {
+      code,
+      ...(path ? { path } : {}),
+      ...(context.trim() ? { context } : {}),
+    },
+    maxOutputTokens === undefined ? {} : { maxOutputTokens },
+  );
 
   if (asJson) {
     stdout.write(`${JSON.stringify(review, null, 2)}\n`);
