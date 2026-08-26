@@ -7,6 +7,12 @@ def sev_icon: {"critical": "🛑", "major": "⚠️", "minor": "🔸", "nit": "�
 def loc: if .line == null then .file else "\(.file):\(.line)" end;
 def tally($s): [.findings[] | select(.severity == $s)] | length;
 
+# The suggestion is emitted as markdown so code fences and generics survive, which
+# means a literal </details> from the model would close the wrapper early and wreck
+# the rest of the comment. Neutralise only those two tags: a blanket @html would
+# render `Array<string>` inside a code fence as `Array&lt;string&gt;`.
+def unwrap_safe: gsub("(?i)</details>"; "&lt;/details&gt;") | gsub("(?i)</summary>"; "&lt;/summary&gt;");
+
 [
   $marker,
   "### \($header)",
@@ -26,7 +32,7 @@ def tally($s): [.findings[] | select(.severity == $s)] | length;
         | "<details>",
           "<summary>\(sev_icon) <b>\(.severity)</b> · <code>\(loc | @html)</code> · \(.category | @html) — \(.summary | @html)</summary>",
           "",
-          .suggestion,
+          (.suggestion | unwrap_safe),
           "",
           "</details>"
       )

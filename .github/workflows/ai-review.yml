@@ -3,7 +3,7 @@ name: AI Code Review
 on:
   pull_request:
     branches: [master]
-    types: [opened, synchronize, labeled]
+    types: [opened, reopened, synchronize, labeled]
   workflow_dispatch:
     inputs:
       base-ref:
