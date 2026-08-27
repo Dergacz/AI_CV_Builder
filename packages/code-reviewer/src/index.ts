@@ -7,6 +7,8 @@ import { CRITERIA, reviewCode, type Finding, type Review } from "./review.ts";
 
 export { loadEnv, envSchema, type Env } from "./env.ts";
 export { createProvider, type ProviderBundle } from "./openrouter.ts";
+export { readRelatedContracts, readReviewCriteria, reviewTools, findRelatedContracts } from "./tools.ts";
+
 export {
   reviewCode,
   reviewSchema,

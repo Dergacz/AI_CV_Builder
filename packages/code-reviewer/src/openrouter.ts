@@ -25,5 +25,19 @@ export function createProvider(env: Env = loadEnv()): ProviderBundle {
     ...(env.OPENROUTER_APP_URL ? { appUrl: env.OPENROUTER_APP_URL } : {}),
   });
 
-  return { env, provider, model: provider(env.OPENROUTER_MODEL) };
+  // `usage.include` is a per-model setting, not a provider one. It makes OpenRouter
+  // report what it actually charged under `providerMetadata.openrouter.usage.cost` —
+  // the vendor's own accounting rather than a price table that goes stale.
+  return { env, provider, model: provider(env.OPENROUTER_MODEL, { usage: { include: true } }) };
+}
+
+/**
+ * A model handle for one specific model id, on the configured key.
+ *
+ * Exists so callers outside this package (the eval harness) can pick a model
+ * without importing `@openrouter/ai-sdk-provider` themselves — it lives in this
+ * package's node_modules, and a sibling directory cannot resolve it.
+ */
+export function createModel(modelId: string, env: Env = loadEnv()): LanguageModel {
+  return createProvider(env).provider(modelId, { usage: { include: true } });
 }

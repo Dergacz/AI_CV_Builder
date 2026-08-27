@@ -1,8 +1,17 @@
 # yaml-language-server: $schema=https://promptfoo.dev/config-schema.json
-description: Code-review agent — three OpenRouter models against the fixtures in evals/fixtures
+description: CONTROL — same prompt, same fixtures, tool loop switched off
 
 # The exact system prompt production runs, imported from criteria.ts rather than
 # copied. The fixture diff is substituted as {{diff}} and its answer key stripped.
+# WHY THIS FILE EXISTS
+#
+# The tools were added because fixtures 02 and 05 were red on every model but opus:
+# both need a file the diff does not contain. This runs those two fixtures with the
+# loop OFF, so the main run can be read as "tools helped" rather than "something
+# changed since last week". Same prompt, same fixtures, same models — one variable.
+#
+# Run: npx promptfoo eval --config evals/promptfooconfig.control.yaml
+
 prompts:
   - id: file://prompt.ts:reviewPrompt
     label: reviewer
@@ -42,6 +51,7 @@ providers:
       model: anthropic/claude-opus-4.8
       maxTokens: 4096
       maxSteps: 6
+      tools: false
 
   - id: file://agent-provider.ts
     label: gpt-5.4-mini
@@ -49,6 +59,7 @@ providers:
       model: openai/gpt-5.4-mini
       maxTokens: 4096
       maxSteps: 6
+      tools: false
 
   - id: file://agent-provider.ts
     label: deepseek-v3.2
@@ -56,6 +67,7 @@ providers:
       model: deepseek/deepseek-v3.2
       maxTokens: 4096
       maxSteps: 6
+      tools: false
 
 defaultTest:
   options:
@@ -78,48 +90,12 @@ defaultTest:
       value: file://../packages/code-reviewer/src/criteria.ts:reviewJsonSchema
 
 tests:
-  - description: "01 looks clean — comment promises a byte limit, truncateStem cuts by characters"
-    vars:
-      diff: file://fixtures/01-filename-cap-byte-claim.diff
-    assert:
-      - type: javascript
-        value: file://assertions.ts:byteClaimDrift
-      - type: llm-rubric
-        value: &grounded >-
-          Every finding in this review points at a concrete location: a file path
-          plus either a line number or an identifier quoted from the diff
-          (a symbol, column, constraint, error code or literal). A finding that
-          only states a general principle — "add tests", "consider security
-          implications", "improve error handling" — without naming where in this
-          diff it applies, fails this rubric. Judge only how specifically the
-          findings are anchored, not whether you agree the defect is real.
-
   - description: "02 contract drift — zod cap moved to 2000, check constraint still 1000"
     vars:
       diff: file://fixtures/02-zod-migration-drift.diff
     assert:
       - type: javascript
         value: file://assertions.ts:zodMigrationDrift
-      - type: llm-rubric
-        value: *grounded
-
-  - description: "03 access boundary — new cv_tags table with no RLS and no policies"
-    vars:
-      diff: file://fixtures/03-cv-tags-missing-rls.diff
-    assert:
-      - type: javascript
-        value: file://assertions.ts:missingRls
-      - type: llm-rubric
-        value: *grounded
-
-  - description: "04 vacuous test — assertions that no mutation can kill"
-    vars:
-      diff: file://fixtures/04-vacuous-generate-test.diff
-    assert:
-      - type: javascript
-        value: file://assertions.ts:vacuousTest
-      - type: llm-rubric
-        value: *grounded
 
   - description: "05 prompt drift — prompt emits date_gaps, the zod enum does not know it"
     vars:
@@ -127,30 +103,3 @@ tests:
     assert:
       - type: javascript
         value: file://assertions.ts:warningCodeDrift
-      - type: llm-rubric
-        value: *grounded
-
-  - description: "06 honest failure — invalid draft repaired into ok:true with emptied sections"
-    vars:
-      diff: file://fixtures/06-salvage-partial-draft.diff
-    assert:
-      - type: javascript
-        value: file://assertions.ts:salvagePartialDraft
-      - type: llm-rubric
-        value: *grounded
-
-  # The false-positive probe. It is the mirror of 03 — everything criterion 4 asks
-  # for is present and visible — so a finding here is the agent speculating about
-  # code it was not shown, which nothing else in this set measures.
-  - description: "07 clean — cv_notes ships with RLS, policies, a pgTAP proof and a verified owner id"
-    vars:
-      diff: file://fixtures/07-clean-cv-notes-table.diff
-    assert:
-      - type: javascript
-        value: file://assertions.ts:cleanPr
-      - type: llm-rubric
-        value: >-
-          The review approves the change and reports no findings. Its summary
-          justifies that concretely — naming the table, the policies, the pgTAP
-          test or where the owner id comes from — rather than offering generic
-          praise such as "the code looks clean" or "follows best practices".
