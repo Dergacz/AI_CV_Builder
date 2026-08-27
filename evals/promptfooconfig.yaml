@@ -8,24 +8,39 @@ prompts:
     label: reviewer
 
 # One expensive reasoning model, one mid, one cheap — three vendors, ~65x apart
-# on output price. Prices are per million tokens, checked 2026-08-26.
+# on output price.
+#
+# List prices, USD per million tokens (input / output), checked 2026-08-27
+# against https://openrouter.ai/models — one page per slug, e.g.
+# https://openrouter.ai/anthropic/claude-opus-4.8:
+#
+#   anthropic/claude-opus-4.8   $5.00 / $25.00
+#   openai/gpt-5.4-mini         $0.75 /  $4.50
+#   deepseek/deepseek-v3.2      $0.26 /  $0.38
+#
+# These are a rough sense of scale only, and they go stale: OpenRouter reprices
+# without notice. What the report's cost column shows is not computed from them
+# — `openrouter-provider.ts` asks for `usage: { include: true }` and passes
+# OpenRouter's own charge through, so the numbers in a run are always current
+# even when this comment is not. Labels stay price-free for the same reason: a
+# stale figure baked into a label is one nobody thinks to re-check.
 providers:
   - id: file://openrouter-provider.ts
-    label: opus-4.8 ($5 / $25)
+    label: opus-4.8
     config:
       model: anthropic/claude-opus-4.8
       maxTokens: 8192
       structuredOutput: true
 
   - id: file://openrouter-provider.ts
-    label: gpt-5.4-mini ($0.75 / $4.50)
+    label: gpt-5.4-mini
     config:
       model: openai/gpt-5.4-mini
       maxTokens: 8192
       structuredOutput: true
 
   - id: file://openrouter-provider.ts
-    label: deepseek-v3.2 ($0.26 / $0.38)
+    label: deepseek-v3.2
     config:
       model: deepseek/deepseek-v3.2
       maxTokens: 8192
