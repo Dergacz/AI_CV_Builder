@@ -3,3 +3,8 @@ src/db/database.types.ts
 
 # Generated from context/review-criteria.md by packages/code-reviewer.
 packages/code-reviewer/src/criteria.generated.ts
+
+# Source of truth for the review criteria: its rubric text is copied verbatim into
+# src/criteria.generated.ts, so any reformat (prettier rewrites *emphasis* as
+# _emphasis_) makes `criteria:check` stale on a file nobody meaningfully edited.
+context/review-criteria.md
