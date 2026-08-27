@@ -4,14 +4,21 @@ import { REVIEW_INSTRUCTIONS, reviewSchema, type Review } from "./criteria.ts";
 import { createProvider } from "./openrouter.ts";
 
 export {
+  CRITERIA,
+  CRITERION_SLUGS,
   SEVERITIES,
   VERDICTS,
   findingSchema,
   reviewSchema,
   reviewJsonSchema,
+  scoresSchema,
   REVIEW_INSTRUCTIONS,
+  type Criterion,
+  type CriterionKey,
+  type CriterionSlug,
   type Finding,
   type Review,
+  type Scores,
   type Severity,
   type Verdict,
 } from "./criteria.ts";
