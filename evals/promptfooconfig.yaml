@@ -67,25 +67,12 @@ defaultTest:
       value: file://../packages/code-reviewer/src/criteria.ts:reviewJsonSchema
 
 tests:
-  - description: "01 clean — pure function, boundaries covered; nothing to find"
+  - description: "01 looks clean — comment promises a byte limit, truncateStem cuts by characters"
     vars:
-      diff: file://fixtures/01-clean-filename-length-cap.diff
+      diff: file://fixtures/01-filename-cap-byte-claim.diff
     assert:
       - type: javascript
-        value: file://assertions.ts:cleanPr
-      - type: llm-rubric
-        value: >-
-          The review approves the change and reports no findings. Its summary
-          justifies that concretely — naming the function, the file, or the
-          boundary cases the tests cover — rather than offering generic praise
-          such as "the code looks clean" or "follows best practices".
-
-  - description: "02 contract drift — zod cap moved to 2000, check constraint still 1000"
-    vars:
-      diff: file://fixtures/02-zod-migration-drift.diff
-    assert:
-      - type: javascript
-        value: file://assertions.ts:zodMigrationDrift
+        value: file://assertions.ts:byteClaimDrift
       - type: llm-rubric
         value: &grounded >-
           Every finding in this review points at a concrete location: a file path
@@ -95,6 +82,15 @@ tests:
           implications", "improve error handling" — without naming where in this
           diff it applies, fails this rubric. Judge only how specifically the
           findings are anchored, not whether you agree the defect is real.
+
+  - description: "02 contract drift — zod cap moved to 2000, check constraint still 1000"
+    vars:
+      diff: file://fixtures/02-zod-migration-drift.diff
+    assert:
+      - type: javascript
+        value: file://assertions.ts:zodMigrationDrift
+      - type: llm-rubric
+        value: *grounded
 
   - description: "03 access boundary — new cv_tags table with no RLS and no policies"
     vars:
@@ -131,3 +127,19 @@ tests:
         value: file://assertions.ts:salvagePartialDraft
       - type: llm-rubric
         value: *grounded
+
+  # The false-positive probe. It is the mirror of 03 — everything criterion 4 asks
+  # for is present and visible — so a finding here is the agent speculating about
+  # code it was not shown, which nothing else in this set measures.
+  - description: "07 clean — cv_notes ships with RLS, policies, a pgTAP proof and a verified owner id"
+    vars:
+      diff: file://fixtures/07-clean-cv-notes-table.diff
+    assert:
+      - type: javascript
+        value: file://assertions.ts:cleanPr
+      - type: llm-rubric
+        value: >-
+          The review approves the change and reports no findings. Its summary
+          justifies that concretely — naming the table, the policies, the pgTAP
+          test or where the owner id comes from — rather than offering generic
+          praise such as "the code looks clean" or "follows best practices".

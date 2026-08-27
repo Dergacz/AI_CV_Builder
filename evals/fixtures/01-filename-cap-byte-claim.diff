@@ -83,6 +83,6 @@ index 4b8e3f1..9d02c77 100644
  });
 
 --- FIXTURE METADATA (strip before feeding the agent) ---
-fixture: 01-clean-filename-length-cap
-expectation: clean — no finding should be raised
-violates: none
+fixture: 01-filename-cap-byte-claim
+expectation: one finding — the doc comment promises a byte guarantee the code does not give
+violates: "Слой, дубли и стоимость чтения" (критерий 5) — комментарий в точке выбора лжёт

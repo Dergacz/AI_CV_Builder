@@ -12,7 +12,7 @@ function parseReview(output: string): Review {
 
 /** Everything a finding says, flattened, for matching against one regex. */
 function text(finding: Finding): string {
-  return `${finding.file} ${finding.category} ${finding.summary} ${finding.suggestion}`;
+  return `${finding.file} ${finding.symbol} ${finding.category} ${finding.summary} ${finding.suggestion}`;
 }
 
 function isSevere(finding: Finding): boolean {
@@ -53,8 +53,33 @@ function condition(check: (review: Review) => GradingResult) {
 }
 
 /**
- * 01 — clean PR. A pure function with its boundaries covered by tests; the
- * contract is untouched. Any finding here is a false positive.
+ * 01 — the doc comment promises the cap keeps the name "well inside the 255-byte
+ * filename limit", but `truncateStem` cuts by characters: 80 CJK characters run to
+ * ~320 bytes. The code is a legitimate choice; the guarantee written next to it is
+ * not. Two-sided on purpose — the catch has to happen AND stay proportionate, since
+ * an inaccurate comment is not a reason to block a PR.
+ */
+export const byteClaimDrift = condition((review) => {
+  const hit = review.findings.find(
+    (f) => /cv-export-filename/i.test(f.file) && /byte|255|character|char|multi-?byte|utf-?8/i.test(text(f)),
+  );
+
+  if (hit === undefined) {
+    return result(false, `No finding tying the 255-byte claim to character-based truncation — ${digest(review)}`);
+  }
+
+  if (verdictOf(review) === "request-changes") {
+    return result(false, `Caught the byte/character drift but blocked on it, which is disproportionate: ${hit.summary}`);
+  }
+
+  return result(true, `Caught the byte/character drift: ${hit.summary}`);
+});
+
+/**
+ * 07 — the genuinely clean PR, and the mirror image of 03: RLS on, granular
+ * per-operation policies, a pgTAP test that proves a stranger gets zero rows, an
+ * owner id from `safeGetUser()`. Any finding here is the agent speculating about
+ * code it was not shown.
  */
 export const cleanPr = condition((review) => {
   const pass = review.findings.length === 0 && verdictOf(review) === "approve";
