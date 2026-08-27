@@ -41,5 +41,6 @@ playwright/.cache/
 reports/
 .stryker-tmp/
 
-# promptfoo eval runs (local cache / results)
+# promptfoo's local cache and run database. Committed run results live in
+# evals/results/<date>/ and are deliberately NOT ignored — see evals/results/README.md.
 .promptfoo/
