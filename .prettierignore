@@ -1,2 +1,5 @@
 # Supabase-generated DB types use their own formatting.
 src/db/database.types.ts
+
+# Generated from context/review-criteria.md by packages/code-reviewer.
+packages/code-reviewer/src/criteria.generated.ts
