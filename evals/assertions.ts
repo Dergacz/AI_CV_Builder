@@ -69,7 +69,10 @@ export const byteClaimDrift = condition((review) => {
   }
 
   if (verdictOf(review) === "request-changes") {
-    return result(false, `Caught the byte/character drift but blocked on it, which is disproportionate: ${hit.summary}`);
+    return result(
+      false,
+      `Caught the byte/character drift but blocked on it, which is disproportionate: ${hit.summary}`,
+    );
   }
 
   return result(true, `Caught the byte/character drift: ${hit.summary}`);

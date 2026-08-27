@@ -78,7 +78,9 @@ export default class ReviewAgentProvider {
           // Captured rather than printed: promptfoo runs four cases at once and
           // interleaved stderr from four reviews is unreadable.
           onStep: (log) =>
-            steps.push(`${String(log.step)}:${log.finishReason}${log.toolCalls.length > 0 ? `(${log.toolCalls.join(",")})` : ""}`),
+            steps.push(
+              `${String(log.step)}:${log.finishReason}${log.toolCalls.length > 0 ? `(${log.toolCalls.join(",")})` : ""}`,
+            ),
         },
       );
 
