@@ -4,7 +4,9 @@
 
 def sev_rank: {"critical": 0, "major": 1, "minor": 2, "nit": 3}[.severity] // 4;
 def sev_icon: {"critical": "🛑", "major": "⚠️", "minor": "🔸", "nit": "·"}[.severity] // "•";
-def loc: if .line == null then .file else "\(.file):\(.line)" end;
+def loc:
+  (if .line == null then .file else "\(.file):\(.line)" end)
+  + (if (.symbol // "") == "" then "" else " · \(.symbol)" end);
 def tally($s): [.findings[] | select(.severity == $s)] | length;
 
 # One line of "criterion N/10", in the schema's own key order. Guarded with `//`

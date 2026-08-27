@@ -50,7 +50,8 @@ export function formatReview(review: Review): string {
   }
 
   for (const finding of review.findings) {
-    const location = finding.line === null ? finding.file : `${finding.file}:${finding.line}`;
+    const at = finding.line === null ? finding.file : `${finding.file}:${finding.line}`;
+    const location = `${at} · ${finding.symbol}`;
     lines.push(
       `${SEVERITY_ICON[finding.severity]} [${finding.severity}/${finding.category}] ${location}`,
       `   ${finding.summary}`,

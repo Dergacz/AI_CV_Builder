@@ -1,7 +1,24 @@
-import { generateText, Output, type LanguageModel, type LanguageModelUsage } from "ai";
+import { generateText, Output, jsonSchema, type LanguageModel, type LanguageModelUsage } from "ai";
 
-import { REVIEW_INSTRUCTIONS, reviewSchema, type Review } from "./criteria.ts";
+import { REVIEW_INSTRUCTIONS, reviewJsonSchema, reviewSchema, type Review } from "./criteria.ts";
 import { createProvider } from "./openrouter.ts";
+
+/**
+ * The output contract, described exactly once.
+ *
+ * Handing `reviewSchema` straight to `Output.object` let the AI SDK run its own
+ * zod conversion, which re-adds the `minimum`/`maximum`/`minLength` keywords a
+ * `strict: true` response format rejects — so the request the gate makes and the
+ * request `reviewJsonSchema()` describes were two different requests, and only the
+ * eval harness got the sanitized one. Now both send the same schema and zod keeps
+ * ownership of validation through `validate`.
+ */
+const reviewOutput = jsonSchema<Review>(() => reviewJsonSchema() as ReturnType<typeof reviewJsonSchema> & object, {
+  validate: (value) => {
+    const parsed = reviewSchema.safeParse(value);
+    return parsed.success ? { success: true, value: parsed.data } : { success: false, error: parsed.error };
+  },
+});
 
 export {
   CRITERIA,
@@ -69,7 +86,7 @@ export async function reviewCode(input: ReviewInput, options: ReviewOptions = {}
     model,
     instructions: REVIEW_INSTRUCTIONS,
     prompt: buildPrompt(input),
-    output: Output.object({ schema: reviewSchema }),
+    output: Output.object({ schema: reviewOutput }),
     temperature: options.temperature ?? 0.2,
     ...(options.maxOutputTokens === undefined ? {} : { maxOutputTokens: options.maxOutputTokens }),
     ...(options.abortSignal ? { abortSignal: options.abortSignal } : {}),

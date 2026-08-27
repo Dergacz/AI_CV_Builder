@@ -16,8 +16,22 @@ export const SEVERITIES = ["critical", "major", "minor", "nit"] as const;
 export const VERDICTS = ["approve", "comment", "request-changes"] as const;
 
 export const findingSchema = z.object({
-  file: z.string().describe("Path of the file the finding belongs to"),
-  line: z.number().int().positive().nullable().describe("1-indexed line, or null if unknown"),
+  file: z.string().min(1).describe("Path of the file the finding belongs to"),
+  line: z
+    .number()
+    .int()
+    .positive()
+    .nullable()
+    .describe("1-indexed line in the diff, or null when the finding is about the file as a whole"),
+  // The anchor lives in the schema rather than in the prompt because a prompt rule
+  // is advisory and a required field is not: `line` alone was returned as null and
+  // the finding ended up attached to nothing.
+  symbol: z
+    .string()
+    .min(1)
+    .describe(
+      "The identifier this finding is anchored to, copied verbatim from the diff: a function, table, column, constant, policy, error code or literal. Required even when `line` is set. If you cannot name one, the finding is not anchored to this change and must not be reported at all.",
+    ),
   severity: z.enum(SEVERITIES),
   // Was a free-form slug; now the finding has to name which of the five criteria
   // it belongs to, so a finding outside them cannot be expressed at all.
@@ -72,7 +86,7 @@ What goes wrong in this codebase, so you know where to look:
 How to review:
 - You are usually given a unified diff plus the PR title and description, not whole files. Judge the changed lines, and judge them against what the rest of this codebase is known to contain.
 - What the diff does not say counts. A new table whose migration never enables RLS, a widened zod limit with no matching constraint change, a new branch with no test that could fail on it — the absence is the finding. Say what is missing and where it should have been.
-- Every finding names a place: a file path plus a line number or an identifier quoted from the diff (a symbol, column, constraint, error code or literal). A finding that only states a principle — "add tests", "consider security implications" — is worthless here; drop it.
+- Every finding names a place, and the schema requires it: \`file\`, \`symbol\` (an identifier copied from the diff), and \`line\` where you can point at one. A finding that only states a principle — "add tests", "consider security implications" — has no symbol to give and is worthless here; drop it rather than anchoring it to something it is not about.
 - Do not report on code you were not shown, and do not restate what the PR description already claims. If the description asserts something the diff contradicts, that contradiction is the finding.
 - Every finding needs a concrete, actionable fix, and a \`category\` naming the criterion it belongs to.
 
@@ -83,9 +97,10 @@ Severity:
 - \`nit\` — style or preference. Never the reason for a blocking verdict.
 
 Scoring:
-- Score all five criteria. Use the whole range; the rubric in each field description anchors 1 and 10.
+- Work out what is actually wrong first, then score. The score reports the findings; it is not a separate opinion you hold alongside them.
 - A criterion this diff gives no opportunity to violate is not violated: score it 10 and do not invent a finding to justify a lower number.
-- Scores and findings must agree. A criterion at 3 or lower needs at least one \`critical\` or \`major\` finding carrying its slug in \`category\`; a criterion at 8 or higher needs no finding at all.
+- A criterion you report nothing on scores 8, 9 or 10. An unexplained 7 is not a more careful review than a 10 — it is a review that noticed something and failed to say what.
+- Every score below 8 must be backed by at least one finding carrying that criterion's slug in \`category\`, and below 4 at least one of those must be \`critical\` or \`major\`. When a low score has no finding behind it, the fix is to raise the score or to write the finding you were holding back — never to leave the two disagreeing.
 
 Verdict:
 - \`request-changes\` when at least one \`critical\` or \`major\` finding exists — and only then.
@@ -96,23 +111,38 @@ Verdict:
 Write \`summary\`, \`suggestion\` and every other free-text field in English, even though the scoring rubrics are in Russian.`;
 
 /**
- * Numeric bounds strict structured output rejects on a number or integer.
+ * Constraint keywords strict structured output rejects.
  *
  * zod emits `minimum`/`maximum` at the safe-integer limits for every `.int()`,
- * and `exclusiveMinimum` for `.positive()`. Both are correct JSON Schema and
- * both are outside the subset a `strict: true` `response_format` accepts, so
- * they are dropped on the way out. This is why a score's range lives in its
- * `description` instead: there is nowhere else to put it.
+ * `exclusiveMinimum` for `.positive()`, and `minLength` for `.min(1)` on a
+ * string. All are correct JSON Schema and all sit outside the subset a
+ * `strict: true` `response_format` accepts, so they are dropped on the way out.
+ * This is why a score's range lives in its `description`: there is nowhere else
+ * to put it.
+ *
+ * What survives the strip is what the wire format can still enforce:
+ * *requiredness*. `symbol` cannot be omitted, and zod re-checks `.min(1)` on the
+ * parsed object, so an empty anchor fails the review rather than passing quietly.
  */
-const UNSUPPORTED_KEYWORDS = ["minimum", "maximum", "exclusiveMinimum", "exclusiveMaximum", "multipleOf"] as const;
+const UNSUPPORTED_KEYWORDS = [
+  "minimum",
+  "maximum",
+  "exclusiveMinimum",
+  "exclusiveMaximum",
+  "multipleOf",
+  "minLength",
+  "maxLength",
+  "pattern",
+  "format",
+] as const;
 
-function stripNumericBounds(node: unknown): unknown {
-  if (Array.isArray(node)) return node.map(stripNumericBounds);
+function stripUnsupportedKeywords(node: unknown): unknown {
+  if (Array.isArray(node)) return node.map(stripUnsupportedKeywords);
   if (node === null || typeof node !== "object") return node;
 
   const entries = Object.entries(node as Record<string, unknown>)
     .filter(([key]) => !UNSUPPORTED_KEYWORDS.includes(key as (typeof UNSUPPORTED_KEYWORDS)[number]))
-    .map(([key, value]) => [key, stripNumericBounds(value)] as const);
+    .map(([key, value]) => [key, stripUnsupportedKeywords(value)] as const);
 
   return Object.fromEntries(entries);
 }
@@ -128,5 +158,5 @@ export function reviewJsonSchema(): Record<string, unknown> {
     target: "draft-7",
   }) as Record<string, unknown> & { $schema?: string };
 
-  return stripNumericBounds(schema) as Record<string, unknown>;
+  return stripUnsupportedKeywords(schema) as Record<string, unknown>;
 }
