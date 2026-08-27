@@ -15,7 +15,8 @@ pnpm-debug.log*
 
 # environment variables
 .env
-.env.production
+.env.*
+!.env.example
 
 # cloudflare
 .dev.vars
@@ -39,3 +40,6 @@ playwright/.cache/
 # Stryker mutation testing
 reports/
 .stryker-tmp/
+
+# promptfoo eval runs (local cache / results)
+.promptfoo/

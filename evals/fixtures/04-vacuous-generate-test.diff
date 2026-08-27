@@ -1,0 +1,111 @@
+Subject: test(cv): cover the POST /api/cv/generate success envelope
+Description:
+  We had no test asserting the shape of the success envelope returned by the
+  generation route. Adds one with the generation service stubbed so the test
+  stays fast and never touches OpenAI.
+
+diff --git a/src/tests/api/cv-generate-envelope.test.ts b/src/tests/api/cv-generate-envelope.test.ts
+new file mode 100644
+index 0000000..d7f1a02
+--- /dev/null
++++ b/src/tests/api/cv-generate-envelope.test.ts
+@@ -0,0 +1,88 @@
++import { beforeEach, describe, expect, it, vi } from "vitest";
++
++import type { GeneratedCvDraft } from "@/lib/cv-draft";
++
++/**
++ * Success-envelope contract for POST /api/cv/generate.
++ *
++ * The generation service is stubbed so the route is exercised without a network call.
++ */
++
++const FAKE_DRAFT: GeneratedCvDraft = {
++  schemaVersion: 1,
++  language: "en",
++  source: {
++    questionnaireVersion: "1",
++    generatedAt: "2026-08-26T10:00:00.000Z",
++    modelProvider: "openai",
++    modelName: "gpt-4o-mini",
++  },
++  sections: {
++    summary: { headline: "Support Specialist", body: "Reliable, people-first support professional." },
++    experience: [],
++    education: [],
++    skills: [{ label: "Tools", items: ["Spreadsheets"] }],
++    languages: [{ name: "English" }],
++  },
++  assumptions: [],
++  warnings: [],
++};
++
++const generateCvDraft = vi.fn();
++
++vi.mock("@/lib/services/cv-generation", () => ({
++  generateCvDraft: (...args: unknown[]) => generateCvDraft(...args),
++}));
++
++vi.mock("@/lib/services/generation-quota", () => ({
++  checkGenerationQuota: () => ({ allowed: true, remaining: 4 }),
++  getGenerationLimits: () => ({ daily: 5 }),
++  recordGeneration: () => undefined,
++}));
++
++const ANSWERS = {
++  fullName: "Ada Quinn",
++  targetRoleOrGoal: "Customer Support Specialist",
++  outputLanguage: "en",
++  experience: "Helped at a community help desk",
++  education: "Community college",
++  skillsAndTools: "Email, spreadsheets",
++  spokenLanguages: "English",
++  additionalContext: "",
++};
++
++async function callRoute() {
++  const { POST } = await import("@/pages/api/cv/generate");
++  return POST({
++    request: new Request("http://localhost/api/cv/generate", {
++      method: "POST",
++      headers: { "Content-Type": "application/json" },
++      body: JSON.stringify(ANSWERS),
++    }),
++    locals: { user: { id: "11111111-1111-4111-8111-111111111111" } },
++    cookies: { get: () => undefined, set: () => undefined },
++  } as never);
++}
++
++describe("POST /api/cv/generate", () => {
++  beforeEach(() => {
++    generateCvDraft.mockReset();
++    generateCvDraft.mockResolvedValue({ ok: true, draft: FAKE_DRAFT });
++  });
++
++  it("returns a response", async () => {
++    const response = await callRoute();
++
++    expect(response).toBeDefined();
++    expect(typeof response.status).toBe("number");
++  });
++
++  it("returns the generated draft", async () => {
++    const response = await callRoute();
++    const body = await response.json();
++
++    expect(body.draft).toEqual(FAKE_DRAFT);
++    expect(body.draft.sections).toBeTruthy();
++    expect(Object.keys(body.draft).length).toBeGreaterThan(0);
++  });
++
++  it("calls the generation service", async () => {
++    await callRoute();
++
++    expect(generateCvDraft).toHaveBeenCalled();
++  });
++});
+
+--- FIXTURE METADATA (strip before feeding the agent) ---
+fixture: 04-vacuous-generate-test
+expectation: one primary finding (test asserts the mock, not the route)
+violates: "Тест, который может упасть" (критерий 3)

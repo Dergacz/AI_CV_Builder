@@ -1,0 +1,68 @@
+Subject: feat(feedback): raise the free-text comment limit to 2000 characters
+Description:
+  Several users said the 1000-character comment box was too short to explain what
+  was wrong with a generated draft. Doubling the limit. Zod schema and the client
+  counter are both updated so they stay in sync.
+
+diff --git a/src/lib/feedback.schema.ts b/src/lib/feedback.schema.ts
+index a91c4e0..c30b7d2 100644
+--- a/src/lib/feedback.schema.ts
++++ b/src/lib/feedback.schema.ts
+@@ -1,20 +1,20 @@
+ import { z } from "zod";
+ 
+ /**
+  * Server-only zod schema for the feedback submission payload.
+  *
+  * Privacy (F-01): `comment` is raw user content — validated here but never
+  * forwarded to PostHog. Only `generationEventId` (UUID ≤ 36 chars) and
+  * `helpful` (boolean) are allowlisted in the observability scrub.
+  */
+ export const feedbackSchema = z.object({
+   generationEventId: z.uuid(),
+   helpful: z.boolean(),
+   comment: z
+     .string()
+-    .max(1000)
++    .max(2000)
+     .transform((v) => (v.trim() === "" ? undefined : v))
+     .optional(),
+ });
+ 
+ export type FeedbackInput = z.infer<typeof feedbackSchema>;
+diff --git a/src/components/cv/CvFeedback.tsx b/src/components/cv/CvFeedback.tsx
+index 1f2b7c4..8ea50d3 100644
+--- a/src/components/cv/CvFeedback.tsx
++++ b/src/components/cv/CvFeedback.tsx
+@@ -5,7 +5,7 @@ import type { UiLocale } from "@/lib/i18n/locales";
+ import { useCvFeedback } from "@/components/hooks/useCvFeedback";
+ import { cn } from "@/lib/utils";
+ 
+-const COMMENT_MAX_LENGTH = 1000;
++const COMMENT_MAX_LENGTH = 2000;
+ 
+ /**
+  * Post-generation feedback widget (S-05 / FR-010).
+diff --git a/src/tests/api/cv-feedback.test.ts b/src/tests/api/cv-feedback.test.ts
+index 6d4a1b8..e77c910 100644
+--- a/src/tests/api/cv-feedback.test.ts
++++ b/src/tests/api/cv-feedback.test.ts
+@@ -84,9 +84,9 @@ describe("POST /api/cv/feedback", () => {
+     expect(response.status).toBe(400);
+   });
+ 
+-  it("rejects a comment longer than 1000 characters", async () => {
++  it("rejects a comment longer than 2000 characters", async () => {
+     const response = await postFeedback({
+       generationEventId: EVENT_ID,
+       helpful: false,
+-      comment: "x".repeat(1001),
++      comment: "x".repeat(2001),
+     });
+ 
+     expect(response.status).toBe(400);
+
+--- FIXTURE METADATA (strip before feeding the agent) ---
+fixture: 02-zod-migration-drift
+expectation: one primary finding (contract drift zod <-> migration)
+violates: "Синхронность контрактов" (критерий 1)

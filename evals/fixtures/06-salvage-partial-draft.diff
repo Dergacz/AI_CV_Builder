@@ -1,0 +1,111 @@
+Subject: fix(generation): salvage a partially valid draft instead of failing outright
+Description:
+  "Generation failed, please try again" is our most-reported complaint. In most of
+  the reported cases the model returned a perfectly usable summary and skills list
+  and only one malformed section (usually an experience entry with an empty
+  description). Throwing the whole draft away and asking the user to retry the
+  questionnaire is a bad trade. This drops the sections that fail validation,
+  re-validates, and returns the rest with a `low_confidence` warning so the editor
+  still flags it. Covered by a new test.
+
+diff --git a/src/lib/services/cv-generation.ts b/src/lib/services/cv-generation.ts
+index 9f3c771..b1d7e05 100644
+--- a/src/lib/services/cv-generation.ts
++++ b/src/lib/services/cv-generation.ts
+@@ -186,6 +186,42 @@ function stripNulls(value: unknown): unknown {
+   return value;
+ }
+ 
++/**
++ * Best-effort repair of a draft that failed validation.
++ *
++ * Empties every array section zod complained about and backfills a minimal summary,
++ * so one malformed entry doesn't cost the user the whole draft. Returns the repaired
++ * object for re-validation; the caller decides whether the result is usable.
++ */
++function repairDraft(draft: Record<string, unknown>, issues: { path: PropertyKey[] }[]): Record<string, unknown> {
++  const sections = { ...((draft.sections ?? {}) as Record<string, unknown>) };
++  for (const issue of issues) {
++    const [root, section] = issue.path;
++    if (root !== "sections" || typeof section !== "string") {
++      continue;
++    }
++    sections[section] = section === "summary" ? { body: "Draft summary unavailable." } : [];
++  }
++  return { ...draft, sections };
++}
++
++/** Append the advisory warning that marks a repaired draft in the editor. */
++function withLowConfidence(draft: GeneratedCvDraft): GeneratedCvDraft {
++  if (draft.warnings.some((warning) => warning.code === "low_confidence")) {
++    return draft;
++  }
++  return {
++    ...draft,
++    warnings: [
++      ...draft.warnings,
++      { code: "low_confidence", message: "Some parts of this draft could not be generated." },
++    ],
++  };
++}
++
+ function genFailed(): GenerateDraftServiceResult {
+   return { ok: false, error: "generation_failed", message: generationErrorMessages.generation_failed };
+ }
+@@ -335,11 +371,19 @@ export async function generateCvDraft(
+   const parsed = generatedCvDraftSchema.safeParse(draft);
+   if (!parsed.success) {
+-    // Model output did not conform to the contract; surface as a retryable generation failure.
+-    // The zod issue list names draft fields and would carry content — it is deliberately not sent.
+-    report(undefined, "services/cv-generation:schemaMismatch");
+-    return genFailed();
++    // Model output did not conform to the contract. Try to keep the usable parts before
++    // giving up — the issue list names draft fields and is never sent anywhere.
++    const repaired = generatedCvDraftSchema.safeParse(repairDraft(draft, parsed.error.issues));
++    if (repaired.success) {
++      return { ok: true, draft: withLowConfidence(repaired.data) };
++    }
++    report(undefined, "services/cv-generation:schemaMismatch");
++    return genFailed();
+   }
+ 
+   return { ok: true, draft: parsed.data };
+ }
+diff --git a/src/lib/services/cv-generation.test.ts b/src/lib/services/cv-generation.test.ts
+index 2c9a4f8..6b17e33 100644
+--- a/src/lib/services/cv-generation.test.ts
++++ b/src/lib/services/cv-generation.test.ts
+@@ -240,6 +240,23 @@ describe("generateCvDraft", () => {
+     expect(result).toEqual({ ok: false, error: "generation_failed", message: generationErrorMessages.generation_failed });
+   });
+ 
++  it("salvages a draft whose experience section is malformed", async () => {
++    const content = buildModelContent();
++    // An experience entry with no description fails `experienceItemSchema`.
++    content.sections.experience = [{ role: "Volunteer" } as never];
++    stubFetch(() => okResponse({ content: JSON.stringify(content) }));
++
++    const result = await generateCvDraft(buildAnswers(), { apiKey: "test-key" });
++
++    expect(result.ok).toBe(true);
++    if (result.ok) {
++      expect(result.draft.sections.experience).toEqual([]);
++      expect(result.draft.sections.summary.body).toBe("Reliable, people-first support professional.");
++      expect(result.draft.warnings.map((w) => w.code)).toContain("low_confidence");
++    }
++  });
++
+   it("never echoes raw answers in the returned envelope", async () => {
+
+--- FIXTURE METADATA (strip before feeding the agent) ---
+fixture: 06-salvage-partial-draft
+expectation: looks reasonable and is tested, but violates a criterion
+violates: "Честный отказ" (критерий 2 из context/review-criteria.md)
+note:
+  The PR reads as a UX win — real complaint, plausible fix, new test, warning still
+  surfaced. It nonetheless turns an invalid model response into an `ok: true` draft
+  with silently emptied sections, and the `schemaMismatch` report no longer fires on
+  the repaired path, so the degradation is invisible in observability too. The
+  summary backfill ("Draft summary unavailable.") is untranslated model-facing text
+  reaching a pl/ru user, and `low_confidence` is reused for a different meaning than
+  the prompt assigns it.

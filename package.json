@@ -15,6 +15,8 @@
     "test:e2e": "playwright test && npm run test:e2e:quota",
     "test:e2e:quota": "playwright test --config playwright.quota.config.ts",
     "test:db": "supabase test db",
+    "eval": "promptfoo eval --config evals/promptfooconfig.yaml",
+    "eval:view": "promptfoo view",
     "db:start": "supabase start",
     "db:reset": "supabase db reset",
     "db:types": "supabase gen types typescript --local > src/db/database.types.ts"
@@ -63,6 +65,7 @@
     "prettier": "^3.8.3",
     "prettier-plugin-astro": "0.14.1",
     "prettier-plugin-tailwindcss": "^0.8.0",
+    "promptfoo": "^0.122.0",
     "supabase": "^2.102.0",
     "typescript": "^5.9.3",
     "typescript-eslint": "^8.59.2",

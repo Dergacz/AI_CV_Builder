@@ -1,0 +1,39 @@
+Subject: feat(generation): flag employment gaps in the generated draft
+Description:
+  Career-changers often have gaps between roles and don't know they should
+  address them. The model now emits a `date_gaps` warning when it sees an
+  unexplained gap, so the editor can surface a hint. The OpenAI response schema
+  accepts the new code.
+
+diff --git a/src/lib/services/cv-generation.ts b/src/lib/services/cv-generation.ts
+index 9f3c771..44ab0e2 100644
+--- a/src/lib/services/cv-generation.ts
++++ b/src/lib/services/cv-generation.ts
+@@ -133,6 +133,7 @@ const DRAFT_CONTENT_JSON_SCHEMA = {
+           code: {
+             type: "string",
+             enum: [
+               "minimal_input",
+               "missing_experience",
+               "missing_education",
+               "missing_skills",
+               "missing_languages",
+               "low_confidence",
++              "date_gaps",
+             ],
+           },
+           message: { type: "string" },
+@@ -162,6 +163,7 @@ const SYSTEM_PROMPT = [
+   "- The selected CV output language is not automatically a language the user speaks — only include it under languages if the answers support it.",
+   "- If input is thin, keep the summary short and conservative and add 'minimal_input' and/or 'low_confidence' warnings.",
+   "- Use the 'assumptions' array to record non-factual editorial choices (ordering, phrasing, grouping).",
+   "- Every skill group you include must contain at least one skill item.",
++  "- If the experience answers imply an unexplained gap of six months or more between roles, add a 'date_gaps' warning describing the gap. Never invent dates to close a gap.",
++  "- A 'date_gaps' warning is advisory only; still return the full draft.",
+ ].join("\n");
+ 
+ function buildUserPrompt(answers: CvQuestionnaireAnswers): string {
+--- FIXTURE METADATA (strip before feeding the agent) ---
+fixture: 05-prompt-warning-code-drift
+expectation: one primary finding (prompt emits a code the zod contract rejects; no fixture covers it)
+violates: "Синхронность контрактов" (критерий 1) + "Тест, который может упасть" (критерий 3)
