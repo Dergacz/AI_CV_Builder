@@ -4,7 +4,7 @@ on:
   push:
     branches: [master]
 
-# не запускать несколько деплоев параллельно
+# Do not run several deployments in parallel.
 concurrency:
   group: deploy-master
   cancel-in-progress: false

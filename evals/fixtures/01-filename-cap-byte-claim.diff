@@ -1,0 +1,88 @@
+Subject: fix(export): cap the exported PDF filename stem at 80 characters
+Description:
+  A user with a very long saved-CV title got a download name long enough to be
+  rejected by the OS file picker. Slugify already normalises the stem, so this
+  only adds a length cap that cuts on a hyphen boundary. Pure function, no
+  contract change, no schema touched. Tests cover the boundary, the
+  hyphen-boundary trim, and the multi-byte case.
+
+diff --git a/src/lib/cv-export-filename.ts b/src/lib/cv-export-filename.ts
+index 7c1d9ab..2f45e60 100644
+--- a/src/lib/cv-export-filename.ts
++++ b/src/lib/cv-export-filename.ts
+@@ -4,9 +4,16 @@
+  * Prefers the saved CV title, falls back to the person's full name, then a bare
+  * `"cv"`. Unicode letters/digits are preserved (so a Cyrillic or Polish title stays
+  * meaningful) while whitespace and punctuation collapse to single hyphens.
++ *
++ * The stem is capped at `MAX_STEM_LENGTH` characters so the download name stays well
++ * inside the 255-byte filename limit common filesystems enforce; a title that long is
++ * unreadable in a file picker anyway.
+  */
+ 
+ const PDF_EXTENSION = ".pdf";
+ const FALLBACK_STEM = "cv";
++
++/** Max slug length in characters, before the `.pdf` extension. */
++const MAX_STEM_LENGTH = 80;
+ 
+ /**
+  * Slugify a label: lowercase, keep Unicode letters/digits, collapse every run of
+@@ -25,8 +32,20 @@ function slugify(label: string): string {
++/**
++ * Cut a slug down to `MAX_STEM_LENGTH` without leaving a dangling hyphen, so a
++ * truncated name still reads as words rather than a severed fragment.
++ */
++function truncateStem(stem: string): string {
++  if (stem.length <= MAX_STEM_LENGTH) {
++    return stem;
++  }
++  return stem.slice(0, MAX_STEM_LENGTH).replace(/-+$/, "");
++}
++
+ /**
+  * Derive a safe, meaningful `<stem>.pdf` filename from the CV title or full name,
+- * falling back to `cv.pdf` when neither yields a usable slug.
++ * falling back to `cv.pdf` when neither yields a usable slug. Stems longer than
++ * `MAX_STEM_LENGTH` are truncated on a hyphen boundary.
+  */
+ export function buildCvPdfFilename(input: { title?: string; fullName?: string }): string {
+   const stem = slugify(input.title ?? "") || slugify(input.fullName ?? "") || FALLBACK_STEM;
+-  return `${stem}${PDF_EXTENSION}`;
++  return `${truncateStem(stem)}${PDF_EXTENSION}`;
+ }
+diff --git a/src/lib/cv-export-filename.test.ts b/src/lib/cv-export-filename.test.ts
+index 4b8e3f1..9d02c77 100644
+--- a/src/lib/cv-export-filename.test.ts
++++ b/src/lib/cv-export-filename.test.ts
+@@ -26,4 +26,24 @@ describe("buildCvPdfFilename", () => {
+   it("preserves Polish diacritics in the slug", () => {
+     expect(buildCvPdfFilename({ title: "Główny Księgowy" })).toBe("główny-księgowy.pdf");
+   });
++
++  it("leaves a stem of exactly the cap untouched", () => {
++    const title = "a".repeat(80);
++    expect(buildCvPdfFilename({ title })).toBe(`${"a".repeat(80)}.pdf`);
++  });
++
++  it("truncates a stem longer than the cap", () => {
++    const title = "b".repeat(120);
++    expect(buildCvPdfFilename({ title })).toBe(`${"b".repeat(80)}.pdf`);
++  });
++
++  it("does not leave a trailing hyphen after truncation", () => {
++    // 79 chars, then a space that slugifies to the 80th character.
++    const title = `${"c".repeat(79)} tail`;
++    expect(buildCvPdfFilename({ title })).toBe(`${"c".repeat(79)}.pdf`);
++  });
++
++  it("caps by characters, not bytes, for multi-byte titles", () => {
++    const title = "я".repeat(120);
++    expect(buildCvPdfFilename({ title })).toBe(`${"я".repeat(80)}.pdf`);
++  });
+ });
+
+--- FIXTURE METADATA (strip before feeding the agent) ---
+fixture: 01-filename-cap-byte-claim
+expectation: one finding — the doc comment promises a byte guarantee the code does not give
+violates: "Layering, duplication and cost of reading" (criterion 5) - the comment at the choice point lies

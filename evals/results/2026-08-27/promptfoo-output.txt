@@ -1,0 +1,116 @@
+(node:42192) ExperimentalWarning: DecompressInterceptor is experimental and subject to change
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+========================================================================================================================
+⚠️ The current version of promptfoo 0.122.0 is lower than the latest available version 0.122.1.
+
+Please run npx promptfoo@latest or npm install -g promptfoo@latest to update.
+========================================================================================================================
+
+Starting evaluation eval-605-2026-08-27T06:23:31
+Running 18 test cases (up to 4 at a time)...
+
+┌──────────────────────────────┬──────────────────────────────┬──────────────────────────────┬──────────────────────────────┐
+│ diff                         │ [opus-4.8 ($5 / $25)]        │ [gpt-5.4-mini ($0.75 /       │ [deepseek-v3.2 ($0.26 /      │
+│                              │ reviewer                     │ $4.50)] reviewer             │ $0.38)] reviewer             │
+├──────────────────────────────┼──────────────────────────────┼──────────────────────────────┼──────────────────────────────┤
+│ file://fixtures/01-clean-fi… │ [FAIL]                       │ [PASS]                       │ [PASS] {                     │
+│                              │ {"verdict":"comment","summa… │ {"verdict":"approve","summa… │   "verdict": "approve",      │
+│                              │ diff adds a `truncateStem`   │ change is confined to        │   "summary": "The PR adds a  │
+│                              │ helper to                    │ `src/lib/cv-export-filename… │ length cap to the CV PDF     │
+│                              │ `buildCvPdfFilename` in      │ it adds `truncateStem()` and │ filename stem, implementing  │
+│                              │ `src/lib/cv-export-filename… │ applies it inside            │ a pure function that         │
+│                              │ that caps the slug at        │ `buildCvPdfFilename()` so    │ truncates on hyphen          │
+│                              │ `MAX_STEM_LENGTH` (80)       │ exported PDF names stay      │ boundaries and correctly     │
+│                              │ characters on a hyphen       │ under the new 80-character   │ handles multi-byte           │
+│                              │ boundary. It is a pure       │ stem cap. The tests in       │ characters, with no changes  │
+│                              │ function change with no      │ `src/lib/...                 │ to any contracts, schemas,   │
+│                              │ sc...                        │                              │ ...                          │
+├──────────────────────────────┼──────────────────────────────┼──────────────────────────────┼──────────────────────────────┤
+│ file://fixtures/02-zod-migr… │ [PASS]                       │ [FAIL]                       │ [FAIL] {                     │
+│                              │ {"verdict":"comment","summa… │ {"verdict":"approve","summa… │   "findings": [],            │
+│                              │ PR raises the feedback       │ change updates the feedback  │   "scores": {                │
+│                              │ comment cap from 1000 to     │ payload limit in             │    "contractSync": 10,       │
+│                              │ 2000 in the zod schema, the  │ `src/lib/feedback.schema.ts` │    "falsifiableTests": 10,   │
+│                              │ React counter constant, and  │ and the UI counter in        │    "honestFailure": 10,      │
+│                              │ the boundary test. The risk  │ `src/components/cv/CvFeedba… │    "layeringAndReadability": │
+│                              │ is that the `comment` column │ from 1000 to 2000, so the    │ 10,                          │
+│                              │ in the database (a CHECK     │ client-side affordance and   │    "provenAccessBoundary": … │
+│                              │ constraint or varchar le...  │ server-side validation       │   },                         │
+│                              │                              │ sta...                       │   "summary": "The PR updates │
+│                              │                              │                              │ the maximum length for       │
+│                              │                              │                              │ free-text feedback ...       │
+├──────────────────────────────┼──────────────────────────────┼──────────────────────────────┼──────────────────────────────┤
+│ file://fixtures/03-cv-tags-… │ [PASS]                       │ [PASS]                       │ [PASS] {                     │
+│                              │ {"verdict":"request-changes… │ {"verdict":"request-changes… │   "findings": [              │
+│                              │ PR adds a `public.cv_tags`   │ new `public.cv_tags` table   │     {                        │
+│                              │ table with a                 │ and `cv-tags-repository.ts`  │       "file":                │
+│                              │ `cv-tags-repository` that    │ are internally consistent    │ "supabase/migrations/202608… │
+│                              │ filters by `user_id` on      │ for listing and inserting    │       "line": null,          │
+│                              │ every query, but the         │ tags, and                    │       "severity": "critical… │
+│                              │ migration never enables      │ `src/db/database.types.ts`   │       "category":            │
+│                              │ row-level security and       │ was regenerated to include   │ "proven-access-boundary",    │
+│                              │ defines no policies, leaving │ the new relation. However,   │       "summary": "The new t… │
+│                              │ the boundary en...           │ the m...                     │ `cv_tags` is created         │
+│                              │                              │                              │ witho...                     │
+├──────────────────────────────┼──────────────────────────────┼──────────────────────────────┼──────────────────────────────┤
+│ file://fixtures/04-vacuous-… │ [PASS]                       │ [FAIL]                       │ [FAIL] {                     │
+│                              │ {"verdict":"request-changes… │ {"verdict":"approve","summa… │   "verdict": "comment",      │
+│                              │ PR adds one test file        │ new                          │   "summary": "Adds a test f… │
+│                              │ `src/tests/api/cv-generate-… │ `src/tests/api/cv-generate-… │ the success envelope of the  │
+│                              │ that stubs the generation    │ covers the POST              │ CV generation route,         │
+│                              │ service and quota service,   │ `/api/cv/generate` success   │ stubbing the generation      │
+│                              │ then asserts the success     │ path with `generateCvDraft`  │ service to avoid network     │
+│                              │ envelope of POST             │ stubbed, so it exercises the │ calls, but the test asserts  │
+│                              │ /api/cv/generate. The        │ route without hitting OpenAI │ only the mock's behavior and │
+│                              │ assertions are wea...        │ and verifies the returned    │ does not cover failure paths │
+│                              │                              │ draft e...                   │ or vali...                   │
+├──────────────────────────────┼──────────────────────────────┼──────────────────────────────┼──────────────────────────────┤
+│ file://fixtures/05-prompt-w… │ [PASS]                       │ [FAIL]                       │ [FAIL] {                     │
+│                              │ {"verdict":"request-changes… │ {"verdict":"approve","summa… │   "findings": [],            │
+│                              │ PR adds a new `date_gaps`    │ change adds a new            │   "scores": {                │
+│                              │ warning code to the OpenAI   │ `date_gaps` warning code to  │     "contractSync": 10,      │
+│                              │ strict-mode JSON Schema      │ `DRAFT_CONTENT_JSON_SCHEMA`  │     "honestFailure": 10,     │
+│                              │ (`DRAFT_CONTENT_JSON_SCHEMA… │ in                           │     "falsifiableTests": 10,  │
+│                              │ and to the system prompt,    │ `src/lib/services/cv-genera… │     "provenAccessBoundary":… │
+│                              │ but it never adds the same   │ and teaches the system       │     "layeringAndReadability… │
+│                              │ enum member to the zod-side  │ prompt when to emit it. It   │   },                         │
+│                              │ `generatedCvDr...            │ does not alter any persisted │   "summary": "The PR adds a  │
+│                              │                              │ CV draft shape, dat...       │ new 'date_gaps' warning code │
+│                              │                              │                              │ to the Op...                 │
+├──────────────────────────────┼──────────────────────────────┼──────────────────────────────┼──────────────────────────────┤
+│ file://fixtures/06-salvage-… │ [PASS]                       │ [PASS]                       │ [PASS] {                     │
+│                              │ {"verdict":"request-changes… │ {"verdict":"request-changes… │   "verdict":                 │
+│                              │ change adds `repairDraft`    │ now repairs invalid model    │ "request-changes",           │
+│                              │ and `withLowConfidence` in   │ output in                    │   "summary": "This PR        │
+│                              │ `src/lib/services/cv-genera… │ `src/lib/services/cv-genera… │ introduces a repair function │
+│                              │ so that a draft failing      │ by blanking sections and     │ that attempts to salvage a   │
+│                              │ `generatedCvDraftSchema` is  │ injecting a fallback summary │ partially valid CV draft by  │
+│                              │ silently patched (empty      │ before re-validating, which  │ dropping invalid sections    │
+│                              │ arrays, a canned summary)    │ turns a schema failure into  │ and backfilling a minimal    │
+│                              │ and re-vali...               │ a succe...                   │ summary, turning a schema    │
+│                              │                              │                              │ validation failure into a    │
+│                              │                              │                              │ low...                       │
+└──────────────────────────────┴──────────────────────────────┴──────────────────────────────┴──────────────────────────────┘
+✓ Eval complete (ID: eval-605-2026-08-27T06:23:31)
+
+» View results: promptfoo view
+» Share with your team: https://promptfoo.app
+» Feedback: https://promptfoo.dev/feedback
+
+Total Tokens: 277,827
+  Eval: 260,421 (250,740 prompt, 9,681 completion)
+  Grading: 17,406 (13,155 prompt, 4,251 completion)
+
+Providers:
+  openrouter:anthropic/claude-opus-4.8: 136,153 (0 requests; 130,114 prompt, 6,039 completion)
+  openrouter:openai/gpt-5.4-mini: 96,765 (0 requests; 95,287 prompt, 1,478 completion)
+  openrouter:deepseek/deepseek-v3.2: 27,503 (0 requests; 25,339 prompt, 2,164 completion)
+
+Results:
+  ✓ 11 passed (61.11%)
+  ✗ 7 failed (38.89%)
+  0 errors (0%)
+Duration: 1m 23s (concurrency: 4)
+
+Writing output to evals/results/2026-08-27/results.json

@@ -1,0 +1,146 @@
+Subject: feat(library): let users tag saved CVs
+Description:
+  Adds a `cv_tags` table so a user can label saved CVs ("remote", "junior", "pl")
+  and filter the library by tag. Owner id comes from the verified session as
+  everywhere else; the repository filters by `user_id` on every query. Types
+  regenerated with `npm run db:types`.
+
+diff --git a/supabase/migrations/20260826101500_create_cv_tags.sql b/supabase/migrations/20260826101500_create_cv_tags.sql
+new file mode 100644
+index 0000000..3c81f7a
+--- /dev/null
++++ b/supabase/migrations/20260826101500_create_cv_tags.sql
+@@ -0,0 +1,26 @@
++-- Migration: create public.cv_tags
++--
++-- One row per (cv, label). Lets the library filter saved CVs by a short
++-- user-defined label. Tag labels are user content but carry no CV body, so
++-- they are listable alongside the content-free summary columns.
++
++create table public.cv_tags (
++  id         uuid        primary key default gen_random_uuid(),
++  cv_id      uuid        not null references public.cvs (id) on delete cascade,
++  user_id    uuid        not null references auth.users (id) on delete cascade,
++  label      text        not null check (char_length(label) between 1 and 40),
++  created_at timestamptz not null default now(),
++  unique (cv_id, label)
++);
++
++-- The library filters "my CVs carrying this label", so lead with the owner.
++create index cv_tags_user_id_label_idx on public.cv_tags (user_id, label);
++create index cv_tags_cv_id_idx on public.cv_tags (cv_id);
++
++comment on table public.cv_tags is 'User-defined labels attached to saved CVs.';
++comment on column public.cv_tags.user_id is
++  'Denormalised owner, mirrors cvs.user_id so the library can filter without a join.';
+diff --git a/src/lib/services/cv-tags-repository.ts b/src/lib/services/cv-tags-repository.ts
+new file mode 100644
+index 0000000..b5e2d41
+--- /dev/null
++++ b/src/lib/services/cv-tags-repository.ts
+@@ -0,0 +1,54 @@
++import type { SupabaseClient } from "@supabase/supabase-js";
++
++import type { Database } from "@/db/database.types";
++
++/**
++ * Saved-CV tag data access.
++ *
++ * Same shape as `cv-repository`: thin typed queries, no HTTP, no envelope. Owner
++ * identity is supplied by the caller from the verified `auth.getUser()` id and
++ * applied to every query. Functions throw on DB error; the route maps to buckets.
++ */
++
++type TypedSupabaseClient = SupabaseClient<Database>;
++
++export interface CvTag {
++  id: string;
++  cvId: string;
++  label: string;
++}
++
++interface TagRow {
++  id: string;
++  cv_id: string;
++  label: string;
++}
++
++const TAG_COLUMNS = "id, cv_id, label" as const;
++
++function mapTag(row: TagRow): CvTag {
++  return { id: row.id, cvId: row.cv_id, label: row.label };
++}
++
++/** List every tag the owner has attached to any of their CVs. */
++export async function listTags(supabase: TypedSupabaseClient, userId: string): Promise<CvTag[]> {
++  const { data, error } = await supabase.from("cv_tags").select(TAG_COLUMNS).eq("user_id", userId).order("label");
++  if (error) {
++    throw error;
++  }
++  return data.map(mapTag);
++}
++
++/** Attach a label to an owned CV. Duplicate (cv_id, label) pairs are ignored. */
++export async function addTag(
++  supabase: TypedSupabaseClient,
++  userId: string,
++  cvId: string,
++  label: string,
++): Promise<CvTag | null> {
++  const { data, error } = await supabase
++    .from("cv_tags")
++    .upsert({ user_id: userId, cv_id: cvId, label }, { onConflict: "cv_id,label", ignoreDuplicates: true })
++    .select(TAG_COLUMNS)
++    .maybeSingle();
++  if (error) {
++    throw error;
++  }
++  return data ? mapTag(data) : null;
++}
+diff --git a/src/db/database.types.ts b/src/db/database.types.ts
+index 2a7c0f9..e1b4d88 100644
+--- a/src/db/database.types.ts
++++ b/src/db/database.types.ts
+@@ -61,6 +61,34 @@ export type Database = {
+         }
+         Relationships: []
+       }
++      cv_tags: {
++        Row: {
++          id: string
++          cv_id: string
++          user_id: string
++          label: string
++          created_at: string
++        }
++        Insert: {
++          id?: string
++          cv_id: string
++          user_id: string
++          label: string
++          created_at?: string
++        }
++        Update: {
++          id?: string
++          cv_id?: string
++          user_id?: string
++          label?: string
++          created_at?: string
++        }
++        Relationships: [
++          {
++            foreignKeyName: "cv_tags_cv_id_fkey"
++            columns: ["cv_id"]
++            referencedRelation: "cvs"
++            referencedColumns: ["id"]
++          },
++        ]
++      }
+       feedback: {
+         Row: {
+           id: string
+
+--- FIXTURE METADATA (strip before feeding the agent) ---
+fixture: 03-cv-tags-missing-rls
+expectation: one primary finding (new table ships without RLS)
+violates: "Proven access boundary" (criterion 4)

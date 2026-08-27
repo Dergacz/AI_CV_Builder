@@ -3,20 +3,29 @@ import { existsSync } from "node:fs";
 import { argv, exit, stderr, stdin, stdout } from "node:process";
 import { fileURLToPath } from "node:url";
 
-import { reviewCode, type Finding, type Review } from "./review.ts";
+import { CRITERIA, reviewCode, type Finding, type Review } from "./review.ts";
 
 export { loadEnv, envSchema, type Env } from "./env.ts";
 export { createProvider, type ProviderBundle } from "./openrouter.ts";
+export { readRelatedContracts, readReviewCriteria, reviewTools, findRelatedContracts } from "./tools.ts";
+
 export {
   reviewCode,
   reviewSchema,
   reviewJsonSchema,
   findingSchema,
+  scoresSchema,
   REVIEW_INSTRUCTIONS,
+  CRITERIA,
+  CRITERION_SLUGS,
   SEVERITIES,
   VERDICTS,
+  type Criterion,
+  type CriterionKey,
+  type CriterionSlug,
   type Finding,
   type Review,
+  type Scores,
   type ReviewInput,
   type ReviewOptions,
   type ReviewResult,
@@ -33,7 +42,9 @@ const SEVERITY_ICON: Record<Finding["severity"], string> = {
 
 /** Renders a review as plain text for a terminal. */
 export function formatReview(review: Review): string {
-  const lines = [`verdict: ${review.verdict}`, "", review.summary, ""];
+  const scores = CRITERIA.map((criterion) => `${criterion.slug} ${String(review.scores[criterion.key])}/10`).join("  ");
+
+  const lines = [`verdict: ${review.verdict}`, `scores:  ${scores}`, "", review.summary, ""];
 
   if (review.findings.length === 0) {
     lines.push("No findings.");
@@ -41,7 +52,8 @@ export function formatReview(review: Review): string {
   }
 
   for (const finding of review.findings) {
-    const location = finding.line === null ? finding.file : `${finding.file}:${finding.line}`;
+    const at = finding.line === null ? finding.file : `${finding.file}:${finding.line}`;
+    const location = `${at} · ${finding.symbol}`;
     lines.push(
       `${SEVERITY_ICON[finding.severity]} [${finding.severity}/${finding.category}] ${location}`,
       `   ${finding.summary}`,

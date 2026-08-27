@@ -1,0 +1,105 @@
+# yaml-language-server: $schema=https://promptfoo.dev/config-schema.json
+description: CONTROL — same prompt, same fixtures, tool loop switched off
+
+# The exact system prompt production runs, imported from criteria.ts rather than
+# copied. The fixture diff is substituted as {{diff}} and its answer key stripped.
+# WHY THIS FILE EXISTS
+#
+# The tools were added because fixtures 02 and 05 were red on every model but opus:
+# both need a file the diff does not contain. This runs those two fixtures with the
+# loop OFF, so the main run can be read as "tools helped" rather than "something
+# changed since last week". Same prompt, same fixtures, same models — one variable.
+#
+# Run: npx promptfoo eval --config evals/promptfooconfig.control.yaml
+
+prompts:
+  - id: file://prompt.ts:reviewPrompt
+    label: reviewer
+
+# One expensive reasoning model, one mid, one cheap — three vendors, ~65x apart
+# on output price.
+#
+# List prices, USD per million tokens (input / output), checked 2026-08-27
+# against https://openrouter.ai/models — one page per slug, e.g.
+# https://openrouter.ai/anthropic/claude-opus-4.8:
+#
+#   anthropic/claude-opus-4.8   $5.00 / $25.00
+#   openai/gpt-5.4-mini         $0.75 /  $4.50
+#   deepseek/deepseek-v3.2      $0.26 /  $0.38
+#
+# These are a rough sense of scale only, and they go stale: OpenRouter reprices
+# without notice. What the report's cost column shows is not computed from them
+# — `openrouter-provider.ts` asks for `usage: { include: true }` and passes
+# OpenRouter's own charge through, so the numbers in a run are always current
+# even when this comment is not. Labels stay price-free for the same reason: a
+# stale figure baked into a label is one nobody thinks to re-check.
+# maxTokens is 4096, not the model ceiling: OpenRouter reserves `max_tokens ×
+# output price` against the key for every IN-FLIGHT request, so a high ceiling at
+# concurrency 4 fails the run outright on a key with limited remaining credit
+# ("would exceed your available credits given your current in-flight requests").
+# A review's output is ~2k tokens; 4096 is headroom, not a limit. Run the tool-loop
+# config with `-j 1` on a small balance.
+#
+# `agent-provider.ts` runs the real reviewer — the same `reviewCode` the gate calls,
+# tool loop included. `openrouter-provider.ts` (one blind HTTP call) is kept for the
+# no-tools control below: it is what the gate was before 2026-08-27, and the only way
+# to tell a tool win from a prompt win is to run both on the same fixtures.
+providers:
+  - id: file://agent-provider.ts
+    label: opus-4.8
+    config:
+      model: anthropic/claude-opus-4.8
+      maxTokens: 4096
+      maxSteps: 6
+      tools: false
+
+  - id: file://agent-provider.ts
+    label: gpt-5.4-mini
+    config:
+      model: openai/gpt-5.4-mini
+      maxTokens: 4096
+      maxSteps: 6
+      tools: false
+
+  - id: file://agent-provider.ts
+    label: deepseek-v3.2
+    config:
+      model: deepseek/deepseek-v3.2
+      maxTokens: 4096
+      maxSteps: 6
+      tools: false
+
+defaultTest:
+  options:
+    # llm-rubric defaults to an OpenAI grader and would demand OPENAI_API_KEY.
+    # The judge is deliberately none of the three candidates, so no model grades
+    # its own output.
+    provider:
+      id: file://openrouter-provider.ts
+      label: judge
+      config:
+        model: anthropic/claude-sonnet-4.6
+        temperature: 0
+        # A rubric verdict is a few dozen tokens; the eval default would reserve
+        # 8k of budget per grading call for no reason.
+        maxTokens: 512
+  assert:
+    # Is the output usable by the gate at all? The CLI gets this for free from
+    # the AI SDK's structured output; a raw completion does not.
+    - type: is-json
+      value: file://../packages/code-reviewer/src/criteria.ts:reviewJsonSchema
+
+tests:
+  - description: "02 contract drift — zod cap moved to 2000, check constraint still 1000"
+    vars:
+      diff: file://fixtures/02-zod-migration-drift.diff
+    assert:
+      - type: javascript
+        value: file://assertions.ts:zodMigrationDrift
+
+  - description: "05 prompt drift — prompt emits date_gaps, the zod enum does not know it"
+    vars:
+      diff: file://fixtures/05-prompt-warning-code-drift.diff
+    assert:
+      - type: javascript
+        value: file://assertions.ts:warningCodeDrift

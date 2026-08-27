@@ -1,0 +1,439 @@
+Subject: feat(library): private note per saved CV
+Description:
+  Lets a user keep a short private note on a saved CV ("sent to Acme 12 Aug",
+  "tailor the summary next time"). New `cv_notes` table, one row per CV.
+
+  Owner id comes from `safeGetUser()` in the route, same as every other CV
+  endpoint — never from the body or the path. RLS is on with per-operation
+  policies, and `supabase/tests/database/cv_notes_rls.test.sql` proves a
+  foreign user gets zero rows on select/update/delete rather than asserting
+  the policies exist. The 2000-character cap is a check constraint; the zod
+  schema mirrors it and the migration comment says which side owns it.
+  Types regenerated with `npm run db:types`.
+
+diff --git a/supabase/migrations/20260827094500_create_cv_notes.sql b/supabase/migrations/20260827094500_create_cv_notes.sql
+new file mode 100644
+index 0000000..a71c4e9
+--- /dev/null
++++ b/supabase/migrations/20260827094500_create_cv_notes.sql
+@@ -0,0 +1,52 @@
++-- Migration: create public.cv_notes
++--
++-- One private note per saved CV, written and read only by the CV's owner. The note is
++-- user content, so it carries the same privacy posture as public.cvs: never listed
++-- alongside content-free summary columns, never returned to anyone but the owner.
++--
++-- `cv_id` is the primary key, not a surrogate id: the note is one-per-CV by definition,
++-- and making that the key removes the "which of the two notes is current" question
++-- entirely instead of guarding it with a unique index.
++--
++-- Erasure (S-08): `on delete cascade` from auth.users, so account deletion takes notes
++-- with it and supabase/tests/database/account_deletion_cascade.test.sql keeps holding.
++
++create table public.cv_notes (
++  cv_id      uuid        primary key references public.cvs (id) on delete cascade,
++  user_id    uuid        not null references auth.users (id) on delete cascade,
++  body       text        not null check (char_length(body) <= 2000),
++  updated_at timestamptz not null default now()
++);
++
++comment on table public.cv_notes is 'Owner-private note attached to a saved CV.';
++
++-- The length cap is enforced here, by the check constraint above. src/lib/cv-note.schema.ts
++-- mirrors the same 2000 so the user gets a form error instead of a 500, but the database
++-- is the side that guarantees it — do not add a third copy of this number.
++comment on column public.cv_notes.body is 'Free text, capped at 2000 characters by check constraint.';
++
++alter table public.cv_notes enable row level security;
++
++-- Granular per-operation, matching public.cvs. `with check` is present wherever a row is
++-- written, so a user cannot insert or update a row into someone else's ownership.
++create policy "Users can view their own CV notes"
++  on public.cv_notes
++  for select
++  to authenticated
++  using (auth.uid() is not null and auth.uid() = user_id);
++
++create policy "Users can create their own CV notes"
++  on public.cv_notes
++  for insert
++  to authenticated
++  with check (auth.uid() is not null and auth.uid() = user_id);
++
++create policy "Users can update their own CV notes"
++  on public.cv_notes
++  for update
++  to authenticated
++  using (auth.uid() is not null and auth.uid() = user_id)
++  with check (auth.uid() is not null and auth.uid() = user_id);
++
++create policy "Users can delete their own CV notes"
++  on public.cv_notes
++  for delete
++  to authenticated
++  using (auth.uid() is not null and auth.uid() = user_id);
+diff --git a/supabase/tests/database/cv_notes_rls.test.sql b/supabase/tests/database/cv_notes_rls.test.sql
+new file mode 100644
+index 0000000..d38b105
+--- /dev/null
++++ b/supabase/tests/database/cv_notes_rls.test.sql
+@@ -0,0 +1,78 @@
++-- pgTAP: public.cv_notes is owner-private.
++--
++-- The point of this test is that it does NOT assert the policies exist. Four policies
++-- named "their own" can still be wrong; what matters is whether a second user actually
++-- gets nothing. So it seeds a note owned by user A, switches the session to user B's
++-- authenticated JWT, and checks that select, update and delete all come back empty.
++--
++-- Runs inside a transaction that is rolled back — see account_deletion_cascade.test.sql.
++
++begin;
++
++create extension if not exists pgtap with schema extensions;
++set local search_path to extensions, public;
++
++select plan(5);
++
++insert into auth.users (id, email)
++values
++  ('a0000000-0000-4000-8000-0000000007a1', 'notes-owner@example.test'),
++  ('a0000000-0000-4000-8000-0000000007b2', 'notes-stranger@example.test');
++
++insert into public.cvs (id, user_id, title, language, draft, source_snapshot)
++values (
++  'c0000000-0000-4000-8000-0000000007c3',
++  'a0000000-0000-4000-8000-0000000007a1',
++  'Notes fixture',
++  'en',
++  '{}'::jsonb,
++  '{}'::jsonb
++);
++
++insert into public.cv_notes (cv_id, user_id, body)
++values (
++  'c0000000-0000-4000-8000-0000000007c3',
++  'a0000000-0000-4000-8000-0000000007a1',
++  'Sent to Acme on 12 Aug.'
++);
++
++-- Become the stranger: role + JWT claims are what auth.uid() reads.
++set local role authenticated;
++set local request.jwt.claims to '{"sub":"a0000000-0000-4000-8000-0000000007b2","role":"authenticated"}';
++
++select is(
++  (select count(*) from public.cv_notes),
++  0::bigint,
++  'a stranger selects zero notes'
++);
++
++update public.cv_notes set body = 'overwritten';
++select is(
++  (select count(*) from public.cv_notes where body = 'overwritten'),
++  0::bigint,
++  'a stranger updates zero notes'
++);
++
++delete from public.cv_notes;
++select is(
++  (select count(*) from public.cv_notes),
++  0::bigint,
++  'a stranger deletes zero notes'
++);
++
++-- Prove the note was really there all along, so the three zeros above mean "hidden"
++-- rather than "the fixture never inserted anything".
++set local request.jwt.claims to '{"sub":"a0000000-0000-4000-8000-0000000007a1","role":"authenticated"}';
++
++select is(
++  (select count(*) from public.cv_notes),
++  1::bigint,
++  'the owner still sees their note'
++);
++
++select is(
++  (select body from public.cv_notes),
++  'Sent to Acme on 12 Aug.',
++  'the stranger''s update did not land'
++);
++
++select * from finish();
++rollback;
+diff --git a/src/lib/cv-note.schema.ts b/src/lib/cv-note.schema.ts
+new file mode 100644
+index 0000000..5f2b0c1
+--- /dev/null
++++ b/src/lib/cv-note.schema.ts
+@@ -0,0 +1,21 @@
++import { z } from "zod";
++
++/**
++ * Request shape for PUT /api/cv/[id]/note.
++ *
++ * The 2000 mirrors the check constraint on public.cv_notes.body — the database owns the
++ * guarantee, this exists so an over-long note comes back as a 400 with a field error
++ * rather than a 500 from Postgres. If the cap moves, it moves in the migration first.
++ */
++export const NOTE_MAX_LENGTH = 2000;
++
++export const cvNoteSchema = z.object({
++  body: z
++    .string()
++    .trim()
++    .max(NOTE_MAX_LENGTH, `A note can be at most ${String(NOTE_MAX_LENGTH)} characters.`),
++});
++
++export type CvNoteInput = z.infer<typeof cvNoteSchema>;
+diff --git a/src/lib/cv-note.schema.test.ts b/src/lib/cv-note.schema.test.ts
+new file mode 100644
+index 0000000..9ac4d72
+--- /dev/null
++++ b/src/lib/cv-note.schema.test.ts
+@@ -0,0 +1,32 @@
++import { describe, expect, it } from "vitest";
++
++import { NOTE_MAX_LENGTH, cvNoteSchema } from "@/lib/cv-note.schema";
++
++describe("cvNoteSchema", () => {
++  it("accepts a note of exactly the cap", () => {
++    const result = cvNoteSchema.safeParse({ body: "a".repeat(NOTE_MAX_LENGTH) });
++    expect(result.success).toBe(true);
++  });
++
++  it("rejects a note one character over the cap", () => {
++    const result = cvNoteSchema.safeParse({ body: "a".repeat(NOTE_MAX_LENGTH + 1) });
++    expect(result.success).toBe(false);
++  });
++
++  it("trims before measuring, so trailing whitespace cannot push a note over", () => {
++    const result = cvNoteSchema.safeParse({ body: `${"a".repeat(NOTE_MAX_LENGTH)}   ` });
++    expect(result.success).toBe(true);
++    if (result.success) {
++      expect(result.data.body).toHaveLength(NOTE_MAX_LENGTH);
++    }
++  });
++
++  it("accepts an empty note — clearing the note is how you delete it", () => {
++    const result = cvNoteSchema.safeParse({ body: "" });
++    expect(result.success).toBe(true);
++  });
++
++  it("rejects a missing body", () => {
++    expect(cvNoteSchema.safeParse({}).success).toBe(false);
++  });
++});
+diff --git a/src/lib/services/cv-notes-repository.ts b/src/lib/services/cv-notes-repository.ts
+new file mode 100644
+index 0000000..2b7e015
+--- /dev/null
++++ b/src/lib/services/cv-notes-repository.ts
+@@ -0,0 +1,44 @@
++import type { SupabaseClient } from "@supabase/supabase-js";
++
++import type { Database } from "@/db/database.types";
++
++/**
++ * CV note data access.
++ *
++ * Same shape as `cv-repository`: thin typed queries, no HTTP, no envelope. `userId` is
++ * supplied by the caller from the verified `safeGetUser()` id and applied to every query,
++ * so the owner filter holds even before RLS is consulted. Functions throw on DB error;
++ * the route maps to buckets.
++ */
++
++type TypedSupabaseClient = SupabaseClient<Database>;
++
++/** The owner's note for one CV, or null when they have not written one. */
++export async function getNote(
++  supabase: TypedSupabaseClient,
++  userId: string,
++  cvId: string,
++): Promise<string | null> {
++  const { data, error } = await supabase
++    .from("cv_notes")
++    .select("body")
++    .eq("user_id", userId)
++    .eq("cv_id", cvId)
++    .maybeSingle();
++
++  if (error) {
++    throw error;
++  }
++
++  return data?.body ?? null;
++}
++
++/** Write the owner's note for one CV, replacing whatever was there. */
++export async function upsertNote(
++  supabase: TypedSupabaseClient,
++  userId: string,
++  cvId: string,
++  body: string,
++): Promise<void> {
++  const { error } = await supabase
++    .from("cv_notes")
++    .upsert({ cv_id: cvId, user_id: userId, body, updated_at: new Date().toISOString() });
++
++  if (error) {
++    throw error;
++  }
++}
+diff --git a/src/pages/api/cv/[id]/note.ts b/src/pages/api/cv/[id]/note.ts
+new file mode 100644
+index 0000000..6c0f8ab
+--- /dev/null
++++ b/src/pages/api/cv/[id]/note.ts
+@@ -0,0 +1,86 @@
++import type { APIRoute } from "astro";
++import { z } from "zod";
++
++import { scheduleErrorReport } from "@/lib/observability/schedule";
++import { createClient, safeGetUser } from "@/lib/supabase";
++import { cvNoteSchema } from "@/lib/cv-note.schema";
++import { cvSaveErrorMessages } from "@/lib/cv-save-messages";
++import { readBoundedJson } from "@/lib/request-body";
++import { getCv } from "@/lib/services/cv-repository";
++import { getNote, upsertNote } from "@/lib/services/cv-notes-repository";
++
++export const prerender = false;
++
++const MAX_REQUEST_BODY_BYTES = 10_000;
++
++const SESSION_EXPIRED = "Your session has expired. Please sign in again.";
++
++const idSchema = z.uuid();
++
++function json(status: number, body: unknown): Response {
++  return new Response(JSON.stringify(body), {
++    status,
++    headers: { "Content-Type": "application/json" },
++  });
++}
++
++/** GET /api/cv/[id]/note — the owner's note for one CV. */
++export const GET: APIRoute = async (context) => {
++  if (!context.locals.user) {
++    return json(401, { ok: false, error: "service_unavailable", message: SESSION_EXPIRED });
++  }
++  const id = idSchema.safeParse(context.params.id);
++  if (!id.success) {
++    return json(404, { ok: false, error: "not_found", message: cvSaveErrorMessages.not_found });
++  }
++  const supabase = createClient(context.request.headers, context.cookies);
++  if (!supabase) {
++    return json(503, { ok: false, error: "service_unavailable", message: cvSaveErrorMessages.service_unavailable });
++  }
++  const user = await safeGetUser(supabase, context.locals);
++  if (!user) {
++    return json(401, { ok: false, error: "service_unavailable", message: SESSION_EXPIRED });
++  }
++
++  try {
++    return json(200, { ok: true, note: await getNote(supabase, user.id, id.data) });
++  } catch (error) {
++    scheduleErrorReport(error, { error_location: "api/cv/[id]/note:load" }, context.locals);
++    return json(500, { ok: false, error: "load_failed", message: cvSaveErrorMessages.load_failed });
++  }
++};
++
++/** PUT /api/cv/[id]/note — write the owner's note. */
++export const PUT: APIRoute = async (context) => {
++  if (!context.locals.user) {
++    return json(401, { ok: false, error: "service_unavailable", message: SESSION_EXPIRED });
++  }
++  const id = idSchema.safeParse(context.params.id);
++  if (!id.success) {
++    return json(404, { ok: false, error: "not_found", message: cvSaveErrorMessages.not_found });
++  }
++
++  const body = await readBoundedJson(context.request, MAX_REQUEST_BODY_BYTES);
++  if (!body.ok) {
++    return json(400, { ok: false, error: "save_failed", message: cvSaveErrorMessages.save_failed });
++  }
++  const parsed = cvNoteSchema.safeParse(body.data);
++  if (!parsed.success) {
++    return json(400, { ok: false, error: "save_failed", message: cvSaveErrorMessages.save_failed });
++  }
++
++  const supabase = createClient(context.request.headers, context.cookies);
++  if (!supabase) {
++    return json(503, { ok: false, error: "service_unavailable", message: cvSaveErrorMessages.service_unavailable });
++  }
++  const user = await safeGetUser(supabase, context.locals);
++  if (!user) {
++    return json(401, { ok: false, error: "service_unavailable", message: SESSION_EXPIRED });
++  }
++
++  try {
++    // A note for a CV the caller does not own must read as "no such CV", not as a
++    // successful write into a row RLS would refuse anyway.
++    if ((await getCv(supabase, user.id, id.data)) === null) {
++      return json(404, { ok: false, error: "not_found", message: cvSaveErrorMessages.not_found });
++    }
++    await upsertNote(supabase, user.id, id.data, parsed.data.body);
++    return json(200, { ok: true });
++  } catch (error) {
++    scheduleErrorReport(error, { error_location: "api/cv/[id]/note:save" }, context.locals);
++    return json(500, { ok: false, error: "save_failed", message: cvSaveErrorMessages.save_failed });
++  }
++};
+diff --git a/src/db/database.types.ts b/src/db/database.types.ts
+index e1b4d88..7f30c92 100644
+--- a/src/db/database.types.ts
++++ b/src/db/database.types.ts
+@@ -61,6 +61,31 @@ export type Database = {
+         }
+         Relationships: []
+       }
++      cv_notes: {
++        Row: {
++          cv_id: string
++          user_id: string
++          body: string
++          updated_at: string
++        }
++        Insert: {
++          cv_id: string
++          user_id: string
++          body: string
++          updated_at?: string
++        }
++        Update: {
++          cv_id?: string
++          user_id?: string
++          body?: string
++          updated_at?: string
++        }
++        Relationships: [
++          {
++            foreignKeyName: "cv_notes_cv_id_fkey"
++            columns: ["cv_id"]
++            referencedRelation: "cvs"
++            referencedColumns: ["id"]
++          },
++        ]
++      }
+       feedback: {
+         Row: {
+           id: string
+
+--- FIXTURE METADATA (strip before feeding the agent) ---
+fixture: 07-clean-cv-notes-table
+expectation: clean — no finding should be raised
+violates: none
+note: |
+  Deliberately the mirror image of 03. Everything criterion 4's "10" asks for is
+  present and visible in the diff: RLS enabled, granular per-operation policies with
+  `with check` on both write paths, a pgTAP test that proves a stranger gets zero rows
+  instead of asserting the policies exist, and an owner id that comes from
+  `safeGetUser()` in the route rather than from the body or the path.
+
+  It is also a false-positive probe for the other four criteria: the length cap lives
+  in the migration with the zod side mirroring it and a comment saying which side owns
+  it (1), nothing touches the generation path (2), the new branches are covered by
+  boundary tests against the real schema rather than a mock (3), and the route stays
+  thin while reusing `cvSaveErrorMessages`, `readBoundedJson` and `getCv` instead of
+  duplicating them (5).
+
+  A model that raises a finding here is speculating about code it was not shown —
+  which is what this fixture measures, since REVIEW_INSTRUCTIONS dropped the blanket
+  "never speculate" rule on 2026-08-26.

@@ -1,28 +1,29 @@
 # @10x/code-reviewer
 
-Точка входа для AI-ревью кода: **AI SDK 7** + **OpenRouter** + **zod**, TypeScript на Node без сборки.
+Entry point for AI code review: **AI SDK 7** + **OpenRouter** + **zod**, TypeScript on
+Node without a build step.
 
-## Установка
+## Installation
 
 ```bash
 npm install
-cp .env.example .env   # вписать OPENROUTER_API_KEY
+cp .env.example .env   # fill in OPENROUTER_API_KEY
 ```
 
-## Запуск
+## Running
 
 ```bash
-npm start -- src/index.ts        # ревью файла
-npm start -- src/index.ts --json # машиночитаемый вывод
-git diff | npm start -- --json   # ревью диффа со stdin
+npm start -- src/index.ts        # review a file
+npm start -- src/index.ts --json # machine-readable output
+git diff | npm start -- --json   # review a diff from stdin
 npm run dev                      # tsx watch
 npm run typecheck                # tsc --noEmit
 ```
 
-Точка входа исполняется и через `tsx`, и через нативный type-stripping Node 22+
-(`node src/index.ts`) — в `tsconfig.json` включён `erasableSyntaxOnly`.
+The entry point runs both through `tsx` and through native Node 22+ type stripping
+(`node src/index.ts`); `erasableSyntaxOnly` is enabled in `tsconfig.json`.
 
-## Программное использование
+## Programmatic Use
 
 ```ts
 import { reviewCode, formatReview } from "./src/index.ts";
@@ -30,15 +31,15 @@ import { reviewCode, formatReview } from "./src/index.ts";
 const { review, usage } = await reviewCode({
   code: await readFile("src/app.ts", "utf8"),
   path: "src/app.ts",
-  context: "Astro SSR, zod 4, строгий TS",
+  context: "Astro SSR, zod 4, strict TS",
 });
 
 console.log(review.verdict); // "approve" | "comment" | "request-changes"
-console.log(review.findings); // валидированный zod-массив находок
+console.log(review.findings); // validated zod array of findings
 ```
 
-`reviewCode` по умолчанию берёт модель из `OPENROUTER_MODEL`. Любую другую
-модель (или собственный провайдер) можно передать вторым аргументом:
+`reviewCode` uses the model from `OPENROUTER_MODEL` by default. Pass any other model, or
+a custom provider, as the second argument:
 
 ```ts
 import { createProvider } from "./src/index.ts";
@@ -47,29 +48,29 @@ const { provider } = createProvider();
 await reviewCode(input, { model: provider("openai/gpt-5.6-terra"), temperature: 0 });
 ```
 
-## Переменные окружения
+## Environment Variables
 
-| Переменная            | Обязательна | По умолчанию              |
-| --------------------- | ----------- | ------------------------- |
-| `OPENROUTER_API_KEY`  | да          | —                         |
-| `OPENROUTER_MODEL`    | нет         | `google/gemini-3.7-flash` |
-| `OPENROUTER_APP_NAME` | нет         | `10x-code-reviewer`       |
-| `OPENROUTER_APP_URL`  | нет         | —                         |
+| Variable              | Required | Default                   |
+| --------------------- | -------- | ------------------------- |
+| `OPENROUTER_API_KEY`  | yes      | -                         |
+| `OPENROUTER_MODEL`    | no       | `google/gemini-3.7-flash` |
+| `OPENROUTER_APP_NAME` | no       | `10x-code-reviewer`       |
+| `OPENROUTER_APP_URL`  | no       | -                         |
 
-Валидация — zod (`src/env.ts`), при ошибке процесс падает с понятным сообщением.
+Validation uses zod (`src/env.ts`); on error the process exits with a clear message.
 
-## Файлы
+## Files
 
-| Файл                | Назначение                                                     |
-| ------------------- | -------------------------------------------------------------- |
-| `src/index.ts`      | публичные экспорты + CLI                                        |
-| `src/review.ts`     | zod-схема ревью и `reviewCode()` (`generateText` + `Output.object`) |
-| `src/openrouter.ts` | провайдер OpenRouter и модель по умолчанию                      |
-| `src/env.ts`        | схема и загрузка окружения                                      |
+| File                | Purpose                                                            |
+| ------------------- | ------------------------------------------------------------------ |
+| `src/index.ts`      | public exports plus CLI                                            |
+| `src/review.ts`     | zod review schema and `reviewCode()` (`generateText` + `Output.object`) |
+| `src/openrouter.ts` | OpenRouter provider and default model                              |
+| `src/env.ts`        | environment schema and loading                                     |
 
-## Заметки по версиям
+## Version Notes
 
-AI SDK 7 — ESM-only, Node ≥ 22. `system` переименован в `instructions`,
-структурированный вывод делается через `generateText` + `Output.object()`
-(вместо старого `generateObject`). Актуальные доки лежат в
-`node_modules/ai/docs/` и всегда совпадают с установленной версией.
+AI SDK 7 is ESM-only and requires Node >= 22. `system` was renamed to `instructions`, and
+structured output is implemented through `generateText` + `Output.object()` instead of the
+older `generateObject`. Current docs live in `node_modules/ai/docs/` and match the
+installed version.
