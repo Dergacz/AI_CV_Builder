@@ -1,184 +1,175 @@
-# Критерии приёмки pull request'ов
+# Pull Request Review Criteria
 
-Пять критериев, по которым оценивается PR в этом проекте. Каждый оценивается по шкале
-1–10. Критерии описывают, каким код **должен** быть, а не каким он сейчас является —
-существующий код тоже может не дотягивать.
+Five criteria used to review pull requests in this project. Each criterion is scored from
+1 to 10. The criteria describe what the code must uphold, not what the current code
+already guarantees; existing code can still fall short.
 
-Порядок значения не имеет: все пять равнозначны.
-
----
-
-## Инвариант языка: рубрики русские, вывод английский
-
-Текст рубрик ниже уходит модели дословно — генератор
-(`packages/code-reviewer/scripts/generate-criteria.ts`) переносит блоки «Оценка 1» и
-«Оценка 10» в `.describe()` полей `scores` схемы вывода. Русский текст здесь **намеренный
-и менять его на английский нельзя**.
-
-Но свободные текстовые поля ответа — `summary`, `suggestion`, `symbol` — обязаны быть
-**английскими**. Это держится строкой в конце `REVIEW_INSTRUCTIONS`:
-
-> Write `summary`, `suggestion` and every other free-text field in English, even though
-> the scoring rubrics are in Russian.
-
-**Почему это инвариант, а не стилистика.** Ассерции в `evals/assertions.ts` ищут в
-находках английские слова: `/rls|row level security|polic|access/`,
-`/mock|tautolog|vacuous|always pass/`, `/migration|constraint|check|database/`. Если
-модель начнёт отвечать по-русски, регулярки перестанут совпадать и весь набор станет
-красным — при том, что ревью останется правильным. Причина будет неочевидной: упадут
-`javascript`-ассерции, то есть отчёт скажет «модель не нашла дефект», хотя она его нашла
-и описала.
-
-**Что это запрещает:**
-
-- переводить рубрики в этом файле на английский — они перестанут быть дословной копией
-  того, о чём договаривались, и `criteria:check` потребует перегенерации;
-- убирать из промпта строку про английский вывод;
-- добавлять в рубрики инструкции о языке ответа — язык вывода задаётся промптом, а не
-  описанием поля.
-
-**Что делать, если язык вывода всё-таки нужно поменять** (например, на русский): сначала
-переписать регулярки в `evals/assertions.ts`, потом `.expected.md`, и только потом
-промпт — в этом порядке, иначе набор покраснеет между шагами и будет непонятно, чинить
-агента или харнесс. Смена языка вывода — изменение контракта между промптом и
-ассерциями, а не косметика.
+The criteria are equally important. Their order is only the document order used by the
+generated schema.
 
 ---
 
-## 1. Синхронность контрактов
+## Language Invariant: English Rubrics, English Output
 
-Одна и та же структура описана в проекте несколько раз: `generatedCvDraftSchema` (zod,
-`src/lib/cv-draft.ts`), `DRAFT_CONTENT_JSON_SCHEMA` (JSON Schema для OpenAI strict mode,
-`src/lib/services/cv-generation.ts`), TS-типы, выведенные из zod, плюс миграции в
-`supabase/migrations/` и сгенерированный `src/db/database.types.ts`. Критерий про то,
-двигаются ли эти описания синхронно.
+The rubric text below is copied verbatim into the model-facing structured output schema:
+`packages/code-reviewer/scripts/generate-criteria.ts` moves each `Score 1` and `Score 10`
+block into the `.describe()` text for the matching field in `scores`.
 
-**Оценка 1.** PR меняет `generatedCvDraftSchema` — добавляет поле, меняет тип, снимает
-optional — и не трогает `DRAFT_CONTENT_JSON_SCHEMA`. Strict mode со своим
-`additionalProperties: false` продолжает отдавать старую форму, новое поле молча не
-доезжает до валидации, zod подставляет default или просто его не видит. Тесты зелёные,
-ошибок в логах нет, дефект обнаруживается глазами в браузере через неделю. Сюда же:
-миграция поменяла колонку/констрейнт, а `database.types.ts` не перегенерирован, или
-приложение продолжает полагаться на инвариант, которого в схеме уже нет.
+All reviewer instructions, generated schema descriptions, and free-text response fields
+must be English: `summary`, `suggestion`, `symbol`, and every finding text. The prompt
+enforces this at the end of `REVIEW_INSTRUCTIONS`:
 
-**Оценка 10.** Изменение формы драфта приезжает одним PR во всех местах сразу: zod-схема,
-JSON Schema для OpenAI, типы. В диффе видно обе правки рядом, и по ним можно за 10 секунд
-убедиться, что формы совпадают. Если PR трогает БД — миграция и перегенерированный
-`database.types.ts` лежат в том же PR, и в самой миграции есть комментарий, что именно
-гарантирует констрейнт/триггер/политика, чтобы приложение не дублировало эту проверку
-и не разошлось с ней. В идеале расхождение вообще невозможно: одна форма выводится из
-другой, а не переписывается руками.
+> Write `summary`, `suggestion` and every other free-text field in English. The scoring
+> rubrics are also English.
 
-**Почему в списке.** Ты уже ловил ровно этот сценарий — поменял zod-схему, забыл JSON
-Schema, и strict mode начал резать данные молча; плюс отдельно были проблемы с
-рассинхроном миграций.
+This is a contract, not copy style. Assertions in `evals/assertions.ts` look for English
+review vocabulary such as `/rls|row level security|polic|access/`,
+`/mock|tautolog|vacuous|always pass/`, and `/migration|constraint|check|database/`.
+If reviewer output moves to another language, the JavaScript assertions can report that
+the agent missed a defect even when the model found it in different words.
+
+Changing the output language is therefore a contract change between prompt, schema,
+`.expected.md` files, and assertions. Update the expected files first, then the assertion
+logic, then the prompt/schema.
 
 ---
 
-## 2. Честный отказ
+## 1. Contract synchrony
 
-Про AI-путь: выход модели недетерминирован, и `cv-generation.ts` сегодня устроен так,
-что невалидный ответ становится ошибкой-бакетом, а не «почти валидным» результатом.
-Критерий про то, сохраняет ли PR эту честность.
+The same structure is described in several places: `generatedCvDraftSchema` (zod,
+`src/lib/cv-draft.ts`), `DRAFT_CONTENT_JSON_SCHEMA` (the OpenAI strict-mode JSON Schema,
+`src/lib/services/cv-generation.ts`), TypeScript types inferred from zod, migrations in
+`supabase/migrations/`, and generated `src/db/database.types.ts`. This criterion checks
+whether those descriptions move together.
 
-**Оценка 1.** PR добавляет «спасательную» логику вокруг генерации: `.partial()` на
-`generatedCvDraftSchema`, `.catch(() => fallback)`, дефолты для секций, которых модель
-не вернула, частичный парс «возьмём что распарсилось». Пользователь получает CV с пустой
-секцией опыта или с выдуманной заглушкой вместо честного сообщения об ошибке. Хуже
-всего то, что снаружи это выглядит как успех: ни ошибки, ни бакета, ни сигнала в
-observability — деградация невидима.
+**Score 1.** A PR changes `generatedCvDraftSchema` by adding a field, changing a type, or
+removing optionality, but does not update `DRAFT_CONTENT_JSON_SCHEMA`. Strict mode, with
+its `additionalProperties: false`, keeps returning the old shape; the new field silently
+does not reach validation, and zod either applies a default or never sees the field. Tests
+stay green, logs stay quiet, and the defect is noticed in the browser a week later. The
+same score applies when a migration changes a column or constraint while
+`database.types.ts` is not regenerated, or when application code still relies on an
+invariant the database schema no longer enforces.
 
-**Оценка 10.** Ответ модели либо проходит `generatedCvDraftSchema` целиком, либо это
-провал с конкретным бакетом ошибки и локацией для reporter'а. Никаких молчаливых
-подстановок. Если PR *намеренно* вводит частичное поведение (например, «warnings можно
-не вернуть»), это выражено в самой схеме как явно опциональное поле с комментарием
-почему, а не спрятано в `try/catch` на месте вызова. Приватность F-02 не нарушена:
-содержимое драфта, промпта и сырого ответа не утекает ни в лог, ни в текст ошибки.
+**Score 10.** Draft shape changes land in one PR across every representation: zod schema,
+OpenAI JSON Schema, and TypeScript types. The diff shows the related edits next to each
+other, and a reviewer can verify in about ten seconds that the shapes match. If the PR
+touches the database, the migration and regenerated `database.types.ts` are in the same
+PR, and the migration comments state what the constraint, trigger, or policy guarantees
+so the application does not duplicate that rule and drift from it. Ideally, drift is
+impossible because one shape is derived from another instead of being rewritten by hand.
 
-**Почему в списке.** Ты назвал неприемлемым PR, который превращает невалидный ответ
-модели в «валидный» драфт с пустыми или выдуманными секциями вместо честной ошибки.
-
----
-
-## 3. Тест, который может упасть
-
-Не про наличие тестов и не про coverage — про то, способен ли тест поймать реальную
-поломку.
-
-**Оценка 1.** Тест ассертит собственный мок: `fake-supabase` возвращает заготовленный
-ответ, `cv-generation` замокан целиком, и проверка сводится к тому, что мок вернул
-положенное в мок. Мутация в настоящем модуле такой тест не убивает. Рядом — ассерты на
-точную строку копирайтинга (`expect(msg).toBe("Не удалось сгенерировать…")`), которые
-ломаются от правки текста и ничего не говорят о поведении: они приучают чинить тест
-вместо кода. И покрыт только happy path — 429, таймаут 25с, обрезанный ответ модели,
-ошибка БД, чужой owner не тронуты ни одним тестом.
-
-**Оценка 10.** У каждой новой ветки поведения есть тест, который упадёт, если эту ветку
-сломать: ошибочные пути проверены наравне с успешным. Моки стоят на границе процесса
-(HTTP к OpenAI, Supabase-клиент), а не поверх собственной логики — под тестом остаётся
-настоящий код модуля. Ассерты про поведение и про идентификатор/бакет ошибки, а не про
-конкретную формулировку текста. Для нетривиального модуля точечный прогон Stryker по
-изменённым строкам не оставляет выживших мутантов в новой логике. Строка `R-NN` в
-`context/foundation/test-plan.md` добавляется для крупных изменений — для мелких правок
-она не требуется.
-
-**Почему в списке.** Все три антипаттерна — тест-на-мок, ассерт на точный текст и
-покрытие только happy path — ты ловил в этом проекте больше одного раза.
+**Why this is on the list.** This project has already hit exactly this failure mode: the
+zod schema changed, the JSON Schema did not, and strict mode silently cut data. Migration
+drift has been a separate recurring problem.
 
 ---
 
-## 4. Доказанная граница доступа
+## 2. Honest failure
 
-Про Supabase и владение данными. В проекте защита двухслойная: RLS-политики в миграциях
-и фильтр по owner-id в `cv-repository.ts`. Критерий про то, доказана ли граница, а не
-только заявлена.
+This covers the AI path. LLM output is nondeterministic, and `cv-generation.ts` currently
+treats an invalid response as a named failure bucket rather than a "nearly valid" result.
+This criterion checks whether a PR preserves that honesty.
 
-**Оценка 1.** Две отдельные беды, каждой хватает на единицу. Первая: `user_id` приходит
-не оттуда — из тела запроса, из query-параметра, из `session` без `auth.getUser()`, или
-клиентский id прокидывается в репозиторий как owner. Тогда политики уже неважны: код
-честно спрашивает БД про чужие данные от чужого имени. Вторая: новая таблица или новый
-запрос появились, в миграции написано `enable row level security` и четыре политики — и
-на этом всё. Что политика реально отсекает чужого пользователя, никто не проверял; это
-утверждение автора PR, а не факт.
+**Score 1.** A PR adds salvage logic around generation: `.partial()` on
+`generatedCvDraftSchema`, `.catch(() => fallback)`, defaults for sections the model did
+not return, or partial parsing that keeps whatever happened to parse. The user receives a
+CV with an empty experience section or an invented placeholder instead of an honest error.
+The worst part is that it looks like success from the outside: no error, no bucket, no
+observability signal, and the degradation is invisible.
 
-**Оценка 10.** Owner-id всегда происходит из верифицированного `auth.getUser()` и
-никогда не принимается с клиента — в диффе видно, откуда он взялся. На каждую новую
-таблицу или новый путь доступа есть pgTAP-тест в `supabase/tests/database/`, который под
-чужим `user_id` реально пытается прочитать, обновить и удалить строку и получает ноль
-строк или ошибку. Политики в миграции гранулярные, per-operation, с `using` и
-`with check` там, где нужны оба. Фенс вокруг `SUPABASE_SECRET_KEY` не расширен и
-сервис-ролевой клиент не появился там, где раньше работал обычный.
+**Score 10.** The model response either passes `generatedCvDraftSchema` in full or fails
+with a specific error bucket and reporter location. There are no silent substitutions. If
+a PR intentionally introduces partial behavior, such as optional warnings, that behavior
+is expressed in the schema as an explicitly optional field with a comment explaining why,
+not hidden in a call-site `try/catch`. F-02 privacy still holds: draft contents, prompts,
+and raw model responses do not leak into logs or error text.
 
-**Почему в списке.** Ты назвал критичными именно эти два: pgTAP-доказательство RLS и
-происхождение `user_id` — политики в миграции и фенс секретного ключа идут как
-желательные.
+**Why this is on the list.** A PR that turns an invalid model response into a "valid"
+draft with empty or invented sections instead of an honest error is unacceptable for this
+project.
 
 ---
 
-## 5. Слой, дубли и стоимость чтения
+## 3. Tests that can fail
 
-Про то, останется ли код читаемым и предсказуемым после того, как PR влит, — и через
-месяц, когда ты к нему вернёшься.
+This is not about the presence of tests or coverage. It is about whether a test can catch
+a real breakage.
 
-**Оценка 1.** Логика просочилась в роут: в `src/pages/api/cv/generate.ts` завелись
-ретраи, ветвление по содержимому драфта, прямой вызов Supabase мимо `cv-repository`.
-Рядом — второй источник правды, созданный этим же PR: своя валидация вместо
-`cvAnswersSchema`, свой маппинг ошибок вместо `generationErrorMessages`, свой запрос
-вместо репозитория. Плюс новая зависимость в `package.json` ради того, что решается
-десятью строками (и, с учётом Workers-рантайма, вполне может оказаться Node-only и
-просто не поехать). Неочевидные решения не помечены — через месяц непонятно, почему
-ограничение такое странное и какой файл менять.
+**Score 1.** A test asserts its own mock: `fake-supabase` returns a prepared response,
+`cv-generation` is mocked wholesale, and the assertion only verifies that the mock value
+came back. A mutation in the real module would not kill that test. The same score applies
+to assertions on exact copy text, such as `expect(msg).toBe("Generation failed")`, which
+break on copy edits without proving behavior and train maintainers to fix the test instead
+of the code. It also applies when only the happy path is covered while 429s, 25-second
+timeouts, truncated model responses, database errors, and another user's owner boundary
+are not touched by any test.
 
-**Оценка 10.** Роут остаётся тонким: zod-валидация → вызов сервиса → маппинг в envelope;
-логика живёт в `src/lib/services/`, тексты в `*-messages.ts`/`*-copy.ts`, доступ к БД
-только через репозиторий. Существующие схемы, сообщения и репозиторий переиспользованы,
-а не продублированы — второго источника правды PR не создаёт. Новая зависимость
-появляется только когда её реально нечем заменить, и она совместима с Workers. Каждое
-неочевидное решение помечено комментарием **в точке выбора** — в стиле
-`// minItems нет намеренно — strict mode их отвергает`, — а не общим пересказом того, что
-делает код. Если PR меняет правило, а не только код (новый фенс, новая команда, новое
-соглашение о размещении тестов), обновлены `CLAUDE.md`/`README.md`.
+**Score 10.** Every new behavior branch has a test that would fail if that branch broke:
+error paths are tested alongside success. Mocks sit at process boundaries, such as OpenAI
+HTTP and the Supabase client, not on top of the project's own logic; the real module code
+remains under test. Assertions check behavior and error identifiers or buckets, not exact
+copy. For a nontrivial module, a targeted Stryker run over the changed lines leaves no
+surviving mutants in the new logic. A matching `R-NN` row is added to
+`context/foundation/test-plan.md` for larger changes; tiny edits do not require one.
 
-**Почему в списке.** Ты отметил как неприемлемые логику в роуте, дубль вместо
-переиспользования и лишнюю зависимость, а из документации назвал обязательным именно
-комментарий в точке неочевидного выбора.
+**Why this is on the list.** This project has repeatedly seen all three anti-patterns:
+tests that only assert mocks, assertions on exact text, and happy-path-only coverage.
+
+---
+
+## 4. Proven access boundary
+
+This covers Supabase and data ownership. The project has a two-layer boundary: RLS
+policies in migrations and an owner-id filter in `cv-repository.ts`. This criterion checks
+whether the boundary is proven, not merely claimed.
+
+**Score 1.** Two separate problems each earn this score. First, `user_id` comes from the
+wrong place: the request body, a query parameter, a `session` without `auth.getUser()`, or
+a client-provided id passed to the repository as the owner. In that case the policies no
+longer matter; the code is asking the database about someone else's rows under the wrong
+identity. Second, a new table or access path appears, the migration says
+`enable row level security` and adds policies, and the PR stops there. Nobody has proven
+that the policy rejects another user; it remains an author claim, not a fact.
+
+**Score 10.** Owner id always comes from verified `auth.getUser()` and is never accepted
+from the client; the diff shows where it came from. Every new table or access path has a
+pgTAP test in `supabase/tests/database/` that impersonates another `user_id`, tries to
+read, update, and delete a row, and receives zero rows or an error. Migration policies are
+granular, per-operation policies with `using` and `with check` wherever both are needed.
+The fence around `SUPABASE_SECRET_KEY` is not widened, and a service-role client does not
+appear where a normal client worked before.
+
+**Why this is on the list.** The critical requirements are pgTAP evidence for RLS and the
+proven origin of `user_id`. Migration policies and the secret-key fence support that
+boundary.
+
+---
+
+## 5. Layering, duplication and cost of reading
+
+This checks whether the code will remain readable and predictable after the PR is merged,
+and again a month later.
+
+**Score 1.** Logic leaks into the route: `src/pages/api/cv/generate.ts` gains retries,
+branching over draft contents, or direct Supabase calls around `cv-repository`. Nearby, the
+same PR creates a second source of truth: custom validation instead of `cvAnswersSchema`,
+custom error mapping instead of `generationErrorMessages`, or a query that bypasses the
+repository. A new dependency is added to `package.json` for something that can be solved in
+ten lines, and it may turn out to be Node-only in the Workers runtime. Non-obvious
+decisions are not marked; a month later it is unclear why the constraint is unusual and
+which file owns the rule.
+
+**Score 10.** Routes stay thin: zod validation, service call, envelope mapping. Logic
+lives in `src/lib/services/`, copy lives in `*-messages.ts` or `*-copy.ts`, and database
+access goes through the repository. Existing schemas, messages, and repositories are
+reused instead of duplicated; the PR does not create a second source of truth. A new
+dependency appears only when it cannot reasonably be replaced, and it is compatible with
+Workers. Every non-obvious decision has a comment at the choice point, such as
+`// minItems is intentionally absent because strict mode rejects it`, not a general
+retelling of what the code does. If the PR changes a rule rather than just code, such as a
+new fence, command, or test placement convention, `CLAUDE.md` or `README.md` is updated.
+
+**Why this is on the list.** Logic in routes, duplication instead of reuse, and unnecessary
+dependencies have all been called unacceptable here. For documentation, the required part
+is a comment at the non-obvious choice point.

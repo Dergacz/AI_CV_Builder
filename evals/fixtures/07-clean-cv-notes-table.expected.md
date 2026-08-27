@@ -1,41 +1,43 @@
-# 07 — по-настоящему чистый PR
+# 07 - Actually Clean PR
 
-Роль, которую до 2026-08-27 играла фикстура 01: страховка против ложных срабатываний.
-Хороший ревьюер здесь **не находит ничего** и возвращает `approve` с пустым списком.
+This is the role fixture 01 used to play before 2026-08-27: protection against false
+positives. A good reviewer finds **nothing** here and returns `approve` with an empty
+finding list.
 
-## Почему здесь нечего найти
+## Why There Is Nothing to Find
 
-Фикстура собрана как зеркальное отражение 03 — там новая таблица приезжает без RLS,
-здесь всё, что рубрика критерия 4 требует на десятку, лежит в диффе и видно глазами:
+The fixture mirrors 03. There, a new table arrives without RLS. Here, everything criterion
+4 requires for a 10 is visible in the diff:
 
-- `alter table public.cv_notes enable row level security` присутствует;
-- политики гранулярные, per-operation, с `with check` на обоих путях записи;
-- pgTAP-тест не утверждает, что политики есть, а сажает чужого пользователя и проверяет
-  ноль строк на select, update и delete — плюс контрольная проверка, что строка вообще
-  была, иначе три нуля означали бы «фикстура ничего не вставила»;
-- owner-id берётся из `safeGetUser()` в роуте, а не из тела запроса и не из пути.
+- `alter table public.cv_notes enable row level security` is present;
+- policies are granular, per-operation policies, with `with check` on both write paths;
+- the pgTAP test does not merely assert that policies exist; it impersonates another user
+  and checks zero rows for select, update, and delete, plus a control assertion proving
+  that the row existed in the first place;
+- owner id comes from `safeGetUser()` in the route, not from the request body or path.
 
-По остальным четырём критериям тоже нет зацепок:
+The other four criteria have no hook either:
 
-| Критерий                          | Почему закрыт                                                                                                                                                                               |
-| --------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 1. Синхронность контрактов        | Лимит 2000 живёт в check-констрейнте, `cv-note.schema.ts` его зеркалит, а комментарий в миграции говорит, какая сторона владеет гарантией. `database.types.ts` перегенерирован в том же PR. |
-| 2. Честный отказ                  | Путь генерации не тронут вообще. Ошибки роута — существующие бакеты, без спасательной логики.                                                                                               |
-| 3. Тест, который может упасть     | Границы (ровно 2000, 2001, trim, пустая строка) проверены против настоящей схемы, без моков; RLS доказан на настоящей БД.                                                                   |
-| 5. Слой, дубли и стоимость чтения | Роут тонкий, доступ к БД только через репозиторий, `cvSaveErrorMessages` / `readBoundedJson` / `getCv` переиспользованы, новых зависимостей нет.                                            |
+| Criterion | Why it is satisfied |
+| --------- | ------------------- |
+| 1. Contract synchrony | The 2000 limit lives in the check constraint, `cv-note.schema.ts` mirrors it, and the migration comment states which side owns the guarantee. `database.types.ts` is regenerated in the same PR. |
+| 2. Honest failure | The generation path is not touched. Route errors use existing buckets, without salvage logic. |
+| 3. Tests that can fail | Boundaries (exactly 2000, 2001, trim, empty string) are tested against the real schema, without mocks; RLS is proven against the real database. |
+| 5. Layering, duplication and cost of reading | The route is thin, database access goes through the repository, `cvSaveErrorMessages`, `readBoundedJson`, and `getCv` are reused, and no new dependency is added. |
 
-## Ожидание
+## Expectation
 
-`verdict: "approve"`, `findings: []`, все пять оценок в диапазоне 8–10.
+`verdict: "approve"`, `findings: []`, and all five scores in the 8-10 range.
 
-## Что именно измеряет фикстура
+## What This Fixture Measures
 
-26 августа из `REVIEW_INSTRUCTIONS` было снято правило «Never speculate about code you
-cannot see» — оно мешало ловить отсутствия (новая таблица без RLS, поднятый лимит без
-миграции). Снятие правильное, но плата за него — риск домысливания, и до этой фикстуры
-он ничем не измерялся. Любая находка здесь и есть проявление этого риска.
+On August 26, the rule "Never speculate about code you cannot see" was removed from
+`REVIEW_INSTRUCTIONS`. It had blocked the agent from catching absences such as a new table
+without RLS or a raised limit without a migration. Removing it was correct, but the cost is
+the risk of over-inference; before this fixture, that risk was not measured. Any finding
+here is evidence of that risk.
 
-Типичные кандидаты в ложные находки, все несостоятельные: «а обновлён ли
-`DRAFT_CONTENT_JSON_SCHEMA`» (заметка не входит в форму драфта), «а есть ли индекс по
-`user_id`» (`cv_id` — первичный ключ, а выборка всегда по паре ключей), «а тест на
-репозиторий» (в нём нет ветвления, а граница доказана pgTAP-тестом).
+Typical false-finding candidates, all invalid: "was `DRAFT_CONTENT_JSON_SCHEMA` updated?"
+because notes are not part of the draft shape; "is there an index on `user_id`?" because
+`cv_id` is the primary key and reads always use a key pair; "is there a repository test?"
+because there is no branch in the repository and the boundary is proven by pgTAP.

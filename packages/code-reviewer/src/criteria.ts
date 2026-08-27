@@ -56,9 +56,9 @@ export type Review = z.infer<typeof reviewSchema>;
 export type Severity = (typeof SEVERITIES)[number];
 export type Verdict = (typeof VERDICTS)[number];
 
-/** `1. contract-sync — Contract synchrony (Синхронность контрактов)`, one per line. */
+/** `1. contract-sync — Contract synchrony`, one per line. */
 const CRITERIA_LIST = CRITERIA.map(
-  (criterion) => `${String(criterion.number)}. ${criterion.slug} — ${criterion.name} (${criterion.title})`,
+  (criterion) => `${String(criterion.number)}. ${criterion.slug} — ${criterion.name}`,
 ).join("\n");
 
 /**
@@ -114,7 +114,7 @@ Verdict:
 - \`comment\` otherwise.
 - A clean change is a real outcome. If the diff violates none of the five criteria, return an empty \`findings\` array, \`approve\`, and a summary that says concretely why — the function it adds, the boundaries its tests cover, the contract it leaves untouched. Do not manufacture a finding to look thorough.
 
-Write \`summary\`, \`suggestion\` and every other free-text field in English, even though the scoring rubrics are in Russian.`;
+Write \`summary\`, \`suggestion\` and every other free-text field in English. The scoring rubrics are also English.`;
 
 /**
  * Constraint keywords strict structured output rejects.

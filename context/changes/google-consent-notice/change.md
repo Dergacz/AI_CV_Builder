@@ -9,4 +9,4 @@ archived_at: null
 
 ## Notes
 
-заменить чекбокс согласия у Google-кнопки на строку-нотис «Продолжая через Google, вы принимаете Условия и Политику конфиденциальности» со ссылками на /terms и /privacy; consent-кука ставится для обоих intent'ов, callback штампует consent_version как раньше — это заодно убирает тупик, когда новый пользователь жмёт Google на /auth/signin и после OAuth его выкидывает на /auth/signup?error=consent_required
+Replace the consent checkbox next to the Google button with an inline notice saying that continuing with Google accepts the Terms and Privacy Policy, with links to `/terms` and `/privacy`. The consent cookie is set for both intents, and the callback stamps `consent_version` as before. This also removes the dead end where a new user clicks Google on `/auth/signin` and, after OAuth, is sent to `/auth/signup?error=consent_required`.

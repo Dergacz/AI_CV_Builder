@@ -143,4 +143,4 @@ index 2a7c0f9..e1b4d88 100644
 --- FIXTURE METADATA (strip before feeding the agent) ---
 fixture: 03-cv-tags-missing-rls
 expectation: one primary finding (new table ships without RLS)
-violates: "Доказанная граница доступа" (критерий 4)
+violates: "Proven access boundary" (criterion 4)

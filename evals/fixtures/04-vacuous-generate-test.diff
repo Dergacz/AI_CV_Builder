@@ -108,4 +108,4 @@ index 0000000..d7f1a02
 --- FIXTURE METADATA (strip before feeding the agent) ---
 fixture: 04-vacuous-generate-test
 expectation: one primary finding (test asserts the mock, not the route)
-violates: "Тест, который может упасть" (критерий 3)
+violates: "Tests that can fail" (criterion 3)

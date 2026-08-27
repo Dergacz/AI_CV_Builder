@@ -1,153 +1,157 @@
-# Evals: сравнение моделей на задаче код-ревью
+# Evals: Comparing Models on Code Review
 
-## Зачем этот набор существует
+## Why This Suite Exists
 
-Промпт ревьюера (`REVIEW_INSTRUCTIONS` в `packages/code-reviewer/src/criteria.ts`) — это то,
-что решает, проходит PR гейт или нет. Правка одной строки в нём меняет поведение сразу на
-всех входах, и заметить регрессию, прогнав агента на своём текущем PR, невозможно: ты
-увидишь один ответ на одном диффе. Набор фиксирует шесть диффов с заранее известным
-ответом (`fixtures/*.expected.md`) и прогоняет по ним три модели разной цены — дорогую
-рассуждающую, среднюю и дешёвую. После каждой правки промпта отсюда видно две вещи:
-не перестала ли модель ловить то, что ловила раньше, и не справляется ли дешёвая модель
-не хуже дорогой — второе решает, за что платить в CI. Промпт и схема **импортируются** из
-`criteria.ts`, а не копируются, поэтому разойтись с тем, что реально крутится в
-`packages/code-reviewer`, они не могут.
+The review prompt (`REVIEW_INSTRUCTIONS` in `packages/code-reviewer/src/criteria.ts`)
+decides whether a PR passes the gate. Editing one line changes behavior across every
+input, and running the agent on the current PR only shows one response to one diff. This
+suite fixes seven diffs with known expectations (`fixtures/*.expected.md`) and runs them
+against three models at different price points: expensive reasoning, mid-range, and cheap.
+After every prompt change, the suite shows whether a model stopped catching what it caught
+before, and whether a cheaper model performs well enough for CI. The prompt and schema are
+**imported** from `criteria.ts`, not copied, so they cannot drift from what actually runs
+in `packages/code-reviewer`.
 
-## Текущее состояние набора
+## Current Suite State
 
-**Последний прогон: 2026-08-27 — 11/18 (61%).** Полный отчёт с матрицей и разбором
-падений: [`results/2026-08-27/summary.md`](results/2026-08-27/summary.md).
+**Latest run: 2026-08-27 - 11/18 (61%).** Full matrix and failure analysis:
+[`results/2026-08-27/summary.md`](results/2026-08-27/summary.md).
 
-|             | opus-4.8 | gpt-5.4-mini | deepseek-v3.2 |
-| ----------- | :------: | :----------: | :-----------: |
-| прошло      |   5/6    |     3/6      |      3/6      |
-| $ за прогон |  0.8015  |    0.0289    |    0.0045     |
+|           | opus-4.8 | gpt-5.4-mini | deepseek-v3.2 |
+| --------- | :------: | :----------: | :-----------: |
+| passed    |   5/6    |     3/6      |      3/6      |
+| run cost  |  0.8015  |    0.0289    |    0.0045     |
 
-До того, как критерии из `context/review-criteria.md` были связаны со схемой и
-промптом, набор давал 6/18: промпт просил generic-ревью, а ассерции проверяли
-проектную специфику. Связка починена — прирост пришёл с фикстур 03 (RLS) и 06
-(честный отказ), их теперь берут все три модели.
+Before criteria from `context/review-criteria.md` were connected to the schema and prompt,
+the suite scored 6/18: the prompt asked for generic review while the assertions checked
+project-specific issues. That wiring is fixed. The gain came from fixtures 03 (RLS) and
+06 (honest failure), which all three models now catch.
 
-Что остаётся красным: **синхронность контрактов на дешёвых моделях** — фикстуры 02
-и 05 требуют файла, которого в диффе нет (старая миграция, zod-энум), и
-gpt-5.4-mini с deepseek возвращают на них `approve` с нулём находок. Opus обе
-берёт. Из этого следует практический вывод для CI: приемлемо набор проходит
-только opus-4.8, то есть дешёвого варианта на сегодня нет.
+What remains red: **contract synchrony on cheap models**. Fixtures 02 and 05 require a
+file outside the diff: an older migration and a zod enum. `gpt-5.4-mini` and `deepseek`
+return `approve` with zero findings on those cases. Opus catches both. The practical CI
+answer is that only opus-4.8 is acceptable today; there is no cheaper option backed by
+the current data.
 
-Единственное падение opus — фикстура 01, и там права модель, а не ожидание:
-комментарий в коде обещает лимит в байтах, а `truncateStem` режет по символам.
+The only opus failure is fixture 01, where the model is right and the old expectation was
+wrong: the code comment promises a byte limit while `truncateStem` truncates by characters.
 
-## Запуск
+## Running
 
 ```sh
-export OPENROUTER_API_KEY=...   # тот же ключ, что у packages/code-reviewer
-npm run eval                    # полный прогон, ~$0.84 (замерено 2026-08-27)
-npm run eval:view               # отчёт в браузере: находки, токены, реальная стоимость
+export OPENROUTER_API_KEY=...   # same key as packages/code-reviewer
+npm run eval                    # full run, about $0.84 measured on 2026-08-27
+npm run eval:view               # browser report: findings, tokens, actual cost
 ```
 
-Прогон подорожал в пять раз против первого замера (~$0.17): рубрики критериев
-уезжают в каждый запрос как `description` полей `scores`, и prompt-часть выросла
-до ~14k токенов на вызов. Почти весь счёт — opus: $0.80 из $0.84.
+The run became about five times more expensive than the first measurement (about $0.17):
+criterion rubrics are sent on every request as `scores` field descriptions, and the prompt
+portion grew to about 14k tokens per call. Almost the whole bill is opus: $0.80 out of
+$0.84.
 
-Результат прогона сохраняй в git — `evals/results/<дата>/`, см.
-[`results/README.md`](results/README.md). База promptfoo лежит в `~/.promptfoo/`,
-её нет ни у CI, ни на другой машине, а вопрос «стало лучше или хуже» без
-предыдущей точки отсчёта не отвечается.
+Save run results in git under `evals/results/<date>/`; see
+[`results/README.md`](results/README.md). The promptfoo database lives in `~/.promptfoo/`.
+CI and other machines do not have it, and "did this get better or worse?" cannot be
+answered without a versioned baseline.
 
-Полезное при отладке: `-n 1` (только первая фикстура), `--filter-pattern "^03"` (одна
-фикстура), `--filter-providers deepseek` (одна модель), `--no-cache`.
+Useful debugging flags: `-n 1` for the first fixture only, `--filter-pattern "^03"` for
+one fixture, `--filter-providers deepseek` for one model, and `--no-cache`.
 
-## Когда покраснело: сначала классифицируй, потом чинь
+## When the Suite Turns Red: Classify First, Then Fix
 
-**Красная клетка — это ещё не дефект агента.** Прежде чем трогать промпт, отнеси падение
-к одной из трёх категорий. Порядок обязателен: правка промпта по неверно понятому
-падению делает хуже дважды — не чинит настоящую причину и меняет поведение на всех
-остальных фикстурах.
+**A red cell is not automatically an agent defect.** Before touching the prompt, classify
+the failure into one of three categories. The order matters: changing the prompt after
+misreading a failure makes the system worse twice, by leaving the real cause in place and
+changing behavior on every other fixture.
 
-| Категория                               | Как выглядит                                                                                       | Что чинить                                             |
-| --------------------------------------- | -------------------------------------------------------------------------------------------------- | ------------------------------------------------------ |
-| **A. Агент не заметил**                 | Находки нет вообще, либо вердикт `approve` с высокими оценками по критерию, который нарушен        | Промпт, критерии или **вход** — см. ниже               |
-| **B. Заметил, но не поймала регулярка** | Дефект описан в `summary`/`suggestion` человеческими словами, но не теми, что ищет `assertions.ts` | Ассерцию — расширить формулировки, не ослабляя условие |
-| **C. Ожидание неверное**                | Находка по существу права, а `.expected.md` говорит, что находок быть не должно                    | Фикстуру и `.expected.md`                              |
+| Category | What it looks like | What to fix |
+| -------- | ------------------ | ----------- |
+| **A. Agent missed it** | No finding exists, or the verdict is `approve` with high scores for a violated criterion | Prompt, criteria, or **input**; see below |
+| **B. Agent found it, regex missed it** | The defect is described in `summary` or `suggestion`, but not with words `assertions.ts` searches for | Assertion wording, without weakening the condition |
+| **C. Expectation is wrong** | The finding is substantively correct, while `.expected.md` says there should be no finding | Fixture and `.expected.md` |
 
-Как различить A и B за тридцать секунд: открой `npm run eval:view`, найди клетку и
-прочитай сам JSON ответа, а не только строку `reason`. Если в `findings` есть находка
-про нужное место — это B. Если `findings` пуст или про другое — это A.
+To distinguish A from B in thirty seconds, open `npm run eval:view`, find the cell, and
+read the raw JSON response instead of only the `reason` string. If `findings` contains a
+finding about the right location, it is B. If `findings` is empty or about another issue,
+it is A.
 
-C распознаётся только чтением диффа фикстуры своими глазами. Это дороже всего и потому
-пропускается чаще всего.
+C can only be recognized by reading the fixture diff yourself. It costs more time and is
+therefore the easiest step to skip.
 
-### Почему это правило появилось
+### Why This Rule Exists
 
-В прогоне 2026-08-27 opus-4.8 «провалил» фикстуру 01, которая называлась
-`01-clean-filename-length-cap` и ожидала пустой результат. Модель нашла, что комментарий
-в диффе обещает запас по 255-байтному лимиту, а обрезка идёт по символам — то есть была
-права. Набор наказывал внимательную модель и премировал невнимательные: две более дешёвые
-модели «прошли» эту фикстуру, не заметив ничего.
+In the 2026-08-27 run, opus-4.8 "failed" fixture 01, then named
+`01-clean-filename-length-cap`, which expected no findings. The model found that the diff
+comment promised safety against a 255-byte filename limit while the truncation was by
+characters. The model was right. The suite punished the attentive model and rewarded the
+two cheaper models that missed the issue.
 
-Это была категория C. Если бы её приняли за A и «починили» промптом — добавили бы строку
-вроде «не придирайся к комментариям», — агент стал бы хуже на всех остальных фикстурах,
-а настоящая причина осталась бы в репозитории. Фикстура переименована в
-`01-filename-cap-byte-claim` и переведена в разряд «выглядит чисто, но не чисто»; роль
-чистого PR играет `07-clean-cv-notes-table`.
+That was category C. Treating it as A and "fixing" the prompt with a rule like "do not
+nitpick comments" would have made the agent worse on every other fixture while leaving the
+real issue in the repository. The fixture was renamed to `01-filename-cap-byte-claim` and
+reclassified as "looks clean, but is not"; `07-clean-cv-notes-table` is now the clean PR.
 
-За тот же прогон категории B не встретилось ни разу: везде, где модель дефект называла,
-регулярка его ловила. Это полезная калибровка — если кажется, что упало сразу несколько
-ассерций, вероятнее всего это A, а не набор плохих регулярок.
+The same run had no category B failures: whenever the model named the defect, the regex
+caught it. That is useful calibration. If several assertions appear to fail at once, the
+more likely cause is A, not a set of bad regexes.
 
-### Внутри категории A: промпт или вход?
+### Inside Category A: Prompt or Input?
 
-Развилка, которая обходится дороже всего, если её пропустить. Спроси: **был ли ответ
-в принципе доступен из того, что агент видел?**
+This is the branch that costs the most when skipped. Ask: **was the answer available from
+what the agent saw?**
 
-- Если да — дефект промпта или критериев.
-- Если нет (нужен файл, которого в диффе нет) — дефект **входа**, и промпт тут бессилен.
+- If yes, the prompt or criteria are defective.
+- If no, because the answer needs a file outside the diff, the defect is in the **input**;
+  the prompt cannot solve it.
 
-Так вышло с фикстурами 02 и 05: обе требуют файла за пределами диффа (старой миграции,
-zod-энума), и их брала только самая дорогая модель — она достраивала недостающую сторону
-из общих знаний. Лечится это инструментом `readRelatedContracts`, а не формулировкой.
+This happened with fixtures 02 and 05. Both require a file outside the diff: an old
+migration and a zod enum. Only the most expensive model caught them because it inferred the
+missing side from general knowledge. The fix is `readRelatedContracts`, not new prompt
+wording.
 
-## Разбор упавшей ассерции
+## Investigating a Failed Assertion
 
-1. `npm run eval:view` — в отчёте видно, какая из трёх ассерций упала и на какой фикстуре.
-2. Что именно упало:
-   - **`is-json`** — модель перестала отдавать разбираемый объект нужной формы. Это не про
-     качество ревью, а про пригодность выхода для гейта: чинится контрактом вывода в
-     `prompt.ts` или сменой модели.
-   - **`javascript`** — модель не нашла тот дефект, ради которого фикстура заведена.
-     Условие лежит в `assertions.ts`, ожидаемый ответ словами — в `fixtures/NN-*.expected.md`.
-   - **`llm-rubric`** — дефект найден, но обоснование общее, без файла, строки или имени
-     символа из диффа.
-3. **Проверь, не флак ли это.** Прогоны не полностью детерминированы: на замерах одна
-   и та же модель меняла вердикт по фикстуре 05 между прогонами, а порог здесь строгий —
-   одного перевёрнутого кейса хватает, чтобы весь прогон стал красным. Прежде чем чинить
-   промпт, повтори упавший кейс: `npm run eval -- --filter-pattern "^05" --repeat 3 --no-cache`.
-   Стабильно красный — иди дальше; красный через раз — это разброс модели, и решать надо
-   его (температура, модель), а не переписывать ассерцию.
-4. Дальше развилка, и она важнее всего остального: **правка сделала ревью хуже — или
-   ассерция описывала не то?** Если `.expected.md` по-прежнему прав, чинить надо промпт.
-   Если ты сознательно поменял поведение, обнови сначала `.expected.md`, и только потом
-   ассерцию — в таком порядке, чтобы новое ожидание было записано словами прежде, чем
-   станет регуляркой. То же и для категории C: сначала переписывается `.expected.md`,
-   потом ассерция.
-5. Чего делать нельзя: **понижать порог**. Он здесь дефолтный и строгий — одна упавшая
-   ассерция роняет весь прогон. Зелёный отчёт, полученный ослаблением ассерции, не
-   означает ничего.
+1. `npm run eval:view` shows which of the three assertion types failed and on which
+   fixture.
+2. Identify the failed assertion:
+   - **`is-json`**: the model stopped returning a parseable object of the expected shape.
+     This is about gate usability, not review quality. Fix the output contract in
+     `prompt.ts` or change the model.
+   - **`javascript`**: the model did not find the defect the fixture exists to measure.
+     The condition lives in `assertions.ts`; the expected answer in words lives in
+     `fixtures/NN-*.expected.md`.
+   - **`llm-rubric`**: the defect was found, but the rationale is generic and lacks a
+     file, line, or symbol from the diff.
+3. **Check whether it is flaky.** Runs are not fully deterministic: in measurements, the
+   same model changed its verdict for fixture 05 between runs. The threshold here is
+   strict, so one flipped case turns the whole run red. Before changing the prompt, repeat
+   the failing case:
+   `npm run eval -- --filter-pattern "^05" --repeat 3 --no-cache`. If it is stably red,
+   continue. If it flips, solve model variance, temperature, or model choice instead of
+   rewriting the assertion.
+4. The next branch matters most: **did the change make review worse, or did the assertion
+   describe the wrong thing?** If `.expected.md` is still right, fix the prompt. If behavior
+   intentionally changed, update `.expected.md` first and only then the assertion, so the
+   new expectation is written in prose before it becomes a regex. The same applies to
+   category C: expected prose first, assertion second.
+5. Do not lower the threshold. It is intentionally default-strict: one failed assertion
+   fails the run. A green report obtained by weakening assertions does not prove anything.
 
-## Что стоит знать
+## Things to Know
 
-- Фикстуры несут ответ после строки `--- FIXTURE METADATA`; `prompt.ts` отрезает его
-  перед отправкой, так что модель его не видит.
-- Запрос к модели повторяет то, что делает CLI: системный промпт уходит как
-  `REVIEW_INSTRUCTIONS` дословно, а схема — через `response_format: {type: json_schema,
-strict: true}`, ровно как её отправляет `Output.object()` в AI SDK. Без этого `is-json`
-  падал бы на преамбулах прозой, которых продакшен-путь никогда не видит.
-- Судья для `llm-rubric` — `anthropic/claude-sonnet-4.6`, намеренно не из трёх
-  проверяемых моделей, чтобы никто не оценивал сам себя.
-- `openrouter-provider.ts` существует по одной причине: встроенный провайдер promptfoo
-  считает стоимость по таблице голых OpenAI-идентификаторов, промахивается на слагах
-  вида `anthropic/claude-opus-4.8` и показывает пустую колонку. Свой провайдер просит
-  `usage: { include: true }` и отдаёт `usage.cost` от OpenRouter как есть.
-- Он же разворачивает ответ, целиком завёрнутый в ```-блок, — страховка на случай
-модели без поддержки strict-режима. При включённом `response_format` она обычно не
-  срабатывает. Ответ прозой всё так же падает, и это правильно.
+- Fixtures carry their answer after `--- FIXTURE METADATA`; `prompt.ts` strips it before
+  sending the input to the model.
+- The model request mirrors the CLI path: the system prompt is exactly
+  `REVIEW_INSTRUCTIONS`, and the schema is sent through
+  `response_format: {type: json_schema, strict: true}` exactly as AI SDK `Output.object()`
+  sends it. Without this, `is-json` would fail on prose preambles that production never
+  sees.
+- The judge for `llm-rubric` is `anthropic/claude-sonnet-4.6`, intentionally outside the
+  three tested models so no model judges itself.
+- `openrouter-provider.ts` exists because promptfoo's built-in provider calculates cost
+  from bare OpenAI identifiers, misses slugs such as `anthropic/claude-opus-4.8`, and shows
+  an empty cost column. The custom provider asks OpenRouter for `usage: { include: true }`
+  and returns `usage.cost` as-is.
+- The same provider unwraps responses fully enclosed in a code fence as a fallback for
+  models without strict-mode support. With `response_format`, this usually does not run.
+  Prose answers still fail, and that is correct.

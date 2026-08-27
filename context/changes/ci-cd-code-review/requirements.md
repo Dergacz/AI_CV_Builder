@@ -1,56 +1,61 @@
-# Гейт AI-ревью: требования
+# AI Review Gate: Requirements
 
-Что гейт получает на вход, что делает наружу и по чему судит. Реализация живёт в
-`.github/workflows/ai-review.yml` и `.github/actions/ai-review/`.
+What the gate receives, what it produces, and what it judges. The implementation lives in
+`.github/workflows/ai-review.yml` and `.github/actions/ai-review/`.
 
-## Overall concept
+## Overall Concept
 
-- GHA workflow run for every new pull request to master
-- composite action for the review itself, so that the main workflow only prepares the
-  diff and enforces the verdict, and the review step can be reused from another
-  workflow (or run on demand) without copying its logic
+- GitHub Actions workflow run for every new pull request to `master`
+- Composite action for the review itself, so the main workflow only prepares the diff and
+  enforces the verdict, while the review step can be reused from another workflow or run
+  on demand without copying its logic
 
-## Input parameters
+## Input Parameters
 
 - pull request title
-- pull request description (?? cost tradeoff)
+- pull request description
 - git diff
 
-Диффом всё не ограничивается: агент дочитывает связанные контракты из репозитория сам
-(`readRelatedContracts`), потому что расхождение zod-схемы с миграцией по одному диффу
-физически не видно. Заведено после прогона 2026-08-27, где фикстуры 02 и 05 брала
-только самая дорогая модель.
+The diff is not enough by itself. The agent reads related contracts from the repository
+through `readRelatedContracts`, because drift between a zod schema and a migration can be
+physically invisible in a single diff. This was added after the 2026-08-27 run, where only
+the most expensive model caught fixtures 02 and 05.
 
 ## Code Review Criteria
 
-**Источник правды — [`context/review-criteria.md`](../../review-criteria.md).**
+**Source of truth: [`context/review-criteria.md`](../../review-criteria.md).**
 
-Здесь список не дублируется намеренно. Пять критериев оттуда генерируются в
-`packages/code-reviewer/src/criteria.generated.ts` (`npm run criteria:build`), рубрики
-1–10 уезжают в схему вывода как описания полей, а `npm run criteria:check` роняет сборку,
-если документ и код разошлись. Второй список критериев в этом файле стал бы третьим
-описанием одного и того же — ровно тот дефект, который ловит критерий 1.
+The list is intentionally not duplicated here. The five criteria from that document are
+generated into `packages/code-reviewer/src/criteria.generated.ts`
+(`npm run criteria:build`), the 1-10 rubrics are copied into the output schema field
+descriptions, and `npm run criteria:check` fails the build when the document and generated
+code drift. A second criteria list in this file would become a third description of the
+same contract, which is exactly the defect criterion 1 is meant to catch.
 
-Раньше здесь лежали шесть измерений (correctness / idiomaticity / complexity / test
-coverage / documentation / security) из курсового примера. Они не описывали этот проект
-и ни одним исполняемым файлом не читались; заменены ссылкой 2026-08-27.
+This file used to contain six generic dimensions from the course example: correctness,
+idiomaticity, complexity, test coverage, documentation, and security. They did not
+describe this project and no executable file read them. They were replaced by a link to
+the generated criteria source on 2026-08-27.
 
-## Expected side-effects
+## Expected Side Effects
 
 - PR comment with summary
 - labels: `ai-cr:failed` (red) OR `ai-cr:passed`
 
-Комментарий переписывается на месте по маркеру, а не добавляется новый на каждый прогон.
-Оба лейбла взаимоисключающие: action снимает противоположный. Лейблы должны существовать
-в репозитории заранее — action их не создаёт, а пишет `::warning::`.
+The comment is rewritten in place using a marker instead of adding a new comment on every
+run. The two labels are mutually exclusive: the action removes the opposite label. The
+labels must already exist in the repository; the action does not create them and emits an
+`::warning::` instead.
 
-## Expected behavior
+## Expected Behavior
 
-- on-demand retry when label `ai-cr:review` is added
+- on-demand retry when the `ai-cr:review` label is added
 
-Лейбл снимается в `always()`-шаге после прогона: повторное добавление уже висящего
-лейбла события не порождает, и без снятия PR застрял бы после первого ретрая.
+The label is removed in an `always()` step after the run. Adding a label that is already
+present does not create another event, so without removal the PR would be stuck after the
+first retry.
 
-Гейт роняет проверку только на вердикте `request-changes` (вход `fail-on`). Сам action
-при этом завершается успешно и лишь выставляет output — падает отдельный шаг
-`Enforce verdict`, чтобы отличать «ревью прошло и забраковало» от «ревью не отработало».
+The gate fails only when the verdict is `request-changes` according to the `fail-on`
+input. The action itself completes successfully and exposes the verdict as an output; a
+separate `Enforce verdict` step fails so that "review ran and rejected the PR" remains
+distinguishable from "review did not run".

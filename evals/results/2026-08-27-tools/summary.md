@@ -1,97 +1,100 @@
-# Прогон 2026-08-27 (инструменты) — НЕПОЛНЫЙ
+# Run 2026-08-27 (Tools) - Incomplete
 
-**Полный набор прогнать не удалось: на ключе OpenRouter кончился кредит.** Из 21 клетки
-измерены 2. Ниже — только то, что реально померено, и честный учёт того, что нет.
+**The full suite could not run because the OpenRouter key ran out of credit.** Out of
+21 cells, only 2 were measured. This report contains only what was actually measured and
+keeps the missing evidence explicit.
 
-## Что произошло
+## What Happened
 
-| Прогон | Клеток | С ответом | Итог |
+| Run | Cells | With response | Outcome |
 | --- | ---: | ---: | --- |
-| Контроль, без инструментов (02 и 05 × 3 модели) | 6 | **6** | валиден |
-| Полный набор с инструментами, `-j 4` | 21 | **2** | 19 клеток — 402 от OpenRouter |
-| Полный набор с инструментами, `-j 1`, maxTokens 4096 | 21 | 0 | 16 × 402, 3 × сбой парса у deepseek, 2 × пусто |
-| Только дешёвые модели, `-j 1` | 14 | 0 | 14 × 402 |
+| Control, without tools (02 and 05 x 3 models) | 6 | **6** | valid |
+| Full suite with tools, `-j 4` | 21 | **2** | 19 cells got OpenRouter 402 |
+| Full suite with tools, `-j 1`, maxTokens 4096 | 21 | 0 | 16 x 402, 3 x deepseek parse failure, 2 x empty |
+| Cheap models only, `-j 1` | 14 | 0 | 14 x 402 |
 
 402: `This request would exceed your available credits given your current in-flight
-requests`. OpenRouter резервирует под каждый запрос `max_tokens × цена вывода` плюс
-вход; петля инструментов шлёт накопленный контекст на каждом шаге, и резерв растёт от
-шага к шагу. Понижение `maxTokens` с 8192 до 4096 и `-j 1` проблему не сняли.
+requests`. OpenRouter reserves each request as `max_tokens x output price` plus input; the
+tool loop sends accumulated context on every step, so the reserve grows step by step.
+Lowering `maxTokens` from 8192 to 4096 and using `-j 1` did not remove the problem.
 
-Баланс ключа: было $2.494 свободных, стало $1.026. **Провалившиеся прогоны съели ≈$1.47
-и не дали ни одной измеренной клетки.** Полный набор с инструментами стоит примерно
-$2.2 (opus ≈ $0.25 × 7), то есть он не помещался в остаток с самого начала — это надо
-было посчитать до запуска, а не после.
+Key balance: $2.494 available before the run, $1.026 after. **Failed attempts consumed
+about $1.47 and produced no measured cells.** A full suite with tools costs roughly $2.2
+(opus about $0.25 x 7), so it did not fit the remaining balance from the start. That should
+have been calculated before running, not after.
 
-## Что измерено
+## What Was Measured
 
-### Контроль без инструментов (валиден, 6 клеток)
+### Control Without Tools (valid, 6 cells)
 
-| Фикстура | opus-4.8 | gpt-5.4-mini | deepseek-v3.2 |
+| Fixture | opus-4.8 | gpt-5.4-mini | deepseek-v3.2 |
 | --- | :---: | :---: | :---: |
 | 02 contract drift | PASS $0.1280 15.3s | FAIL $0.0126 3.0s | FAIL $0.0013 6.7s |
 | 05 warning-code drift | PASS $0.1270 15.0s | FAIL $0.0023 1.7s | FAIL $0.0002 6.1s |
 
-Это воспроизводит диагноз из `../2026-08-27/summary.md` на текущем промпте и текущей
-обвязке: обе фикстуры берёт только opus. Один шаг, инструментов нет.
+This reproduces the diagnosis from `../2026-08-27/summary.md` with the current prompt and
+current harness: only opus catches both fixtures. One step, no tools.
 
-### С инструментами (валидны 2 клетки, обе gpt-5.4-mini)
+### With Tools (2 valid cells, both gpt-5.4-mini)
 
-| Фикстура | Итог | Шаги | Токены | Стоимость | Время |
+| Fixture | Outcome | Steps | Tokens | Cost | Time |
 | --- | :---: | --- | ---: | ---: | ---: |
-| 02 contract drift | **PASS** | `readRelatedContracts` → `readRelatedContracts` → stop | 59 601 | $0.0169 | 7.0s |
-| 03 missing RLS | **PASS** | `readRelatedContracts` → `readReviewCriteria` ×2 → stop | 76 430 | $0.0115 | 7.8s |
+| 02 contract drift | **PASS** | `readRelatedContracts` -> `readRelatedContracts` -> stop | 59,601 | $0.0169 | 7.0s |
+| 03 missing RLS | **PASS** | `readRelatedContracts` -> `readReviewCriteria` x2 -> stop | 76,430 | $0.0115 | 7.8s |
 
-Ассерция на 02 прошла с формулировкой «Caught the zod/constraint drift: The
-`public.feedback.comment` check constraint still enforces …» — то есть модель назвала
-констрейнт, которого в диффе нет и который она прочитала инструментом.
+The assertion for 02 passed with wording that identified the
+`public.feedback.comment` check constraint still enforcing the old limit. That constraint
+was not in the diff; the model named it after reading it through the tool.
 
-### Ручной прогон (вне promptfoo)
+### Manual Run Outside promptfoo
 
-`google/gemini-3.7-flash` на фикстуре 05 через CLI: 2 шага, первый —
-`readRelatedContracts`, второй — ответ. Нашла расхождение `date_gaps` с
-`draftWarningCodeSchema`, `contractSync: 2`, вердикт `request-changes`. Та же модель до
-инструментов на 01 и без них на 05 ничего не находила.
+`google/gemini-3.7-flash` on fixture 05 through the CLI: 2 steps. The first step was
+`readRelatedContracts`, and the second was the answer. It found the `date_gaps` drift from
+`draftWarningCodeSchema`, set `contractSync: 2`, and returned `request-changes`. The same
+model found nothing on fixture 01 before tools and nothing on 05 without tools.
 
-## Гипотеза «дешёвые модели провалились по входу, а не по способностям»
+## Hypothesis: Cheap Models Failed on Input, Not Capability
 
-**Подтверждается на том, что удалось измерить, но не доказана.**
+**Confirmed by the measured cells, but not proven.**
 
-Прямое A/B на одной клетке, всё остальное одинаково:
+Direct A/B on one cell with everything else equal:
 
-| gpt-5.4-mini, фикстура 02 | без инструментов | с инструментами |
+| gpt-5.4-mini, fixture 02 | without tools | with tools |
 | --- | :---: | :---: |
-| результат | FAIL | **PASS** |
-| стоимость | $0.0126 | $0.0169 (+34%) |
-| время | 3.0s | 7.0s (+133%) |
-| шагов | 1 | 3 |
+| result | FAIL | **PASS** |
+| cost | $0.0126 | $0.0169 (+34%) |
+| time | 3.0s | 7.0s (+133%) |
+| steps | 1 | 3 |
 
-Плюс gemini-3.7-flash на 05. Обе клетки — ровно тот механизм, ради которого инструмент
-делался: модель дочитала недостающую сторону контракта и нашла то, что раньше не находила.
+Plus `gemini-3.7-flash` on fixture 05. Both cells exercise exactly the mechanism the tool
+was built for: the model read the missing side of the contract and found what it previously
+missed.
 
-Чего НЕ хватает, чтобы ответить однозначно:
-- deepseek с инструментами на 02 и 05 — ни одной измеренной клетки;
-- gpt-5.4-mini на 05 с инструментами — не измерена;
-- регрессии: 01, 04, 06, 07 с инструментами не прогонялись ни на одной модели, кроме
-  gpt-5.4-mini/03 (зелёная);
-- opus с инструментами — ни одной клетки.
+Missing evidence needed for a definitive answer:
 
-## Отдельная находка: deepseek + петля инструментов
+- deepseek with tools on 02 and 05: no measured cells;
+- gpt-5.4-mini with tools on 05: not measured;
+- regressions: 01, 04, 06, and 07 with tools were not run on any model except the green
+  gpt-5.4-mini/03 cell;
+- opus with tools: no measured cells.
 
-Три клетки (01, 03, 04) упали не по кредиту, а с `No object generated: could not parse
-the response`. Это не 402 и не совпадение: deepseek-v3.2 срывает structured output,
-когда в запросе есть определения инструментов и история вызовов. На одношаговом пути
-(контроль) deepseek отдавал разбираемый JSON во всех клетках. **Для самой дешёвой модели
-инструменты сегодня — регрессия, а не улучшение.**
+## Separate Finding: deepseek and the Tool Loop
 
-## Рекомендация
+Three cells (01, 03, 04) failed for a reason other than credit: `No object generated: could
+not parse the response`. This was not a 402 and not random. `deepseek-v3.2` breaks
+structured output when the request includes tool definitions and tool-call history. On the
+single-step control path, deepseek returned parseable JSON in every cell. **For the
+cheapest model, tools are currently a regression, not an improvement.**
 
-Не откатывать, но и не включать в гейт, пока набор не прогнан целиком.
+## Recommendation
 
-Случай «качество не выросло, а стоимость выросла» не подтвердился: на измеренном A/B
-качество выросло (FAIL → PASS) при +34% стоимости — это хорошая сделка, если она
-удержится на остальных фикстурах. Но узкая одношаговая петля остаётся рабочим MVP, и
-у неё сейчас два преимущества: она дешевле и она не ломает deepseek.
+Do not revert, but do not enable tools in the gate until the full suite has run.
 
-Что нужно, чтобы закрыть вопрос: ≈$3 кредита и один прогон
-`npx promptfoo eval --config evals/promptfooconfig.yaml -j 1`, плюс контроль
-`--config evals/promptfooconfig.control.yaml` для сравнения на тех же фикстурах.
+The scenario "quality did not improve while cost increased" was not confirmed: on the
+measured A/B, quality improved from FAIL to PASS at +34% cost. That is a good trade if it
+holds on the other fixtures. The narrow single-step loop remains a working MVP and has two
+advantages right now: it is cheaper, and it does not break deepseek.
+
+To close the question: add about $3 of credit and run
+`npx promptfoo eval --config evals/promptfooconfig.yaml -j 1`, plus the control
+`--config evals/promptfooconfig.control.yaml` for comparison on the same fixtures.

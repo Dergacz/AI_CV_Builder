@@ -1,10 +1,11 @@
-# 05 — промпт изменён, контракт и фикстуры — нет
+# 05 - Prompt Changed, Contract and Fixtures Did Not
 
-Ревьюер обязан заметить: промпт и JSON Schema для strict mode теперь разрешают код `date_gaps`,
-а `draftWarningCodeSchema` в `src/lib/cv-draft.ts` его не знает — модель вернёт валидный по strict
-mode ответ, `generatedCvDraftSchema.safeParse` его отвергнет, и генерация свалится в
-`schemaMismatch` → `generation_failed`. Отказ **недетерминированный**: ломается только у людей с
-разрывом в опыте, то есть ровно у целевой аудитории фичи.
+The reviewer must notice that the prompt and strict-mode JSON Schema now allow the warning
+code `date_gaps`, but `draftWarningCodeSchema` in `src/lib/cv-draft.ts` does not know that
+code. The model can return a response valid under strict mode, then
+`generatedCvDraftSchema.safeParse` rejects it and generation falls into `schemaMismatch`
+then `generation_failed`. The failure is **nondeterministic**: it only breaks for users
+with experience gaps, exactly the target audience for the feature.
 
-Тестовая фикстура `buildModelContent()` в `cv-generation.test.ts` не обновлена и `date_gaps`
-никогда не эмитит, поэтому весь набор остаётся зелёным и дефект уезжает в прод.
+The `buildModelContent()` test fixture in `cv-generation.test.ts` was not updated and never
+emits `date_gaps`, so the whole suite stays green while the defect ships.

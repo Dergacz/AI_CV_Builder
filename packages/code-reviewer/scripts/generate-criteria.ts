@@ -24,11 +24,23 @@ const DOC_LABEL = "context/review-criteria.md";
  * regenerating a field under a name that no longer describes it.
  */
 const NAMES = [
-  { number: 1, title: "Синхронность контрактов", key: "contractSync", slug: "contract-sync", name: "Contract synchrony" },
-  { number: 2, title: "Честный отказ", key: "honestFailure", slug: "honest-failure", name: "Honest failure" },
-  { number: 3, title: "Тест, который может упасть", key: "falsifiableTests", slug: "falsifiable-tests", name: "Tests that can fail" },
-  { number: 4, title: "Доказанная граница доступа", key: "provenAccessBoundary", slug: "proven-access-boundary", name: "Proven access boundary" },
-  { number: 5, title: "Слой, дубли и стоимость чтения", key: "layeringAndReadability", slug: "layering-and-readability", name: "Layering, duplication and cost of reading" },
+  { number: 1, title: "Contract synchrony", key: "contractSync", slug: "contract-sync", name: "Contract synchrony" },
+  { number: 2, title: "Honest failure", key: "honestFailure", slug: "honest-failure", name: "Honest failure" },
+  { number: 3, title: "Tests that can fail", key: "falsifiableTests", slug: "falsifiable-tests", name: "Tests that can fail" },
+  {
+    number: 4,
+    title: "Proven access boundary",
+    key: "provenAccessBoundary",
+    slug: "proven-access-boundary",
+    name: "Proven access boundary",
+  },
+  {
+    number: 5,
+    title: "Layering, duplication and cost of reading",
+    key: "layeringAndReadability",
+    slug: "layering-and-readability",
+    name: "Layering, duplication and cost of reading",
+  },
 ] as const;
 
 interface ParsedCriterion {
@@ -84,7 +96,7 @@ function parse(markdown: string): ParsedCriterion[] {
     const title = heading[2]!.trim();
 
     try {
-      return { number: Number(heading[1]), title, one: takeBlock(section, "Оценка 1."), ten: takeBlock(section, "Оценка 10.") };
+      return { number: Number(heading[1]), title, one: takeBlock(section, "Score 1."), ten: takeBlock(section, "Score 10.") };
     } catch (error) {
       throw new Error(`Criterion "${title}": ${error instanceof Error ? error.message : String(error)}`);
     }
@@ -98,9 +110,9 @@ function parse(markdown: string): ParsedCriterion[] {
  */
 function describe(entry: (typeof NAMES)[number], parsed: ParsedCriterion): string {
   return [
-    `Критерий ${String(parsed.number)}. ${parsed.title} (${entry.name}). Целое число от 1 до 10.`,
-    `Оценка 1. ${parsed.one}`,
-    `Оценка 10. ${parsed.ten}`,
+    `Criterion ${String(parsed.number)}. ${parsed.title}. Integer from 1 to 10.`,
+    `Score 1. ${parsed.one}`,
+    `Score 10. ${parsed.ten}`,
   ].join("\n\n");
 }
 

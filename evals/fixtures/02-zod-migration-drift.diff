@@ -65,4 +65,4 @@ index 6d4a1b8..e77c910 100644
 --- FIXTURE METADATA (strip before feeding the agent) ---
 fixture: 02-zod-migration-drift
 expectation: one primary finding (contract drift zod <-> migration)
-violates: "Синхронность контрактов" (критерий 1)
+violates: "Contract synchrony" (criterion 1)

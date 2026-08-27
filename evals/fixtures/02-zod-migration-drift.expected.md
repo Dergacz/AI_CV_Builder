@@ -1,10 +1,10 @@
-# 02 — расхождение zod ↔ миграция
+# 02 - zod to Migration Drift
 
-Ревьюер обязан заметить: zod теперь пропускает комментарий до 2000 символов, а
-check-констрейнт в `supabase/migrations/20260724194333_create_feedback.sql`
-(`char_length(comment) <= 1000`) не изменён — комментарий на 1001–2000 символов пройдёт
-валидацию и упадёт на вставке в БД, то есть в 500 вместо честного 400.
+The reviewer must notice that zod now accepts feedback comments up to 2000 characters, but
+the check constraint in `supabase/migrations/20260724194333_create_feedback.sql`
+(`char_length(comment) <= 1000`) was not changed. A 1001-2000 character comment will pass
+validation and fail on database insert, producing a 500 instead of an honest 400.
 
-Требуемое действие: новая миграция, поднимающая констрейнт (плюс перегенерация
-`src/db/database.types.ts`), и тест ровно на границу 1001 символ, идущий до БД, а не только
-до zod.
+Required action: add a migration that raises the constraint, regenerate
+`src/db/database.types.ts`, and add a boundary test for exactly 1001 characters that goes
+through the database rather than stopping at zod.

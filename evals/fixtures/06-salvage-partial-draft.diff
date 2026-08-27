@@ -100,7 +100,7 @@ index 2c9a4f8..6b17e33 100644
 --- FIXTURE METADATA (strip before feeding the agent) ---
 fixture: 06-salvage-partial-draft
 expectation: looks reasonable and is tested, but violates a criterion
-violates: "Честный отказ" (критерий 2 из context/review-criteria.md)
+violates: "Honest failure" (criterion 2 from context/review-criteria.md)
 note:
   The PR reads as a UX win — real complaint, plausible fix, new test, warning still
   surfaced. It nonetheless turns an invalid model response into an `ok: true` draft

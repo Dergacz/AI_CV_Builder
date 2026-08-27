@@ -36,4 +36,4 @@ index 9f3c771..44ab0e2 100644
 --- FIXTURE METADATA (strip before feeding the agent) ---
 fixture: 05-prompt-warning-code-drift
 expectation: one primary finding (prompt emits a code the zod contract rejects; no fixture covers it)
-violates: "Синхронность контрактов" (критерий 1) + "Тест, который может упасть" (критерий 3)
+violates: "Contract synchrony" (criterion 1) + "Tests that can fail" (criterion 3)

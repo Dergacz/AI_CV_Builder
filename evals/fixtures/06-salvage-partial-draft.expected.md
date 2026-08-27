@@ -1,10 +1,11 @@
-# 06 — выглядит нормально, но нарушает критерий «Честный отказ»
+# 06 - Looks Reasonable, But Violates Honest Failure
 
-Ревьюер обязан заметить: невалидный ответ модели теперь превращается в `ok: true` с молча
-опустошёнными секциями — пользователь получает CV без опыта работы вместо честной ошибки, и
-подмену видно только по advisory-варнингу. Плюс `report(..., "schemaMismatch")` на
-отремонтированном пути больше не вызывается, поэтому деградация невидима и в observability.
+The reviewer must notice that an invalid model response is now turned into `ok: true` with
+silently emptied sections. The user receives a CV without work experience instead of an
+honest error, and the substitution is visible only through an advisory warning. Also,
+`report(..., "schemaMismatch")` no longer runs on the repaired path, so the degradation is
+invisible in observability.
 
-Дополнительно (второстепенное): заглушка `"Draft summary unavailable."` — жёстко зашитый
-английский текст, доезжающий до pl/ru-пользователя мимо `*-copy.ts`, а `low_confidence`
-переиспользован в значении, отличном от того, что задаёт промпт.
+Secondary issue: the fallback `"Draft summary unavailable."` is hardcoded English copy
+that reaches Polish and Russian users outside `*-copy.ts`, and `low_confidence` is reused
+with a meaning different from the prompt contract.
