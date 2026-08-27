@@ -1,0 +1,62 @@
+(node:78775) ExperimentalWarning: DecompressInterceptor is experimental and subject to change
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+========================================================================================================================
+⚠️ The current version of promptfoo 0.122.0 is lower than the latest available version 0.122.1.
+
+Please run npx promptfoo@latest or npm install -g promptfoo@latest to update.
+========================================================================================================================
+
+Cache is disabled.
+Starting evaluation eval-gvZ-2026-08-27T07:48:00
+Running 6 test cases (up to 4 at a time)...
+
+┌──────────────────────────────┬──────────────────────────────┬──────────────────────────────┬──────────────────────────────┐
+│ diff                         │ [opus-4.8] reviewer          │ [gpt-5.4-mini] reviewer      │ [deepseek-v3.2] reviewer     │
+├──────────────────────────────┼──────────────────────────────┼──────────────────────────────┼──────────────────────────────┤
+│ file://fixtures/02-zod-migr… │ [PASS]                       │ [FAIL]                       │ [FAIL]                       │
+│                              │ {"verdict":"request-changes… │ {"verdict":"approve","summa… │ {"verdict":"approve","summa… │
+│                              │ PR widens the feedback       │ change updates               │ PR updates the comment       │
+│                              │ `comment` cap from 1000 to   │ `feedbackSchema.comment` in  │ length limit from 1000 to    │
+│                              │ 2000 in `feedbackSchema` and │ `src/lib/feedback.schema.ts… │ 2000 characters,             │
+│                              │ the client counter           │ the client-side              │ synchronizing the zod        │
+│                              │ `COMMENT_MAX_LENGTH`,        │ `COMMENT_MAX_LENGTH` in      │ schema, the React component  │
+│                              │ keeping those two in sync.   │ `src/components/cv/CvFeedba… │ constant, and the test case. │
+│                              │ However, `comment` is        │ and the API test in          │ No other contracts (database │
+│                              │ persisted to a Postgres      │ `src/tests/api/cv-feedback.… │ constraints, JSON Schema)    │
+│                              │ column vi...                 │ togeth...                    │ are involve...               │
+├──────────────────────────────┼──────────────────────────────┼──────────────────────────────┼──────────────────────────────┤
+│ file://fixtures/05-prompt-w… │ [PASS]                       │ [FAIL]                       │ [FAIL]                       │
+│                              │ {"verdict":"request-changes… │ {"verdict":"approve","summa… │ {"verdict":"approve","summa… │
+│                              │ PR adds a new `date_gaps`    │ change updates               │ PR adds a 'date_gaps'        │
+│                              │ warning member to the OpenAI │ `DRAFT_CONTENT_JSON_SCHEMA`  │ warning code to the OpenAI   │
+│                              │ strict-mode JSON Schema      │ in                           │ JSON Schema and the          │
+│                              │ (`DRAFT_CONTENT_JSON_SCHEMA… │ `src/lib/services/cv-genera… │ corresponding instruction to │
+│                              │ and instructs the model to   │ to accept the new            │ the system prompt, keeping   │
+│                              │ emit it, but does not add    │ `date_gaps` warning code and │ the contracts in sync. No    │
+│                              │ the same member to the zod   │ adds matching prompt         │ other contracts (zod schema, │
+│                              │ `generatedCvD...             │ guidance in `SYSTEM_PROMPT`  │ database types) are          │
+│                              │                              │ for when to emit it. This    │ affected, a...               │
+│                              │                              │ diff do...                   │                              │
+└──────────────────────────────┴──────────────────────────────┴──────────────────────────────┴──────────────────────────────┘
+✓ Eval complete (ID: eval-gvZ-2026-08-27T07:48:00)
+
+» View results: promptfoo view
+» Share with your team: https://promptfoo.app
+» Feedback: https://promptfoo.dev/feedback
+
+Total Tokens: 86,446
+  Eval: 86,446 (84,342 prompt, 2,104 completion)
+
+Providers:
+  agent:anthropic/claude-opus-4.8:no-tools: 44,841 (0 requests; 43,297 prompt, 1,544 completion)
+  agent:openai/gpt-5.4-mini:no-tools: 32,058 (0 requests; 31,780 prompt, 278 completion)
+  agent:deepseek/deepseek-v3.2:no-tools: 9,547 (0 requests; 9,265 prompt, 282 completion)
+
+Results:
+  ✓ 2 passed (33.33%)
+  ✗ 4 failed (66.67%)
+  0 errors (0%)
+Duration: 16s (concurrency: 4)
+
+Writing output to evals/results/2026-08-27-tools/control-results.json
